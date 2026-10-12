@@ -91,6 +91,15 @@ function App() {
     const rawPath = normalizePath(window.location.pathname);
     const stored = getStoredUser();
 
+    // Priority routes accessible regardless of auth state (e.g. email reset link clicked while session cached)
+    if (rawPath === '/reset-password' || rawPath === '/resetpassword') {
+      const token = new URLSearchParams(window.location.search).get('token') || '';
+      return { view: 'reset-password', activePage: 'dashboard', path: window.location.pathname + window.location.search, token, replace: false };
+    }
+    if (rawPath === '/forgot-password' || rawPath === '/forgotpassword') {
+      return { view: 'forgot-password', activePage: 'dashboard', path: '/forgot-password', replace: false };
+    }
+
     if (stored) {
       if (rawPath === '/login' || rawPath === '/signin' || rawPath === '/register' || rawPath === '/signup') {
         return { view: 'app', activePage: 'dashboard', path: '/dashboard', replace: true };
@@ -108,13 +117,6 @@ function App() {
       }
       if (rawPath === '/register' || rawPath === '/signup') {
         return { view: 'register', activePage: 'dashboard', path: '/register', replace: false };
-      }
-      if (rawPath === '/forgot-password' || rawPath === '/forgotpassword') {
-        return { view: 'forgot-password', activePage: 'dashboard', path: '/forgot-password', replace: false };
-      }
-      if (rawPath === '/reset-password' || rawPath === '/resetpassword') {
-        const token = new URLSearchParams(window.location.search).get('token') || '';
-        return { view: 'reset-password', activePage: 'dashboard', path: window.location.pathname + window.location.search, token, replace: false };
       }
       if (PROTECTED_ROUTES[rawPath]) {
         // Protected route accessed by guest: redirect to login but remember target
@@ -142,6 +144,17 @@ function App() {
       const rawPath = normalizePath(window.location.pathname);
       const currentUser = getStoredUser();
 
+      // Priority routes accessible regardless of auth state
+      if (rawPath === '/reset-password' || rawPath === '/resetpassword') {
+        const token = new URLSearchParams(window.location.search).get('token') || '';
+        setRouteState({ view: 'reset-password', activePage: 'dashboard', path: window.location.pathname + window.location.search, token });
+        return;
+      }
+      if (rawPath === '/forgot-password' || rawPath === '/forgotpassword') {
+        setRouteState({ view: 'forgot-password', activePage: 'dashboard', path: '/forgot-password' });
+        return;
+      }
+
       if (currentUser) {
         if (PROTECTED_ROUTES[rawPath]) {
           setRouteState({ view: 'app', activePage: PROTECTED_ROUTES[rawPath], path: rawPath });
@@ -156,11 +169,6 @@ function App() {
           setRouteState({ view: 'login', activePage: 'dashboard', path: '/login' });
         } else if (rawPath === '/register' || rawPath === '/signup') {
           setRouteState({ view: 'register', activePage: 'dashboard', path: '/register' });
-        } else if (rawPath === '/forgot-password' || rawPath === '/forgotpassword') {
-          setRouteState({ view: 'forgot-password', activePage: 'dashboard', path: '/forgot-password' });
-        } else if (rawPath === '/reset-password' || rawPath === '/resetpassword') {
-          const token = new URLSearchParams(window.location.search).get('token') || '';
-          setRouteState({ view: 'reset-password', activePage: 'dashboard', path: window.location.pathname + window.location.search, token });
         } else if (PROTECTED_ROUTES[rawPath]) {
           setReturnUrl(rawPath);
           setRouteState({ view: 'login', activePage: 'dashboard', path: '/login' });

@@ -24,8 +24,15 @@ function FieldError({ msg }) {
 
 export default function ResetPasswordPage({ token: initialToken, onGoLogin, onGoForgotPassword }) {
   const { toast } = useToast();
-  // Get token from prop or URL search param
-  const token = initialToken || new URLSearchParams(window.location.search).get('token') || '';
+  // Resilient token extraction from prop, search param, or hash
+  const token = (
+    initialToken ||
+    new URLSearchParams(window.location.search).get('token') ||
+    (window.location.hash && window.location.hash.includes('token=')
+      ? new URLSearchParams(window.location.hash.slice(window.location.hash.indexOf('?'))).get('token')
+      : '') ||
+    ''
+  ).trim();
 
   const [password, setPassword]               = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

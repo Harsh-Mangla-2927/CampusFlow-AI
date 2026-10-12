@@ -224,8 +224,8 @@ function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForgotPassword }) {
                 </div>
 
                 <div className={`form-group ${errors.password ? 'has-error' : ''}`}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--s1)' }}>
-                    <label className="form-label" htmlFor="login-password" style={{ marginBottom: 0 }}>
+                  <div className="auth-label-row">
+                    <label className="form-label" htmlFor="login-password">
                       Password
                     </label>
                     <button
@@ -233,7 +233,6 @@ function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForgotPassword }) {
                       className="auth-forgot-link"
                       onClick={onGoForgotPassword}
                       id="btn-forgot-password"
-                      style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '11px', fontWeight: 600, cursor: 'pointer', padding: 0 }}
                     >
                       Forgot password?
                     </button>

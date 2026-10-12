@@ -261,8 +261,14 @@ CampusFlow AI Team`;
                 </td>
               </tr>
               <tr>
-                <td style="padding-bottom:24px;text-align:center;">
-                  <a href="${resetUrl}" style="background-color:#E8FF00;color:#080808;font-weight:800;font-size:14px;letter-spacing:0.04em;text-decoration:none;padding:14px 28px;display:inline-block;border-radius:3px;text-transform:uppercase;">Reset Password</a>
+                <td style="padding-bottom:20px;text-align:center;">
+                  <a href="${resetUrl}" target="_blank" rel="noopener noreferrer" style="background-color:#E8FF00;color:#080808;font-weight:800;font-size:14px;letter-spacing:0.04em;text-decoration:none;padding:14px 28px;display:inline-block;border-radius:3px;text-transform:uppercase;">Reset Password</a>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding-bottom:20px;color:#888888;font-size:12px;line-height:1.6;word-break:break-all;">
+                  Button not opening? Copy and paste this URL directly into your browser:<br/>
+                  <a href="${resetUrl}" target="_blank" rel="noopener noreferrer" style="color:#E8FF00;text-decoration:underline;word-break:break-all;">${resetUrl}</a>
                 </td>
               </tr>
               <tr>

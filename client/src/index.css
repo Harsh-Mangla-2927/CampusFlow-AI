@@ -3153,7 +3153,7 @@ main[role="main"] {
   font-weight: 700;
   letter-spacing: 0.04em;
   color: #e5e7eb;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   display: block;
 }
 
@@ -3177,11 +3177,55 @@ main[role="main"] {
   color: #555555;
 }
 
+/* ── AUTH FORM SPACING & ALIGNMENT ───────────────────────── */
+.auth-form-container form {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-form-container .form-group {
+  margin-bottom: 26px;
+}
+
+.auth-form-container .form-group:last-of-type {
+  margin-bottom: 0;
+}
+
+.auth-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.auth-label-row .form-label {
+  margin-bottom: 0;
+}
+
+.auth-forgot-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  line-height: 1;
+  transition: opacity var(--t-fast);
+}
+
+.auth-forgot-link:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
 .btn-full {
   width: 100%;
   justify-content: center;
-  margin-top: var(--s4);
-  padding: 12px;
+  margin-top: 28px;
+  padding: 13px;
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -3191,8 +3235,8 @@ main[role="main"] {
 .auth-demo-box {
   background: #111111;
   border: 1px solid var(--border);
-  padding: 10px 14px;
-  margin-top: var(--s6);
+  padding: 12px 14px;
+  margin-top: 36px;
 }
 
 .auth-demo-box-header {
@@ -3227,7 +3271,7 @@ main[role="main"] {
 .auth-demo-cred {
   font-size: 11px;
   color: var(--fg-secondary);
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .auth-demo-cred code {
@@ -3238,7 +3282,7 @@ main[role="main"] {
 }
 
 .auth-switch {
-  margin-top: var(--s6);
+  margin-top: 36px;
   text-align: center;
   font-size: 13px;
   color: var(--fg-muted);

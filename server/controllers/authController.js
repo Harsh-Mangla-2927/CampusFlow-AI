@@ -552,9 +552,16 @@ const forgotPassword = async (req, res, next) => {
     user.passwordResetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
     await user.save({ validateBeforeSave: false });
 
-    // Construct reset link
-    const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/+$/, '');
-    const resetUrl = `${clientUrl}/reset-password?token=${resetToken}`;
+    // Construct reset link using configured CLIENT_URL or request origin
+    let clientBaseUrl = process.env.CLIENT_URL;
+    if (!clientBaseUrl || clientBaseUrl.includes('localhost') || clientBaseUrl.includes('127.0.0.1')) {
+      const incomingOrigin = req.headers.origin || (req.headers.referer ? new URL(req.headers.referer).origin : null);
+      if (incomingOrigin && /^https?:\/\//i.test(incomingOrigin)) {
+        clientBaseUrl = incomingOrigin;
+      }
+    }
+    const clientUrl = (clientBaseUrl || 'http://localhost:5173').replace(/\/+$/, '');
+    const resetUrl = `${clientUrl}/reset-password?token=${encodeURIComponent(resetToken)}`;
 
     // Dispatch email
     await emailService.sendPasswordResetEmail(user.email, resetUrl, user.name);
