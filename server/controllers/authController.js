@@ -1,0 +1,505 @@
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+const emailService = require('../services/emailService');
+const otpService = require('../services/otpService');
+const { validateEducationalEmail, validatePasswordStrength, sanitizeString } = require('../services/validationService');
+
+const generateToken = (id) =>
+  jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+  });
+
+const generateChallengeToken = (payload) =>
+  jwt.sign(
+    { ...payload, purpose: 'OTP_CHALLENGE' },
+    process.env.JWT_SECRET,
+    { expiresIn: '10m' }
+  );
+
+// ── REGISTER ────────────────────────────────────────────────
+// @route   POST /api/auth/register
+// @access  Public
+const register = async (req, res, next) => {
+  try {
+    const { name, email, password, confirmPassword, university, course, semester } = req.body;
+
+    // Required fields
+    const errors = {};
+    if (!sanitizeString(name))       errors.name       = 'Full name is required.';
+    if (!sanitizeString(email))      errors.email      = 'Email address is required.';
+    if (!sanitizeString(password))   errors.password   = 'Password is required.';
+    if (!sanitizeString(university)) errors.university = 'University name is required.';
+    if (!sanitizeString(course))     errors.course     = 'Course name is required.';
+    if (!semester)                   errors.semester   = 'Semester is required.';
+
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({ success: false, message: 'Please fix the highlighted fields.', errors });
+    }
+
+    // Password confirmation
+    if (confirmPassword !== undefined && password !== confirmPassword) {
+      return res.status(400).json({
+        success: false, message: 'Passwords do not match.',
+        errors: { confirmPassword: 'Passwords do not match.' },
+      });
+    }
+
+    // Educational email validation
+    const emailCheck = validateEducationalEmail(email);
+    if (!emailCheck.valid) {
+      return res.status(400).json({
+        success: false, message: emailCheck.message,
+        errors: { email: emailCheck.message },
+      });
+    }
+
+    // Password strength
+    const passCheck = validatePasswordStrength(password);
+    if (!passCheck.valid) {
+      return res.status(400).json({
+        success: false, message: passCheck.message,
+        errors: { password: passCheck.message },
+      });
+    }
+
+    // Duplicate check
+    const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
+    if (existingUser) {
+      return res.status(409).json({
+        success: false, message: 'An account with this email already exists.',
+        errors: { email: 'This email is already registered.' },
+      });
+    }
+
+    // Verify SMTP service availability
+    if (!emailService.isEmailConfigured()) {
+      return res.status(503).json({
+        success: false,
+        message: 'Email delivery service is not configured. Please configure SMTP_USER and SMTP_PASS in server/.env.',
+      });
+    }
+
+    const signupData = {
+      name: sanitizeString(name),
+      email: email.toLowerCase().trim(),
+      password,
+      university: sanitizeString(university),
+      course: sanitizeString(course),
+      semester: Number(semester),
+    };
+
+    const { otpRecord, plainOtp } = await otpService.createOtpChallenge({
+      email: signupData.email,
+      purpose: 'SIGNUP',
+      signupData,
+    });
+
+    await emailService.sendOtpEmail(signupData.email, plainOtp, signupData.name);
+
+    const challengeToken = generateChallengeToken({
+      email: signupData.email,
+      actionPurpose: 'SIGNUP',
+      otpId: otpRecord._id,
+      signupData,
+    });
+
+    res.status(200).json({
+      success: true,
+      requireOtp: true,
+      message: "We've sent a verification code to your email address.",
+      challengeToken,
+      maskedEmail: otpService.maskEmail(signupData.email),
+      resendCooldownSeconds: 60,
+    });
+  } catch (error) {
+    if (error.status === 429) {
+      return res.status(429).json({
+        success: false,
+        message: error.message,
+        retryAfterSeconds: error.retryAfterSeconds,
+      });
+    }
+    next(error);
+  }
+};
+
+// ── LOGIN ────────────────────────────────────────────────────
+// @route   POST /api/auth/login
+// @access  Public
+const login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const errors = {};
+
+    if (!sanitizeString(email))    errors.email    = 'Email is required.';
+    if (!sanitizeString(password)) errors.password = 'Password is required.';
+
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({ success: false, message: 'Email and password are required.', errors });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
+
+    if (!user || !(await user.matchPassword(password))) {
+      return res.status(401).json({
+        success: false, message: 'Invalid email or password.',
+        errors: { general: 'Invalid email or password.' },
+      });
+    }
+
+    // Verify SMTP service availability
+    if (!emailService.isEmailConfigured()) {
+      return res.status(503).json({
+        success: false,
+        message: 'Email delivery service is not configured. Please configure SMTP_USER and SMTP_PASS in server/.env.',
+      });
+    }
+
+    // Credentials valid: Create OTP challenge
+    const { otpRecord, plainOtp } = await otpService.createOtpChallenge({
+      email: user.email,
+      purpose: 'LOGIN',
+      userId: user._id,
+    });
+
+    // Dispatch real OTP email
+    await emailService.sendOtpEmail(user.email, plainOtp, user.name);
+
+    // Issue challenge token (temporary, limited to OTP verification, rejected by protect middleware)
+    const challengeToken = generateChallengeToken({
+      email: user.email,
+      actionPurpose: 'LOGIN',
+      otpId: otpRecord._id,
+      userId: user._id,
+    });
+
+    res.status(200).json({
+      success: true,
+      requireOtp: true,
+      message: "We've sent a verification code to your email address.",
+      challengeToken,
+      maskedEmail: otpService.maskEmail(user.email),
+      resendCooldownSeconds: 60,
+    });
+  } catch (error) {
+    if (error.status === 429) {
+      return res.status(429).json({
+        success: false,
+        message: error.message,
+        retryAfterSeconds: error.retryAfterSeconds,
+      });
+    }
+    next(error);
+  }
+};
+
+// ── VERIFY OTP ───────────────────────────────────────────────
+// @route   POST /api/auth/verify-otp
+// @access  Public
+const verifyOtp = async (req, res, next) => {
+  try {
+    const { challengeToken, otp } = req.body;
+
+    if (!challengeToken || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification challenge token and 6-digit OTP are required.',
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(challengeToken, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        message: 'Your verification session has expired. Please sign in again.',
+      });
+    }
+
+    if (decoded.purpose !== 'OTP_CHALLENGE') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid verification session.',
+      });
+    }
+
+    const verification = await otpService.verifyOtpSubmission({
+      otpId: decoded.otpId,
+      otp: String(otp).trim(),
+      email: decoded.email,
+      purpose: decoded.actionPurpose,
+    });
+
+    if (!verification.valid) {
+      return res.status(verification.status || 400).json({
+        success: false,
+        message: verification.message,
+        remainingAttempts: verification.remainingAttempts,
+      });
+    }
+
+    // Process valid verification by purpose
+    if (decoded.actionPurpose === 'LOGIN') {
+      const user = await User.findById(decoded.userId);
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User account not found.' });
+      }
+
+      user.emailVerified = true;
+      user.emailVerifiedAt = user.emailVerifiedAt || new Date();
+      await user.save();
+
+      const token = generateToken(user._id);
+      return res.status(200).json({
+        success: true,
+        message: 'Email verified successfully. Welcome back!',
+        data: {
+          token,
+          user: {
+            _id: user._id, id: user._id,
+            name: user.name, email: user.email,
+            university: user.university, course: user.course, semester: user.semester,
+          },
+        },
+      });
+    }
+
+    if (decoded.actionPurpose === 'SIGNUP') {
+      const signupData = verification.record.signupData;
+      if (!signupData) {
+        return res.status(400).json({ success: false, message: 'Signup registration data not found.' });
+      }
+
+      const existingUser = await User.findOne({ email: signupData.email.toLowerCase().trim() });
+      if (existingUser) {
+        return res.status(409).json({ success: false, message: 'An account with this email already exists.' });
+      }
+
+      const newUser = await User.create({
+        name: signupData.name,
+        email: signupData.email.toLowerCase().trim(),
+        password: signupData.password,
+        university: signupData.university,
+        course: signupData.course,
+        semester: signupData.semester,
+        emailVerified: true,
+        emailVerifiedAt: new Date(),
+      });
+
+      // Send welcome email asynchronously
+      emailService.sendWelcomeEmail(newUser.email, newUser.name).catch(() => {});
+
+      const token = generateToken(newUser._id);
+      return res.status(201).json({
+        success: true,
+        message: 'Account created and email verified successfully!',
+        data: {
+          token,
+          user: {
+            _id: newUser._id, id: newUser._id,
+            name: newUser.name, email: newUser.email,
+            university: newUser.university, course: newUser.course, semester: newUser.semester,
+          },
+        },
+      });
+    }
+
+    return res.status(400).json({ success: false, message: 'Unrecognized verification purpose.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ── RESEND OTP ───────────────────────────────────────────────
+// @route   POST /api/auth/resend-otp
+// @access  Public
+const resendOtp = async (req, res, next) => {
+  try {
+    const { challengeToken } = req.body;
+
+    if (!challengeToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Challenge token is required to resend verification code.',
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(challengeToken, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification session has expired. Please sign in again.',
+      });
+    }
+
+    if (decoded.purpose !== 'OTP_CHALLENGE') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid verification session.',
+      });
+    }
+
+    if (!emailService.isEmailConfigured()) {
+      return res.status(503).json({
+        success: false,
+        message: 'Email delivery service is not configured. Please configure SMTP_USER and SMTP_PASS in server/.env.',
+      });
+    }
+
+    let recipientName = 'Student';
+    if (decoded.userId) {
+      const user = await User.findById(decoded.userId);
+      if (user) recipientName = user.name;
+    } else if (decoded.signupData && decoded.signupData.name) {
+      recipientName = decoded.signupData.name;
+    }
+
+    const { otpRecord, plainOtp } = await otpService.createOtpChallenge({
+      email: decoded.email,
+      purpose: decoded.actionPurpose,
+      userId: decoded.userId || null,
+      signupData: decoded.signupData || null,
+    });
+
+    await emailService.sendOtpEmail(decoded.email, plainOtp, recipientName);
+
+    const newChallengeToken = generateChallengeToken({
+      email: decoded.email,
+      actionPurpose: decoded.actionPurpose,
+      otpId: otpRecord._id,
+      userId: decoded.userId || null,
+      signupData: decoded.signupData || null,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'A new verification code has been sent to your email.',
+      challengeToken: newChallengeToken,
+      maskedEmail: otpService.maskEmail(decoded.email),
+      resendCooldownSeconds: 60,
+    });
+  } catch (error) {
+    if (error.status === 429) {
+      return res.status(429).json({
+        success: false,
+        message: error.message,
+        retryAfterSeconds: error.retryAfterSeconds,
+      });
+    }
+    next(error);
+  }
+};
+
+// ── GET ME ────────────────────────────────────────────────────
+// @route   GET /api/auth/me
+// @access  Private
+const getMe = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    res.status(200).json({ success: true, data: { user } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ── UPDATE PROFILE ─────────────────────────────────────────
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateProfile = async (req, res, next) => {
+  try {
+    const { name, university, course, semester, section, rollNumber } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    const errors = {};
+    if (name !== undefined) {
+      const n = sanitizeString(name);
+      if (n.length < 2) errors.name = 'Name must be at least 2 characters.';
+      else user.name = n;
+    }
+    if (university !== undefined) user.university = sanitizeString(university);
+    if (course     !== undefined) user.course     = sanitizeString(course);
+    if (semester   !== undefined) {
+      const s = Number(semester);
+      if (isNaN(s) || s < 1 || s > 8) errors.semester = 'Semester must be 1–8.';
+      else user.semester = s;
+    }
+    if (section    !== undefined) user.section    = sanitizeString(section);
+    if (rollNumber !== undefined) user.rollNumber = sanitizeString(rollNumber);
+
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({ success: false, message: 'Please fix the highlighted fields.', errors });
+    }
+
+    const updated = await user.save();
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully.',
+      data: {
+        user: {
+          _id: updated._id, id: updated._id,
+          name: updated.name, email: updated.email,
+          university: updated.university, course: updated.course,
+          semester: updated.semester, section: updated.section, rollNumber: updated.rollNumber,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ── CHANGE PASSWORD ────────────────────────────────────────
+// @route   PUT /api/auth/password
+// @access  Private
+const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+    const user = await User.findById(req.user._id).select('+password');
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Current and new password are required.' });
+    }
+    if (!(await user.matchPassword(currentPassword))) {
+      return res.status(401).json({
+        success: false, message: 'Current password is incorrect.',
+        errors: { currentPassword: 'Current password is incorrect.' },
+      });
+    }
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false, message: 'New passwords do not match.',
+        errors: { confirmPassword: 'New passwords do not match.' },
+      });
+    }
+    const passCheck = validatePasswordStrength(newPassword);
+    if (!passCheck.valid) {
+      return res.status(400).json({
+        success: false, message: passCheck.message,
+        errors: { newPassword: passCheck.message },
+      });
+    }
+
+    user.password = newPassword;
+    await user.save();
+    res.status(200).json({ success: true, message: 'Password changed successfully.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  register,
+  login,
+  verifyOtp,
+  resendOtp,
+  getMe,
+  updateProfile,
+  changePassword,
+};
