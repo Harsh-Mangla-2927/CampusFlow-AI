@@ -89,14 +89,6 @@ function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForgotPassword }) {
     }
   };
 
-  const fillDemoAccount = () => {
-    setF({
-      email: 'harsh@chitkara.edu.in',
-      password: 'demo1234',
-    });
-    setErrors({});
-  };
-
   return (
     <div className="auth-shell">
       {/* ── LEFT PANEL: BRANDING & PRODUCT PREVIEW ────────────── */}
@@ -278,24 +270,6 @@ function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForgotPassword }) {
                   )}
                 </button>
               </form>
-
-              {/* Demo account helper for instant evaluator testing */}
-              <div className="auth-demo-box">
-                <div className="auth-demo-box-header">
-                  <span>Evaluator Demo Account</span>
-                  <button
-                    type="button"
-                    className="auth-demo-fill-btn"
-                    onClick={fillDemoAccount}
-                    id="btn-fill-demo"
-                  >
-                    Auto-fill
-                  </button>
-                </div>
-                <div className="auth-demo-cred">
-                  <code>harsh@chitkara.edu.in</code> · <code>demo1234</code>
-                </div>
-              </div>
 
               <div className="auth-switch">
                 Don't have an account yet?{' '}

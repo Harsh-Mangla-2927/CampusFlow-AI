@@ -38,6 +38,20 @@ async function runResetTests() {
   const initialPassword = 'demo1234';
   const newPassword = 'NewSecretPassword@2026';
 
+  let testUser = await User.findOne({ email: testEmail });
+  if (!testUser) {
+    testUser = await User.create({
+      name: 'Harsh Chitkara Test',
+      email: testEmail,
+      password: initialPassword,
+      isEmailVerified: true,
+      university: 'Chitkara University',
+      course: 'B.Tech CSE',
+      semester: 4,
+    });
+    console.log(`  👤 Created test user ${testEmail} for reset suite\n`);
+  }
+
   try {
     // 1. Validation: Missing Email
     console.log('--- 1. Testing Forgot Password Input Validation ---');
