@@ -9,7 +9,7 @@ function FieldError({ msg }) {
   return <div className="field-error" role="alert">{msg}</div>;
 }
 
-function LoginPage({ onLogin, onGoRegister, onGoLanding }) {
+function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForgotPassword }) {
   const { toast } = useToast();
   const [f, setF]             = useState({ email: '', password: '' });
   const [errors, setErrors]   = useState({});
@@ -228,6 +228,15 @@ function LoginPage({ onLogin, onGoRegister, onGoLanding }) {
                     <label className="form-label" htmlFor="login-password" style={{ marginBottom: 0 }}>
                       Password
                     </label>
+                    <button
+                      type="button"
+                      className="auth-forgot-link"
+                      onClick={onGoForgotPassword}
+                      id="btn-forgot-password"
+                      style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '11px', fontWeight: 600, cursor: 'pointer', padding: 0 }}
+                    >
+                      Forgot password?
+                    </button>
                   </div>
                   <div className="input-with-icon">
                     <input

@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const emailService = require('../services/emailService');
@@ -494,11 +495,162 @@ const changePassword = async (req, res, next) => {
   }
 };
 
+// ── FORGOT PASSWORD ─────────────────────────────────────────
+// @route   POST /api/auth/forgot-password
+// @access  Public
+const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email || !sanitizeString(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'University email address is required.',
+        errors: { email: 'University email address is required.' },
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Check educational domain policy
+    const emailCheck = validateEducationalEmail(normalizedEmail);
+    if (!emailCheck.valid) {
+      return res.status(400).json({
+        success: false,
+        message: emailCheck.message,
+        errors: { email: emailCheck.message },
+      });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail });
+
+    // Generic safe response to prevent user enumeration
+    const genericSuccessMsg = 'If an account exists for that email address, password reset instructions will be sent if the account is eligible.';
+
+    if (!user) {
+      // Intentionally return generic success without revealing email doesn't exist
+      return res.status(200).json({
+        success: true,
+        message: genericSuccessMsg,
+      });
+    }
+
+    // Verify SMTP service availability
+    if (!emailService.isEmailConfigured()) {
+      return res.status(503).json({
+        success: false,
+        message: 'Email delivery service is not configured. Please configure SMTP_USER and SMTP_PASS in server/.env.',
+      });
+    }
+
+    // Generate cryptographically secure 32-byte reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // Store hashed token with 15-minute expiration
+    user.passwordResetToken = hashedToken;
+    user.passwordResetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+    await user.save({ validateBeforeSave: false });
+
+    // Construct reset link
+    const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/+$/, '');
+    const resetUrl = `${clientUrl}/reset-password?token=${resetToken}`;
+
+    // Dispatch email
+    await emailService.sendPasswordResetEmail(user.email, resetUrl, user.name);
+
+    return res.status(200).json({
+      success: true,
+      message: genericSuccessMsg,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ── RESET PASSWORD ──────────────────────────────────────────
+// @route   POST /api/auth/reset-password
+// @access  Public
+const resetPassword = async (req, res, next) => {
+  try {
+    const { token, password, confirmPassword } = req.body;
+    const errors = {};
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password reset token is required or link is malformed.',
+        errors: { token: 'Password reset token is missing.' },
+      });
+    }
+
+    if (!password) {
+      errors.password = 'New password is required.';
+    }
+    if (!confirmPassword) {
+      errors.confirmPassword = 'Password confirmation is required.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({ success: false, message: 'Please provide all required fields.', errors });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Passwords do not match.',
+        errors: { confirmPassword: 'Passwords do not match.' },
+      });
+    }
+
+    // Password strength check
+    const passCheck = validatePasswordStrength(password);
+    if (!passCheck.valid) {
+      return res.status(400).json({
+        success: false,
+        message: passCheck.message,
+        errors: { password: passCheck.message },
+      });
+    }
+
+    // Hash submitted token to compare with DB
+    const hashedToken = crypto.createHash('sha256').update(String(token).trim()).digest('hex');
+
+    // Find user with active, unexpired reset token
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: new Date() },
+    }).select('+passwordResetToken +passwordResetExpires');
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password reset token is invalid or has expired. Please request a new link.',
+      });
+    }
+
+    // Update password and clear reset token fields
+    user.password = password;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Password has been reset successfully. Please sign in with your new password.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
   verifyOtp,
   resendOtp,
+  forgotPassword,
+  resetPassword,
   getMe,
   updateProfile,
   changePassword,

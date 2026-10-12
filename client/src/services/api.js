@@ -104,13 +104,15 @@ const request = async (endpoint, options = {}) => {
 // ── Auth API ─────────────────────────────────────────────────
 
 export const authAPI = {
-  register:       (data) => request('/auth/register',   { method: 'POST', body: JSON.stringify(data) }),
-  login:          (data) => request('/auth/login',      { method: 'POST', body: JSON.stringify(data) }),
-  verifyOtp:      (data) => request('/auth/verify-otp', { method: 'POST', body: JSON.stringify(data) }),
-  resendOtp:      (data) => request('/auth/resend-otp', { method: 'POST', body: JSON.stringify(data) }),
+  register:       (data) => request('/auth/register',        { method: 'POST', body: JSON.stringify(data) }),
+  login:          (data) => request('/auth/login',           { method: 'POST', body: JSON.stringify(data) }),
+  verifyOtp:      (data) => request('/auth/verify-otp',      { method: 'POST', body: JSON.stringify(data) }),
+  resendOtp:      (data) => request('/auth/resend-otp',      { method: 'POST', body: JSON.stringify(data) }),
+  forgotPassword: (data) => request('/auth/forgot-password', { method: 'POST', body: JSON.stringify(data) }),
+  resetPassword:  (data) => request('/auth/reset-password',  { method: 'POST', body: JSON.stringify(data) }),
   getMe:          ()     => request('/auth/me'),
-  updateProfile:  (data) => request('/auth/profile',    { method: 'PUT',  body: JSON.stringify(data) }),
-  changePassword: (data) => request('/auth/password',   { method: 'PUT',  body: JSON.stringify(data) }),
+  updateProfile:  (data) => request('/auth/profile',         { method: 'PUT',  body: JSON.stringify(data) }),
+  changePassword: (data) => request('/auth/password',        { method: 'PUT',  body: JSON.stringify(data) }),
 };
 
 // ── Subjects API ─────────────────────────────────────────────

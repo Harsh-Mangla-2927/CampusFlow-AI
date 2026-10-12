@@ -191,4 +191,124 @@ async function sendWelcomeEmail(toEmail, userName) {
   }
 }
 
-module.exports = { sendOtpEmail, sendWelcomeEmail, isEmailConfigured };
+/**
+ * Send a password reset email.
+ * @param {string} toEmail
+ * @param {string} resetUrl
+ * @param {string} userName
+ * @returns {Promise<{ sent: boolean }>}
+ */
+async function sendPasswordResetEmail(toEmail, resetUrl, userName = 'Student') {
+  if (!isEmailConfigured()) {
+    const err = new Error('Email service is not configured. Please configure SMTP_USER and SMTP_PASS in server/.env.');
+    err.code = 'EMAIL_NOT_CONFIGURED';
+    err.status = 503;
+    throw err;
+  }
+
+  const tp = getTransporter();
+  if (!tp) {
+    const err = new Error('Email transport could not be initialized. Please check SMTP configuration in server/.env.');
+    err.code = 'EMAIL_INIT_FAILED';
+    err.status = 503;
+    throw err;
+  }
+
+  const from = process.env.EMAIL_FROM || `CampusFlow AI <noreply@campusflow.ai>`;
+  const subject = 'Reset Your CampusFlow AI Password';
+
+  const textContent = `Hello,
+
+We received a request to reset the password for your CampusFlow AI account.
+
+Click the secure link below to choose a new password:
+${resetUrl}
+
+This link expires in 15 minutes.
+
+If you did not request this password reset, you can safely ignore this email.
+
+CampusFlow AI Team`;
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Reset Your CampusFlow AI Password</title>
+    </head>
+    <body style="margin:0;padding:0;background-color:#080808;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#ffffff;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#080808;padding:40px 16px;">
+        <tr>
+          <td align="center">
+            <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#111111;border:1px solid #222222;border-radius:4px;padding:36px 32px;text-align:left;">
+              <tr>
+                <td style="padding-bottom:24px;">
+                  <div style="background-color:#E8FF00;width:38px;height:38px;line-height:38px;text-align:center;font-weight:900;font-size:15px;color:#080808;display:inline-block;border-radius:2px;">CF</div>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding-bottom:12px;">
+                  <h1 style="color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-0.02em;margin:0;text-transform:uppercase;">Reset Your Password</h1>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding-bottom:20px;color:#a0a0a0;font-size:14px;line-height:1.6;">
+                  Hello ${userName || 'Student'},<br/><br/>
+                  We received a request to reset the password for your CampusFlow AI account.<br/>
+                  Click the secure link below to choose a new password:
+                </td>
+              </tr>
+              <tr>
+                <td style="padding-bottom:24px;text-align:center;">
+                  <a href="${resetUrl}" style="background-color:#E8FF00;color:#080808;font-weight:800;font-size:14px;letter-spacing:0.04em;text-decoration:none;padding:14px 28px;display:inline-block;border-radius:3px;text-transform:uppercase;">Reset Password</a>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding-bottom:20px;color:#777777;font-size:12px;line-height:1.6;">
+                  This link expires in 15 minutes.<br/>
+                  If you did not request this password reset, you can safely ignore this email.
+                </td>
+              </tr>
+              <tr>
+                <td style="border-top:1px solid #222222;padding-top:20px;color:#555555;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">
+                  CampusFlow AI Team · Academic Intelligence Platform
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  try {
+    await tp.sendMail({
+      from,
+      to: toEmail,
+      subject,
+      text: textContent,
+      html: htmlContent,
+    });
+    return { sent: true };
+  } catch (sendErr) {
+    console.error('[EmailService] SMTP delivery failed for password reset:', sendErr.message);
+    let userMsg = `Failed to send password reset email: ${sendErr.message}`;
+    if (sendErr.message && (sendErr.message.includes('535') || sendErr.message.includes('BadCredentials'))) {
+      userMsg = 'SMTP authentication failed. If using Gmail, you must generate and use a 16-character App Password rather than your standard Gmail password.';
+    }
+    const err = new Error(userMsg);
+    err.code = 'EMAIL_SEND_FAILED';
+    err.status = 502;
+    throw err;
+  }
+}
+
+module.exports = {
+  sendOtpEmail,
+  sendWelcomeEmail,
+  sendPasswordResetEmail,
+  isEmailConfigured,
+};

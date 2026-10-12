@@ -5,6 +5,8 @@ import { getStoredUser, updateStoredUser, clearAuth } from './services/api';
 const LandingPage          = lazy(() => import('./pages/LandingPage'));
 const LoginPage            = lazy(() => import('./pages/LoginPage'));
 const RegisterPage         = lazy(() => import('./pages/RegisterPage'));
+const ForgotPasswordPage   = lazy(() => import('./pages/ForgotPasswordPage'));
+const ResetPasswordPage    = lazy(() => import('./pages/ResetPasswordPage'));
 const DashboardPage        = lazy(() => import('./pages/DashboardPage'));
 const SubjectsPage         = lazy(() => import('./pages/SubjectsPage'));
 const TasksPage            = lazy(() => import('./pages/TasksPage'));
@@ -107,6 +109,13 @@ function App() {
       if (rawPath === '/register' || rawPath === '/signup') {
         return { view: 'register', activePage: 'dashboard', path: '/register', replace: false };
       }
+      if (rawPath === '/forgot-password' || rawPath === '/forgotpassword') {
+        return { view: 'forgot-password', activePage: 'dashboard', path: '/forgot-password', replace: false };
+      }
+      if (rawPath === '/reset-password' || rawPath === '/resetpassword') {
+        const token = new URLSearchParams(window.location.search).get('token') || '';
+        return { view: 'reset-password', activePage: 'dashboard', path: window.location.pathname + window.location.search, token, replace: false };
+      }
       if (PROTECTED_ROUTES[rawPath]) {
         // Protected route accessed by guest: redirect to login but remember target
         return { view: 'login', activePage: 'dashboard', path: '/login', redirectFrom: rawPath, replace: true };
@@ -147,6 +156,11 @@ function App() {
           setRouteState({ view: 'login', activePage: 'dashboard', path: '/login' });
         } else if (rawPath === '/register' || rawPath === '/signup') {
           setRouteState({ view: 'register', activePage: 'dashboard', path: '/register' });
+        } else if (rawPath === '/forgot-password' || rawPath === '/forgotpassword') {
+          setRouteState({ view: 'forgot-password', activePage: 'dashboard', path: '/forgot-password' });
+        } else if (rawPath === '/reset-password' || rawPath === '/resetpassword') {
+          const token = new URLSearchParams(window.location.search).get('token') || '';
+          setRouteState({ view: 'reset-password', activePage: 'dashboard', path: window.location.pathname + window.location.search, token });
         } else if (PROTECTED_ROUTES[rawPath]) {
           setReturnUrl(rawPath);
           setRouteState({ view: 'login', activePage: 'dashboard', path: '/login' });
@@ -200,6 +214,18 @@ function App() {
     navigateTo('landing', 'dashboard', '/');
   }, [navigateTo]);
 
+  const handleGoForgotPassword = useCallback(() => {
+    navigateTo('forgot-password', 'dashboard', '/forgot-password');
+  }, [navigateTo]);
+
+  const handleGoResetPassword = useCallback((token) => {
+    const path = token ? `/reset-password?token=${token}` : '/reset-password';
+    setRouteState({ view: 'reset-password', activePage: 'dashboard', path, token });
+    if (window.location.pathname + window.location.search !== path) {
+      window.history.pushState(null, '', path);
+    }
+  }, []);
+
   const handleLogin = useCallback((userData) => {
     setUser(userData);
     const targetPath = returnUrl && PROTECTED_ROUTES[returnUrl] ? returnUrl : '/dashboard';
@@ -239,6 +265,7 @@ function App() {
           onLogin={handleLogin}
           onGoRegister={handleGoRegister}
           onGoLanding={handleGoLanding}
+          onGoForgotPassword={handleGoForgotPassword}
         />
       </Suspense>
     );
@@ -251,6 +278,29 @@ function App() {
           onLogin={handleLogin}
           onGoLogin={handleGoLogin}
           onGoLanding={handleGoLanding}
+        />
+      </Suspense>
+    );
+  }
+
+  if (view === 'forgot-password') {
+    return (
+      <Suspense fallback={<Spinner />}>
+        <ForgotPasswordPage
+          onGoLogin={handleGoLogin}
+          onGoLanding={handleGoLanding}
+        />
+      </Suspense>
+    );
+  }
+
+  if (view === 'reset-password') {
+    return (
+      <Suspense fallback={<Spinner />}>
+        <ResetPasswordPage
+          token={routeState.token}
+          onGoLogin={handleGoLogin}
+          onGoForgotPassword={handleGoForgotPassword}
         />
       </Suspense>
     );
