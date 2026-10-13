@@ -145,8 +145,8 @@ export default function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
 
   return (
     <div className="auth-shell">
-      {/* ── LEFT PANEL: REGISTRATION VALUE PROPOSITION ────────── */}
-      <div className="auth-left">
+      {/* ── LEFT PANEL: CINEMATIC BRAND EXPERIENCE ────────── */}
+      <aside className="auth-left" aria-label="CampusFlow AI Registration Overview">
         <div className="auth-left-bg" aria-hidden="true">
           <img
             src="/auth-space.jpg"
@@ -157,67 +157,69 @@ export default function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
         </div>
 
         <div className="auth-left-inner">
-          <div className="auth-brand-badge">
-            <span className="auth-brand-tag">Student Registration</span>
+          <div className="auth-left-top">
+            <div className="auth-brand-badge">
+              <span className="auth-brand-tag">Academic Intelligence System</span>
+            </div>
+            <div className="auth-headline">
+              <h1 className="auth-headline-title">
+                Make space<br />
+                for better <span className="auth-headline-accent">work.</span>
+              </h1>
+            </div>
+            <p className="auth-tagline">
+              Connect your courses, monitor attendance cutoffs, calculate recovery cadences,
+              and eliminate study schedule collisions in real time.
+            </p>
           </div>
-
-          <div className="auth-headline">
-            <h1 className="auth-headline-title">
-              Academic Intelligence <span className="auth-headline-accent">Starts Here.</span>
-            </h1>
-          </div>
-
-          <p className="auth-tagline">
-            Connect your subjects, track attendance thresholds, predict exam bottlenecks, and eliminate deadline conflicts.
-          </p>
 
           <div className="auth-preview-card" aria-hidden="true">
             <div className="auth-preview-card-header">
               <div className="auth-preview-card-dot" />
-              <span>What You Get Upon Joining</span>
+              <span>Workspace Provisioning · Deterministic</span>
             </div>
 
             <div className="auth-preview-items">
               <div className="auth-preview-item">
                 <div className="auth-preview-item-icon" style={{ color: 'var(--accent)' }}>
-                  <Layers size={15} />
+                  <Layers size={14} />
                 </div>
                 <div>
-                  <div className="auth-preview-item-title">Six Autonomous Engines</div>
-                  <div className="auth-preview-item-desc">Priority scoring, risk alerts, collision defense, study plans, action steps</div>
+                  <div className="auth-preview-item-title">Core Computational Engines</div>
+                  <div className="auth-preview-item-desc">Priority queue, cutoff monitoring & collision defense</div>
                 </div>
               </div>
 
               <div className="auth-preview-item">
                 <div className="auth-preview-item-icon" style={{ color: 'var(--teal)' }}>
-                  <ShieldCheck size={15} />
+                  <ShieldCheck size={14} />
                 </div>
                 <div>
-                  <div className="auth-preview-item-title">Educational Email Protection</div>
-                  <div className="auth-preview-item-desc">Restricted to verified university domains ({ALLOWED_DOMAINS.slice(0, 2).join(', ')})</div>
+                  <div className="auth-preview-item-title">Institutional Domain Verification</div>
+                  <div className="auth-preview-item-desc">Restricted to verified university accounts ({ALLOWED_DOMAINS.slice(0, 2).join(', ')})</div>
                 </div>
               </div>
 
               <div className="auth-preview-item">
                 <div className="auth-preview-item-icon" style={{ color: 'var(--accent)' }}>
-                  <BookOpen size={15} />
+                  <BookOpen size={14} />
                 </div>
                 <div>
                   <div className="auth-preview-item-title">Course-Aligned Tracking</div>
-                  <div className="auth-preview-item-desc">Configured for your exact semester, syllabus, and credit load</div>
+                  <div className="auth-preview-item-desc">Calibrated to your exact semester syllabus and credit weighting</div>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="auth-left-footer">
-            <span>© 2026 CampusFlow AI · Academic Life, Intelligently Organized</span>
+            <span>CampusFlow AI · Academic Intelligence · v2.4.0</span>
           </div>
         </div>
-      </div>
+      </aside>
 
-      {/* ── RIGHT PANEL: REGISTRATION FORM OR OTP VERIFICATION ── */}
-      <div className="auth-right">
+      {/* ── RIGHT PANEL: FOCUSED REGISTRATION FORM ────────── */}
+      <main className="auth-right">
         <div className="auth-form-container">
           {otpStep ? (
             <OtpVerificationForm
@@ -225,7 +227,7 @@ export default function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
               maskedEmail={challengeData.maskedEmail}
               resendCooldownSeconds={challengeData.resendCooldownSeconds}
               title="VERIFY YOUR EMAIL"
-              subtitle="We've sent a verification code to complete your registration."
+              subtitle="We've sent a 6-digit verification code to complete your registration."
               onSuccess={(authData) => {
                 toast.success('Account verified! Welcome to CampusFlow AI.');
                 onLogin(authData.user);
@@ -242,14 +244,14 @@ export default function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
                 id="btn-go-landing"
                 type="button"
               >
-                <ArrowLeft size={13} style={{ marginRight: 6 }} aria-hidden="true" />
+                <ArrowLeft size={13} aria-hidden="true" />
                 Back to Home
               </button>
 
               <div className="auth-form-header">
                 <div className="auth-logo-mark" aria-hidden="true">CF</div>
-                <h2 className="auth-form-title">Create Account</h2>
-                <p className="auth-form-sub">Join CampusFlow AI with your university email.</p>
+                <h2 className="auth-form-title">Create your workspace.</h2>
+                <p className="auth-form-sub">Set up your CampusFlow AI account to organize your academic life.</p>
               </div>
 
               {errors.general && (
@@ -259,7 +261,7 @@ export default function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
               )}
 
               <form onSubmit={handleSubmit} noValidate id="form-register" autoComplete="on">
-                <div className={`form-group ${errors.name ? 'has-error' : ''}`} style={{ marginBottom: 16 }}>
+                <div className={`form-group ${errors.name ? 'has-error' : ''}`}>
                   <label className="form-label" htmlFor="reg-name">
                     Full Name <span className="form-required">*</span>
                   </label>
@@ -273,11 +275,12 @@ export default function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
                     value={f.name}
                     onChange={(e) => set('name', e.target.value)}
                     disabled={loading}
+                    autoFocus
                   />
                   <FieldError msg={errors.name} />
                 </div>
 
-                <div className={`form-group ${errors.email ? 'has-error' : ''}`} style={{ marginBottom: 16 }}>
+                <div className={`form-group ${errors.email ? 'has-error' : ''}`}>
                   <label className="form-label" htmlFor="reg-email">
                     University Email <span className="form-required">*</span>
                   </label>
@@ -299,7 +302,7 @@ export default function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
                 </div>
 
                 {/* University and Course in a balanced 2-column row */}
-                <div className="auth-form-row" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 14, marginBottom: 16 }}>
+                <div className="auth-form-row" style={{ display: 'grid', gridTemplateColumns: '1.15fr 1fr', gap: 12, marginBottom: 18 }}>
                   <div className={`form-group ${errors.university ? 'has-error' : ''}`} style={{ marginBottom: 0 }}>
                     <label className="form-label" htmlFor="reg-university">
                       University <span className="form-required">*</span>
@@ -333,7 +336,7 @@ export default function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
                   </div>
                 </div>
 
-                <div className={`form-group ${errors.semester ? 'has-error' : ''}`} style={{ marginBottom: 16 }}>
+                <div className={`form-group ${errors.semester ? 'has-error' : ''}`}>
                   <label className="form-label" htmlFor="reg-semester">
                     Current Semester <span className="form-required">*</span>
                   </label>
@@ -351,7 +354,7 @@ export default function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
                   <FieldError msg={errors.semester} />
                 </div>
 
-                <div className={`form-group ${errors.password ? 'has-error' : ''}`} style={{ marginBottom: 16 }}>
+                <div className={`form-group ${errors.password ? 'has-error' : ''}`}>
                   <label className="form-label" htmlFor="reg-password">
                     Password <span className="form-required">*</span>
                   </label>
@@ -373,14 +376,14 @@ export default function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
                       className="password-toggle-btn"
                       onClick={() => setShowPw((v) => !v)}
                       aria-label={showPw ? 'Hide password' : 'Show password'}
-                      tabIndex={-1}
+                      tabIndex={0}
                     >
                       {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                   </div>
                   {pwStrength && (
                     <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 0, overflow: 'hidden' }}>
                         <div style={{
                           width: `${(pwStrength.score / 5) * 100}%`,
                           height: '100%',
@@ -388,7 +391,7 @@ export default function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
                           transition: 'all 0.2s ease',
                         }} />
                       </div>
-                      <span style={{ fontSize: 11, color: pwStrength.color, fontWeight: 600 }}>
+                      <span style={{ fontSize: 11, color: pwStrength.color, fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
                         {pwStrength.label}
                       </span>
                     </div>
@@ -418,7 +421,7 @@ export default function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
                       className="password-toggle-btn"
                       onClick={() => setShowCpw((v) => !v)}
                       aria-label={showCpw ? 'Hide password' : 'Show password'}
-                      tabIndex={-1}
+                      tabIndex={0}
                     >
                       {showCpw ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
@@ -450,7 +453,7 @@ export default function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
             </>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }
