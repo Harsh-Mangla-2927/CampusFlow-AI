@@ -935,7 +935,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
                 title="PLATFORM THESIS"
                 subtitle="ARCHITECTURAL FOUNDATION"
               />
-              <h2 id="statement-heading" className="section-heading">
+              <h2 id="statement-heading" className="section-heading thesis-editorial-headline">
                 Your semester.<br />
                 <span className="accent">Under control.</span>
               </h2>
