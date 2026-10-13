@@ -126,7 +126,7 @@ export default function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForg
 
             <div className="auth-preview-items">
               <div className="auth-preview-item">
-                <div className="auth-preview-item-icon" style={{ color: 'var(--amber)' }}>
+                <div className="auth-preview-item-icon" style={{ color: 'var(--accent)' }}>
                   <Zap size={15} />
                 </div>
                 <div>
@@ -146,7 +146,7 @@ export default function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForg
               </div>
 
               <div className="auth-preview-item">
-                <div className="auth-preview-item-icon" style={{ color: 'var(--amber)' }}>
+                <div className="auth-preview-item-icon" style={{ color: 'var(--accent)' }}>
                   <AlertTriangle size={15} />
                 </div>
                 <div>

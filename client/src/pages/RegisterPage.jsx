@@ -179,7 +179,7 @@ export default function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
 
             <div className="auth-preview-items">
               <div className="auth-preview-item">
-                <div className="auth-preview-item-icon" style={{ color: 'var(--amber)' }}>
+                <div className="auth-preview-item-icon" style={{ color: 'var(--accent)' }}>
                   <Layers size={15} />
                 </div>
                 <div>
@@ -199,7 +199,7 @@ export default function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
               </div>
 
               <div className="auth-preview-item">
-                <div className="auth-preview-item-icon" style={{ color: 'var(--amber)' }}>
+                <div className="auth-preview-item-icon" style={{ color: 'var(--accent)' }}>
                   <BookOpen size={15} />
                 </div>
                 <div>

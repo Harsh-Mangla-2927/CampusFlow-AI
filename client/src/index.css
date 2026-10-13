@@ -3636,10 +3636,10 @@ main[role="main"] {
   font-size: 24px;
   font-weight: 800;
   font-family: var(--font-mono, monospace);
-  background: #101010;
-  border: 1px solid #2a2a2a;
+  background: var(--input);
+  border: 1px solid var(--border);
   color: var(--accent);
-  border-radius: 4px;
+  border-radius: var(--r-none, 0px);
   transition: all 0.15s ease;
   caret-color: var(--accent);
   padding: 0;
@@ -3648,13 +3648,13 @@ main[role="main"] {
 .otp-input-box:focus {
   border-color: var(--accent);
   background: #181818;
-  box-shadow: 0 0 0 2px rgba(232, 255, 0, 0.25);
+  box-shadow: 0 0 0 2px var(--accent-dim);
   outline: none;
 }
 
 .otp-input-box.filled {
-  border-color: #444;
-  background: #141414;
+  border-color: var(--border-strong);
+  background: var(--bg-surface);
 }
 
 .otp-meta-bar {
@@ -3709,7 +3709,7 @@ main[role="main"] {
 
 .otp-change-email-btn {
   background: transparent;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
   color: var(--fg-secondary);
   padding: 10px 16px;
   font-size: 12px;
@@ -3717,7 +3717,7 @@ main[role="main"] {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--r-none, 0px);
   transition: all 0.15s ease;
   display: flex;
   align-items: center;
@@ -3729,7 +3729,7 @@ main[role="main"] {
 .otp-change-email-btn:hover {
   background: rgba(255, 255, 255, 0.04);
   color: var(--fg-primary);
-  border-color: #444;
+  border-color: var(--border-strong);
 }
 /* ═════════════════════════════════════════════════════════════════════
    CINEMATIC EDITORIAL DESIGN SYSTEM & MOTION ARCHITECTURE
