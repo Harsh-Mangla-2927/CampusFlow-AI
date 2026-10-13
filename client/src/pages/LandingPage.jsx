@@ -609,7 +609,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
         </div>
       </section>
 
-      {/* ── SECTION: INTERACTIVE TILTED ACADEMIC IMAGE GALLERY ─────────── */}
+      {/* ── SECTION 02: ATMOSPHERIC ACADEMIC PHOTOGRAPHY GALLERY ───────── */}
       <section
         className="academic-gallery-section"
         id="section-gallery"
@@ -619,16 +619,15 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
           <div className="gallery-header-block">
             <span className="statement-eyebrow">02 // ACADEMIC IMAGERY · FOCUS CADENCE</span>
             <h2 id="gallery-heading" className="statement-large-text">
-              Atmospheres of deep academic <span style={{ color: 'var(--amber)' }}>focus</span>.
+              Atmospheres of deep academic <span style={{ color: 'var(--accent)' }}>focus</span>.
             </h2>
-            <p className="statement-subtext" style={{ marginTop: 16 }}>
-              Engineered around how university students actually work — from intense quiet periods in
-              brutalist reading rooms to late-night syllabus synthesis and collaborative project milestones.
+            <p className="statement-subtext" style={{ marginTop: 12 }}>
+              Visualized across genuine university environments — reading halls, syllabus mapping, collaboration, and revision buffers.
             </p>
           </div>
 
           <div className="gallery-grid" role="region" aria-label="Academic environment image gallery">
-            <div className="gallery-card gallery-card-tilt-1">
+            <div className="gallery-card gallery-card-stagger-1">
               <div className="gallery-img-wrapper">
                 <img
                   src="/thesis-library.jpg"
@@ -643,7 +642,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
               </div>
             </div>
 
-            <div className="gallery-card gallery-card-tilt-2">
+            <div className="gallery-card gallery-card-stagger-2">
               <div className="gallery-img-wrapper">
                 <img
                   src="/thesis-workspace.jpg"
@@ -658,7 +657,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
               </div>
             </div>
 
-            <div className="gallery-card gallery-card-tilt-3">
+            <div className="gallery-card gallery-card-stagger-3">
               <div className="gallery-img-wrapper">
                 <img
                   src="/thesis-collab.jpg"
@@ -673,7 +672,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
               </div>
             </div>
 
-            <div className="gallery-card gallery-card-tilt-4">
+            <div className="gallery-card gallery-card-stagger-4">
               <div className="gallery-img-wrapper">
                 <img
                   src="/auth-space.jpg"

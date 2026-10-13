@@ -4226,11 +4226,11 @@ main[role="main"] {
   50% { transform: scale(1.6); opacity: 1; }
 }
 
-/* ── Section: Tilted Academic Image Gallery ── */
+/* ── Section 02: Atmospheric Academic Photography Gallery ── */
 .academic-gallery-section {
   position: relative;
-  padding: 100px 48px;
-  background: var(--bg-surface);
+  padding: 100px 48px 120px;
+  background: var(--background);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   overflow: hidden;
@@ -4243,68 +4243,82 @@ main[role="main"] {
 }
 
 .gallery-header-block {
-  max-width: 780px;
-  margin-bottom: 56px;
+  max-width: 680px;
+  margin-bottom: 48px;
 }
 
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 28px;
-  align-items: center;
+  gap: 24px;
+  align-items: start;
 }
 
 .gallery-card {
   position: relative;
-  border-radius: var(--r-none, 0px);
+  border-radius: 0;
   overflow: hidden;
-  background: var(--bg-base);
+  background: var(--card);
   border: 1px solid var(--border);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease, border-color 0.35s ease;
   will-change: transform;
 }
 
-.gallery-card:hover {
-  transform: translateY(-8px) rotate(0deg) scale(1.02) !important;
-  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.75);
-  border-color: var(--accent-border);
-  z-index: 5;
+/* Staggered vertical rhythm across the 4 panels */
+.gallery-card-stagger-1 {
+  transform: translateY(0);
+}
+.gallery-card-stagger-2 {
+  transform: translateY(28px);
+}
+.gallery-card-stagger-3 {
+  transform: translateY(10px);
+}
+.gallery-card-stagger-4 {
+  transform: translateY(38px);
 }
 
-.gallery-card-tilt-1 { transform: rotate(-2.4deg); }
-.gallery-card-tilt-2 { transform: rotate(1.8deg) translateY(12px); }
-.gallery-card-tilt-3 { transform: rotate(-1.4deg) translateY(-8px); }
-.gallery-card-tilt-4 { transform: rotate(2.2deg) translateY(16px); }
+.gallery-card:hover {
+  transform: translateY(-8px) scale(1.01) !important;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.7);
+  border-color: var(--accent);
+  z-index: 4;
+}
 
 .gallery-img-wrapper {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 4 / 5.2;
   overflow: hidden;
+}
+
+.gallery-card-stagger-2 .gallery-img-wrapper,
+.gallery-card-stagger-4 .gallery-img-wrapper {
+  aspect-ratio: 4 / 5.6;
 }
 
 .gallery-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.35s ease;
   filter: saturate(0.85) contrast(1.05);
 }
 
 .gallery-card:hover .gallery-img {
-  transform: scale(1.06);
+  transform: scale(1.05);
   filter: saturate(1) contrast(1.1);
 }
 
 .gallery-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 40%, rgba(10, 10, 10, 0.94) 100%);
+  background: linear-gradient(180deg, transparent 45%, rgba(10, 10, 10, 0.95) 100%);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 20px 18px;
+  padding: 18px 16px;
   pointer-events: none;
 }
 
@@ -4313,17 +4327,53 @@ main[role="main"] {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   color: var(--accent);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .gallery-card-caption {
   font-family: var(--font-display);
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
   line-height: 1.3;
   color: var(--fg-primary);
+}
+
+@media (max-width: 1024px) {
+  .academic-gallery-section {
+    padding: 72px 28px 88px;
+  }
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  .gallery-card-stagger-1,
+  .gallery-card-stagger-2,
+  .gallery-card-stagger-3,
+  .gallery-card-stagger-4 {
+    transform: none;
+  }
+  .gallery-img-wrapper,
+  .gallery-card-stagger-2 .gallery-img-wrapper,
+  .gallery-card-stagger-4 .gallery-img-wrapper {
+    aspect-ratio: 4 / 4.8;
+  }
+}
+
+@media (max-width: 640px) {
+  .academic-gallery-section {
+    padding: 56px 20px 72px;
+  }
+  .gallery-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .gallery-img-wrapper,
+  .gallery-card-stagger-2 .gallery-img-wrapper,
+  .gallery-card-stagger-4 .gallery-img-wrapper {
+    aspect-ratio: 16 / 10;
+  }
 }
 
 /* ── Section 2: Platform Thesis Editorial Showcase ── */
