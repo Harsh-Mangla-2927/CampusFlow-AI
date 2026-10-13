@@ -68,7 +68,7 @@ function DashboardPage({ onNavigate }) {
       {/* GREETING */}
       <div className="dash-greeting">
         <h1>{getGreeting()}, {user?.name?.split(' ')[0] || 'Student'}.</h1>
-        <p className="dash-greeting-sub">
+        <p className="dash-greeting-sub" style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>
           {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
         </p>
       </div>
@@ -131,23 +131,23 @@ function DashboardPage({ onNavigate }) {
                     <div>
                       <div className="priority-card-title">{task.title}</div>
                       {task.subject && (
-                        <div className="priority-card-subject">{task.subject.name || task.subject.code}</div>
+                        <div className="priority-card-subject" style={{ fontFamily: 'var(--font-mono)' }}>{task.subject.name || task.subject.code}</div>
                       )}
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
                       <div style={{
-                        fontFamily: 'var(--font-body)', fontSize: '1.4rem', fontWeight: 700,
+                        fontFamily: 'var(--font-mono)', fontSize: '1.4rem', fontWeight: 800,
                         lineHeight: 1, letterSpacing: '-0.01em',
                         color: task.priorityLevel === 'HIGH' ? 'var(--danger)' : task.priorityLevel === 'MEDIUM' ? 'var(--warning)' : 'var(--success)',
                       }}>
                         {task.priorityScore || '—'}
                       </div>
-                      <div style={{ fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg-muted)' }}>score</div>
+                      <div style={{ fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--fg-muted)', fontFamily: 'var(--font-mono)' }}>score</div>
                     </div>
                   </div>
                   <div className="priority-card-meta">
-                    <span className="priority-card-meta-item">{deadlineLabel(task.deadline)}</span>
-                    <span className={getPriorityBadgeClass(task.priorityLevel)}>{task.priorityLevel}</span>
+                    <span className="priority-card-meta-item" style={{ fontFamily: 'var(--font-mono)', fontSize: 11 }}>{deadlineLabel(task.deadline)}</span>
+                    <span className={getPriorityBadgeClass(task.priorityLevel)} style={{ fontFamily: 'var(--font-mono)' }}>{task.priorityLevel}</span>
                   </div>
                   {task.priorityExplanation && (
                     <div className="priority-explanation">{task.priorityExplanation}</div>
@@ -186,9 +186,9 @@ function DashboardPage({ onNavigate }) {
                         <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, textTransform: 'uppercase', color: 'var(--fg-primary)', lineHeight: 1 }}>
                           {subj.subjectName || subj.name}
                         </div>
-                        <div style={{ fontSize: 11, color: 'var(--fg-muted)', marginTop: 2 }}>{subj.subjectCode || subj.code}</div>
+                        <div style={{ fontSize: 11, color: 'var(--fg-muted)', marginTop: 2, fontFamily: 'var(--font-mono)' }}>{subj.subjectCode || subj.code}</div>
                       </div>
-                      <span className={`badge badge-${subj.riskLevel === 'HIGH' ? 'high' : 'medium'}`}>{subj.riskLevel}</span>
+                      <span className={`badge badge-${subj.riskLevel === 'HIGH' ? 'high' : 'medium'}`} style={{ fontFamily: 'var(--font-mono)' }}>{subj.riskLevel}</span>
                     </div>
                     <ProgressBar value={attPct} color={color} label={`Attendance: ${attPct}%`} />
                     {subj.riskFactors?.[0] && (
@@ -224,15 +224,15 @@ function DashboardPage({ onNavigate }) {
                   }}>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg-primary)', lineHeight: 1.2 }}>{exam.title}</div>
-                      <div style={{ fontSize: 11, color: 'var(--fg-muted)', marginTop: 2, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                      <div style={{ fontSize: 11, color: 'var(--fg-muted)', marginTop: 2, letterSpacing: '0.04em', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
                         {exam.subject?.name || exam.subject?.code || ''}
                       </div>
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 900, color, letterSpacing: '-0.02em', lineHeight: 1 }}>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.5rem', fontWeight: 900, color, letterSpacing: '-0.02em', lineHeight: 1 }}>
                         {days <= 0 ? 'Today' : `${days}d`}
                       </div>
-                      <div style={{ fontSize: 10, color: 'var(--fg-faint)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                      <div style={{ fontSize: 10, color: 'var(--fg-faint)', letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
                         {days > 0 ? 'remaining' : ''}
                       </div>
                     </div>
@@ -247,7 +247,7 @@ function DashboardPage({ onNavigate }) {
 
       {/* Refresh */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--s8)', paddingTop: 'var(--s6)', borderTop: '1px solid var(--border)' }}>
-        <button className="btn btn-secondary btn-sm" onClick={() => { setLoaded(false); setData(null); }} id="btn-dashboard-refresh">
+        <button className="btn btn-secondary btn-sm" onClick={load} id="btn-dashboard-refresh">
           <RefreshCw size={12} strokeWidth={2} aria-hidden="true" />
           Refresh Dashboard
         </button>
