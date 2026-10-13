@@ -13,6 +13,8 @@ import {
   CheckCircle,
   Clock,
   BookOpen,
+  Menu,
+  X,
 } from 'lucide-react';
 
 /* ── CINEMATIC EDITORIAL LANDING PAGE (REFINED & PROPORTIONED) ─────────────── */
@@ -20,6 +22,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
   const [portalProgress, setPortalProgress] = useState(0);
   const [statementScroll, setStatementScroll] = useState(0);
   const [deckIndex, setDeckIndex] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dragState, setDragState] = useState({
     active: false,
     startX: 0,
@@ -32,6 +35,17 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
   const heroRef = useRef(null);
   const statementRef = useRef(null);
   const deckRef = useRef(null);
+
+  // Close mobile drawer on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileMenuOpen]);
 
   // Check reduced motion preference
   const prefersReducedMotion =
@@ -286,7 +300,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
 
   return (
     <div className="landing-page" id="landing-top">
-      {/* ── FIXED NAVIGATION BAR (~58PX) ───────────────────────────────── */}
+      {/* ── FIXED NAVIGATION BAR (~64PX) ───────────────────────────────── */}
       <header className="cinematic-nav" role="banner">
         <button
           className="cinematic-brand"
@@ -299,6 +313,9 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
         <nav className="cinematic-nav-links" aria-label="Page Sections">
           <button className="cinematic-nav-link" onClick={() => scrollTo('section-statement')}>
             Thesis
+          </button>
+          <button className="cinematic-nav-link" onClick={() => scrollTo('section-gallery')}>
+            Gallery
           </button>
           <button className="cinematic-nav-link" onClick={() => scrollTo('section-deck')}>
             Architecture
@@ -332,7 +349,122 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
             </>
           )}
         </div>
+
+        {/* Mobile Navigation Toggle */}
+        <button
+          className="cinematic-nav-hamburger"
+          onClick={() => setMobileMenuOpen((prev) => !prev)}
+          aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={mobileMenuOpen}
+        >
+          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
       </header>
+
+      {/* Mobile Drawer Overlay */}
+      {mobileMenuOpen && (
+        <div className="cinematic-mobile-drawer" role="dialog" aria-modal="true" aria-label="Mobile Navigation">
+          <div className="cinematic-mobile-drawer-content">
+            <button
+              className="cinematic-mobile-link"
+              onClick={() => {
+                scrollTo('section-statement');
+                setMobileMenuOpen(false);
+              }}
+            >
+              <span>Platform Thesis</span>
+              <span style={{ color: 'var(--amber)' }}>01 →</span>
+            </button>
+            <button
+              className="cinematic-mobile-link"
+              onClick={() => {
+                scrollTo('section-gallery');
+                setMobileMenuOpen(false);
+              }}
+            >
+              <span>Academic Gallery</span>
+              <span style={{ color: 'var(--amber)' }}>02 →</span>
+            </button>
+            <button
+              className="cinematic-mobile-link"
+              onClick={() => {
+                scrollTo('section-deck');
+                setMobileMenuOpen(false);
+              }}
+            >
+              <span>Architecture & Engines</span>
+              <span style={{ color: 'var(--amber)' }}>03 →</span>
+            </button>
+            <button
+              className="cinematic-mobile-link"
+              onClick={() => {
+                scrollTo('section-roster');
+                setMobileMenuOpen(false);
+              }}
+            >
+              <span>Functional Roster</span>
+              <span style={{ color: 'var(--amber)' }}>04 →</span>
+            </button>
+            <button
+              className="cinematic-mobile-link"
+              onClick={() => {
+                scrollTo('section-dates');
+                setMobileMenuOpen(false);
+              }}
+            >
+              <span>Structured Schedule</span>
+              <span style={{ color: 'var(--amber)' }}>05 →</span>
+            </button>
+            {onGoContact && (
+              <button
+                className="cinematic-mobile-link"
+                onClick={() => {
+                  onGoContact();
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <span>Contact Support</span>
+                <span style={{ color: 'var(--teal)' }}>06 →</span>
+              </button>
+            )}
+
+            <div className="cinematic-mobile-actions">
+              {user ? (
+                <button
+                  className="cinematic-nav-cta filled"
+                  onClick={() => {
+                    onEnter();
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  Open Workspace →
+                </button>
+              ) : (
+                <>
+                  <button
+                    className="cinematic-nav-cta"
+                    onClick={() => {
+                      onSignIn();
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    Sign In to Account
+                  </button>
+                  <button
+                    className="cinematic-nav-cta filled"
+                    onClick={() => {
+                      onEnter();
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    Get Started Now →
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── SECTION 1: CINEMATIC PORTAL HERO (STAGE) ───────────────────── */}
       <section className="portal-hero-container" ref={heroRef} aria-label="Portal Introduction">

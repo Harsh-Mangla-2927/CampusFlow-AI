@@ -3721,40 +3721,46 @@ main[role="main"] {
    ═════════════════════════════════════════════════════════════════════ */
 
 /* ── Fixed Navigation Bar (~58px) ── */
+/* ── Fixed Navigation Bar (~64px) ── */
 .cinematic-nav {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 58px;
-  background: rgba(10, 12, 14, 0.88);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  height: 64px;
+  background: rgba(10, 12, 14, 0.90);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border-bottom: 1px solid rgba(237, 231, 220, 0.13);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 40px;
   z-index: 100;
-  transition: background 0.3s ease;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .cinematic-brand {
-  display: flex;
+  display: inline-flex;
   align-items: baseline;
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 18px;
+  font-weight: 800;
+  font-size: 19px;
   letter-spacing: -0.02em;
   color: var(--fg-primary);
   cursor: pointer;
   background: none;
   border: none;
+  transition: opacity 0.2s ease;
+}
+
+.cinematic-brand:hover {
+  opacity: 0.9;
 }
 
 .cinematic-brand-dot {
   color: var(--amber);
-  margin-left: 1px;
+  margin-left: 2px;
 }
 
 .cinematic-nav-links {
@@ -3765,7 +3771,7 @@ main[role="main"] {
 
 .cinematic-nav-link {
   font-family: var(--font-body);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -3774,10 +3780,13 @@ main[role="main"] {
   border: none;
   cursor: pointer;
   transition: color 0.2s ease;
+  padding: 6px 0;
 }
 
-.cinematic-nav-link:hover {
+.cinematic-nav-link:hover,
+.cinematic-nav-link:focus-visible {
   color: var(--amber);
+  outline: none;
 }
 
 .cinematic-nav-actions {
@@ -3788,23 +3797,25 @@ main[role="main"] {
 
 .cinematic-nav-cta {
   font-family: var(--font-body);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  padding: 8px 18px;
+  letter-spacing: 0.12em;
+  padding: 9px 20px;
   border-radius: 999px;
-  border: 1px solid rgba(237, 231, 220, 0.25);
+  border: 1px solid rgba(237, 231, 220, 0.22);
   background: transparent;
   color: var(--fg-primary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.cinematic-nav-cta:hover {
+.cinematic-nav-cta:hover,
+.cinematic-nav-cta:focus-visible {
   border-color: var(--amber);
   color: var(--amber);
   background: var(--amber-dim);
+  outline: none;
 }
 
 .cinematic-nav-cta.filled {
@@ -3814,10 +3825,106 @@ main[role="main"] {
   font-weight: 700;
 }
 
-.cinematic-nav-cta.filled:hover {
+.cinematic-nav-cta.filled:hover,
+.cinematic-nav-cta.filled:focus-visible {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
   color: #0A0C0E;
+  transform: translateY(-1px);
+}
+
+/* Mobile Hamburger Toggle */
+.cinematic-nav-hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid rgba(237, 231, 220, 0.15);
+  background: rgba(23, 27, 31, 0.6);
+  color: var(--fg-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cinematic-nav-hamburger:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+/* Mobile Drawer Overlay */
+.cinematic-mobile-drawer {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 64px);
+  background: rgba(10, 12, 14, 0.97);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid rgba(237, 231, 220, 0.1);
+  z-index: 99;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 24px;
+  animation: mobileDrawerFade 0.22s var(--ease);
+  overflow-y: auto;
+}
+
+@keyframes mobileDrawerFade {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cinematic-mobile-drawer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 440px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.cinematic-mobile-link {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--fg-primary);
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: rgba(23, 27, 31, 0.5);
+  border: 1px solid rgba(237, 231, 220, 0.08);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cinematic-mobile-link:hover,
+.cinematic-mobile-link:focus-visible {
+  background: rgba(232, 145, 60, 0.08);
+  border-color: rgba(232, 145, 60, 0.3);
+  color: var(--amber);
+  outline: none;
+}
+
+.cinematic-mobile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(237, 231, 220, 0.1);
+}
+
+.cinematic-mobile-actions .cinematic-nav-cta {
+  width: 100%;
+  text-align: center;
+  padding: 14px 20px;
+  font-size: 12px;
 }
 
 /* ── Section 1: Cinematic Portal Hero (2.5vh) ── */
@@ -5173,10 +5280,19 @@ main[role="main"] {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .cinematic-nav-links {
     display: none;
   }
+  .cinematic-nav-actions {
+    display: none;
+  }
+  .cinematic-nav-hamburger {
+    display: flex;
+  }
+}
+
+@media (max-width: 768px) {
   .cinematic-statement-section,
   .deck-section,
   .roster-section,
