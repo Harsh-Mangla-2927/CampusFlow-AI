@@ -1218,17 +1218,18 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
         </div>
       </section>
 
-      {/* ── SECTION 6: EDITORIAL CLOSING SECTION WITH CROPPED WORDMARK ──── */}
+      {/* ── SECTION 6: EDITORIAL CLOSING SECTION WITH BALANCED CTAS ────── */}
       <section className="closing-section" aria-labelledby="closing-heading">
         <div className="closing-content">
           <div className="closing-left">
-            <span className="statement-eyebrow">ACADEMIC COMMAND // GET STARTED</span>
+            <span className="statement-eyebrow">ACADEMIC COMMAND // GET STARTED TODAY</span>
             <h2 id="closing-heading" className="closing-headline">
-              Bring your academic life into focus.
+              Build a better rhythm for your{' '}
+              <span style={{ color: 'var(--amber)' }}>academic life</span>.
             </h2>
             <p className="closing-sub">
               Transparent prioritization, automated risk detection, and seamless course organization
-              in one unified workspace.
+              in one unified workspace. Plan ahead, protect your standing, and study without panic.
             </p>
           </div>
 
