@@ -690,126 +690,96 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
         </div>
       </section>
 
-      {/* ── SECTION 2: FULL-HEIGHT STATEMENT / PLATFORM THESIS ─────────── */}
+      {/* ── SECTION 03: PLATFORM THESIS (TYPOGRAPHY-LED EDITORIAL COMPOSITION) ── */}
       <section
         className="cinematic-statement-section"
         id="section-statement"
         ref={statementRef}
         aria-labelledby="statement-heading"
       >
-        <div className="thesis-container">
-          {/* Section Header & Thesis Narrative */}
-          <div className="thesis-header-block">
-            <div className="statement-eyebrow">03 / PLATFORM THESIS</div>
-            <h2 id="statement-heading" className="statement-large-text">
-              An academic life that{' '}
-              <span className="statement-highlight">works in sync</span>.
-            </h2>
-            <div className="thesis-paragraphs">
-              <p className="statement-subtext">
-                Most student planners are passive calendars that fail when pressure mounts. CampusFlow AI
-                acts as a proactive academic operating system — continuously calculating recovery
-                trajectories, assessment weights, and deadline collisions in real time.
+        <div className="thesis-editorial-container">
+          <div className="thesis-editorial-layout">
+            {/* Left Column: Asymmetric Editorial Heading & Context */}
+            <div className="thesis-editorial-left">
+              <span className="thesis-editorial-eyebrow">03 / THE CAMPUSFLOW THESIS</span>
+              <h2 id="statement-heading" className="thesis-editorial-headline">
+                Your semester.<br />
+                <span style={{ color: 'var(--accent)' }}>Under control.</span>
+              </h2>
+              <p className="thesis-editorial-subtext">
+                CampusFlow AI structures academic responsibilities into a proactive operating system —
+                continuously evaluating subject credits, statutory attendance thresholds, submission
+                deadlines, and exam proximities to eliminate semester friction.
               </p>
-              <p className="statement-subtext secondary">
-                By replacing guesswork with transparent heuristic scoring, students regain command of
-                their syllabus, maintain statutory attendance requirements, and allocate focused study
-                cadences long before final examinations approach.
-              </p>
-            </div>
-          </div>
-
-          {/* Editorial Asymmetric Image Composition (3 Curated Photographs) */}
-          <div className="thesis-gallery-grid" aria-label="Academic environment gallery">
-            {/* Primary Large Landscape Image */}
-            <div className="thesis-img-card main">
-              <img
-                src="/thesis-library.jpg"
-                alt="University study hall with warm desk lamps and students reading"
-                className="thesis-img"
-                loading="lazy"
-              />
-              <div className="thesis-img-overlay">
-                <span className="thesis-img-tag">BRUTALIST ARCHITECTURAL STUDY HALL // CURATED FOCUS</span>
+              <div className="thesis-editorial-action">
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => scrollTo('section-deck')}
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}
+                >
+                  Architecture & Engines ↓
+                </button>
               </div>
             </div>
 
-            {/* Stacked Supporting Images */}
-            <div className="thesis-img-stack">
-              <div className="thesis-img-card">
-                <img
-                  src="/thesis-workspace.jpg"
-                  alt="Minimalist student workspace with course notebook and laptop"
-                  className="thesis-img"
-                  loading="lazy"
-                />
-                <div className="thesis-img-overlay">
-                  <span className="thesis-img-tag">STRUCTURED COURSEWORK & TOPIC CADENCES</span>
+            {/* Right Column: Three Clearly Separated Editorial Rows */}
+            <div className="thesis-editorial-rows" role="region" aria-label="Thesis functional pillars">
+              {/* Pillar 01: UNDERSTAND */}
+              <div className="thesis-editorial-row">
+                <div className="thesis-row-num" aria-hidden="true">01</div>
+                <div className="thesis-row-body">
+                  <div className="thesis-row-label">01 — UNDERSTAND</div>
+                  <h3 className="thesis-row-title">Unified Course & Attendance Architecture</h3>
+                  <p className="thesis-row-desc">
+                    Consolidates every registered subject, credit weight, syllabus scope, and per-session
+                    attendance record into a single verified ledger. Real-time margin calculators enforce
+                    the statutory 75% cutoff so you know your safety threshold before missing a lecture.
+                  </p>
+                  <div className="thesis-row-tags">
+                    <span className="thesis-pill">Subject Ledgers</span>
+                    <span className="thesis-pill">Statutory 75% Defense</span>
+                    <span className="thesis-pill">Margin Calculator</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="thesis-img-card">
-                <img
-                  src="/thesis-collab.jpg"
-                  alt="University students collaborating over engineering coursework"
-                  className="thesis-img"
-                  loading="lazy"
-                />
-                <div className="thesis-img-overlay">
-                  <span className="thesis-img-tag">COLLABORATIVE SYLLABUS SYNCHRONIZATION</span>
+              {/* Pillar 02: PRIORITIZE */}
+              <div className="thesis-editorial-row">
+                <div className="thesis-row-num" aria-hidden="true">02</div>
+                <div className="thesis-row-body">
+                  <div className="thesis-row-label">02 — PRIORITIZE</div>
+                  <h3 className="thesis-row-title">Explainable 0–100 Priority Scoring</h3>
+                  <p className="thesis-row-desc">
+                    Replaces arbitrary to-do lists with transparent mathematical scoring. Every assignment,
+                    viva, and project is ranked using syllabus weight, time to deadline, and pending workload density.
+                    Audit triggers explain the exact rationale behind every top-ranked item.
+                  </p>
+                  <div className="thesis-row-tags">
+                    <span className="thesis-pill">Dynamic Priority Index</span>
+                    <span className="thesis-pill">Collision Radar</span>
+                    <span className="thesis-pill">Audit Triggers</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Supporting Capability Feature Blocks (4 Strategic Engines) */}
-          <div className="thesis-capabilities-grid">
-            <div className="thesis-cap-card">
-              <div className="thesis-cap-icon amber">
-                <Zap size={18} />
+              {/* Pillar 03: PLAN */}
+              <div className="thesis-editorial-row">
+                <div className="thesis-row-num" aria-hidden="true">03</div>
+                <div className="thesis-row-body">
+                  <div className="thesis-row-label">03 — PLAN</div>
+                  <h3 className="thesis-row-title">Day-by-Day Study Cadences & Buffers</h3>
+                  <p className="thesis-row-desc">
+                    Generates balanced revision allocations based on exam proximity and syllabus complexity.
+                    The engine reserves mandatory 48-hour buffers prior to major midterms and finals, preventing
+                    deadline collisions and late-night panic.
+                  </p>
+                  <div className="thesis-row-tags">
+                    <span className="thesis-pill">Study Planner</span>
+                    <span className="thesis-pill">48-Hr Buffer Reserve</span>
+                    <span className="thesis-pill">Target Milestones</span>
+                  </div>
+                </div>
               </div>
-              <div className="thesis-cap-code">CORE_01 // SCORING</div>
-              <h3 className="thesis-cap-title">Dynamic Workload Index</h3>
-              <p className="thesis-cap-desc">
-                Scores obligations (0–100) combining submission urgency, syllabus weight, and required effort
-                to determine exactly what deserves attention right now.
-              </p>
-            </div>
-
-            <div className="thesis-cap-card">
-              <div className="thesis-cap-icon teal">
-                <AlertTriangle size={18} />
-              </div>
-              <div className="thesis-cap-code">RADAR_02 // COMPLIANCE</div>
-              <h3 className="thesis-cap-title">Statutory Attendance Defense</h3>
-              <p className="thesis-cap-desc">
-                Monitors course attendance against the statutory 75% cutoff and calculates the exact
-                consecutive lectures needed to regain standing.
-              </p>
-            </div>
-
-            <div className="thesis-cap-card">
-              <div className="thesis-cap-icon amber">
-                <Layers size={18} />
-              </div>
-              <div className="thesis-cap-code">SHIELD_03 // RADAR</div>
-              <h3 className="thesis-cap-title">Exam Collision Buffer</h3>
-              <p className="thesis-cap-desc">
-                Scans forward 48 hours to detect clustered major evaluations, automatically reserving revision
-                buffers to eliminate finals week panic.
-              </p>
-            </div>
-
-            <div className="thesis-cap-card">
-              <div className="thesis-cap-icon teal">
-                <Calendar size={18} />
-              </div>
-              <div className="thesis-cap-code">CADENCE_04 // TIMELINE</div>
-              <h3 className="thesis-cap-title">Day-by-Day Study Cadences</h3>
-              <p className="thesis-cap-desc">
-                Generates preparation schedules based on target exam dates and unit complexity, front-loading
-                difficult topics while reserving final days for mocks.
-              </p>
             </div>
           </div>
         </div>

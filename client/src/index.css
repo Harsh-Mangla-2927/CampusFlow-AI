@@ -4376,7 +4376,7 @@ main[role="main"] {
   }
 }
 
-/* ── Section 2: Platform Thesis Editorial Showcase ── */
+/* ── Section 03: Platform Thesis (Typography-Led Editorial Composition) ── */
 .cinematic-statement-section {
   position: relative;
   padding: 120px 48px;
@@ -4385,197 +4385,168 @@ main[role="main"] {
   overflow: hidden;
 }
 
-.thesis-container {
+.thesis-editorial-container {
   max-width: 1280px;
   margin: 0 auto;
   width: 100%;
+}
+
+.thesis-editorial-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 72px;
+  align-items: start;
+}
+
+.thesis-editorial-left {
+  position: sticky;
+  top: 96px;
   display: flex;
   flex-direction: column;
-  gap: 64px;
 }
 
-.thesis-header-block {
-  max-width: 860px;
-}
-
-.statement-eyebrow {
-  font-family: var(--font-body);
+.thesis-editorial-eyebrow {
+  font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--teal);
+  letter-spacing: 0.14em;
+  color: var(--accent);
   margin-bottom: 20px;
   display: inline-block;
 }
 
-.statement-large-text {
+.thesis-editorial-headline {
   font-family: var(--font-display);
-  font-size: clamp(34px, 4.2vw, 56px);
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: -0.025em;
+  font-size: clamp(2.6rem, 4.4vw, 4.2rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
   color: var(--fg-primary);
-  margin-bottom: 24px;
+  margin: 0 0 24px;
 }
 
-.statement-highlight {
-  color: var(--amber);
-}
-
-.thesis-paragraphs {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  max-width: 760px;
-}
-
-.statement-subtext {
+.thesis-editorial-subtext {
   font-family: var(--font-body);
-  font-size: 16px;
+  font-size: 15.5px;
   color: var(--fg-secondary);
   line-height: 1.7;
+  max-width: 480px;
+  margin: 0 0 32px;
 }
 
-.statement-subtext.secondary {
-  color: var(--fg-muted);
-  font-size: 15px;
+.thesis-editorial-action {
+  display: flex;
 }
 
-/* Editorial Asymmetric Image Gallery */
-.thesis-gallery-grid {
-  display: grid;
-  grid-template-columns: 1.35fr 1fr;
-  gap: 24px;
-  align-items: stretch;
-}
-
-.thesis-img-card {
-  position: relative;
-  border-radius: var(--r-md);
-  overflow: hidden;
-  border: 1px solid var(--border);
-  background: var(--bg-surface);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
-}
-
-.thesis-img-card.main {
-  min-height: 380px;
-}
-
-.thesis-img-stack {
+.thesis-editorial-rows {
   display: flex;
   flex-direction: column;
+  border-top: 1px solid var(--border);
+}
+
+.thesis-editorial-row {
+  display: grid;
+  grid-template-columns: 76px 1fr;
   gap: 24px;
+  padding: 36px 0;
+  border-bottom: 1px solid var(--border);
+  transition: background-color var(--t-fast);
 }
 
-.thesis-img-stack .thesis-img-card {
-  height: 180px;
+.thesis-editorial-row:hover {
+  background: rgba(255, 61, 0, 0.02);
 }
 
-.thesis-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.4s var(--ease);
+.thesis-row-num {
+  font-family: var(--font-mono);
+  font-size: clamp(2rem, 3vw, 2.6rem);
+  font-weight: 900;
+  line-height: 1;
+  color: var(--fg-faint);
+  letter-spacing: -0.04em;
+  transition: color var(--t-fast);
 }
 
-.thesis-img-card:hover .thesis-img {
-  transform: scale(1.03);
+.thesis-editorial-row:hover .thesis-row-num {
+  color: var(--accent);
 }
 
-.thesis-img-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(10, 12, 14, 0.1) 40%, rgba(10, 12, 14, 0.85) 100%);
+.thesis-row-body {
   display: flex;
-  align-items: flex-end;
-  padding: 16px 20px;
-  pointer-events: none;
+  flex-direction: column;
 }
 
-.thesis-img-tag {
-  font-family: var(--font-body);
-  font-size: 10px;
+.thesis-row-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.thesis-row-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 1.8vw, 1.55rem);
+  font-weight: 800;
   color: var(--fg-primary);
-  background: rgba(10, 12, 14, 0.7);
-  backdrop-filter: blur(8px);
-  padding: 4px 10px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  margin: 0 0 12px;
 }
 
-/* Supporting Capabilities Grid (4 Columns) */
-.thesis-capabilities-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+.thesis-row-desc {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--fg-muted);
+  line-height: 1.65;
+  margin: 0 0 16px;
+  max-width: 620px;
 }
 
-.thesis-cap-card {
+.thesis-row-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.thesis-pill {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-secondary);
   background: var(--bg-surface);
   border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 24px 20px;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.2s var(--ease), border-color 0.2s var(--ease);
+  padding: 4px 10px;
+  border-radius: 0;
 }
 
-.thesis-cap-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(237, 231, 220, 0.25);
+@media (max-width: 1024px) {
+  .cinematic-statement-section {
+    padding: 80px 32px;
+  }
+  .thesis-editorial-layout {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+  .thesis-editorial-left {
+    position: static;
+  }
 }
 
-.thesis-cap-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--r-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 14px;
-}
-
-.thesis-cap-icon.amber {
-  background: var(--amber-dim);
-  color: var(--amber);
-  border: 1px solid rgba(232, 145, 60, 0.25);
-}
-
-.thesis-cap-icon.teal {
-  background: var(--teal-dim);
-  color: #57B3BE;
-  border: 1px solid rgba(46, 107, 114, 0.3);
-}
-
-.thesis-cap-code {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: var(--fg-muted);
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-
-.thesis-cap-title {
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--fg-primary);
-  letter-spacing: -0.01em;
-  margin-bottom: 8px;
-}
-
-.thesis-cap-desc {
-  font-family: var(--font-body);
-  font-size: 13px;
-  color: var(--fg-secondary);
-  line-height: 1.55;
+@media (max-width: 640px) {
+  .cinematic-statement-section {
+    padding: 60px 20px;
+  }
+  .thesis-editorial-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 28px 0;
+  }
 }
 
 /* ── Section 3: Architecture & Engines Throwable Card Deck ── */
@@ -5553,22 +5524,9 @@ main[role="main"] {
   .cinematic-nav {
     padding: 0 24px;
   }
-  .thesis-gallery-grid {
+  .thesis-editorial-layout {
     grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  .thesis-img-card.main {
-    min-height: 300px;
-  }
-  .thesis-img-stack {
-    flex-direction: row;
-  }
-  .thesis-img-stack .thesis-img-card {
-    flex: 1;
-    height: 160px;
-  }
-  .thesis-capabilities-grid {
-    grid-template-columns: repeat(2, 1fr);
+    gap: 48px;
   }
   .deck-grid {
     grid-template-columns: 1fr;
