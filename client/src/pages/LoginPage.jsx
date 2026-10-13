@@ -91,8 +91,8 @@ export default function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForg
 
   return (
     <div className="auth-shell">
-      {/* ── LEFT PANEL: BRANDING & PRODUCT PREVIEW ────────────── */}
-      <div className="auth-left">
+      {/* ── LEFT PANEL: CINEMATIC BRAND EXPERIENCE ────────── */}
+      <aside className="auth-left" aria-label="CampusFlow AI Overview">
         <div className="auth-left-bg" aria-hidden="true">
           <img
             src="/auth-space.jpg"
@@ -103,68 +103,70 @@ export default function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForg
         </div>
 
         <div className="auth-left-inner">
-          <div className="auth-brand-badge">
-            <span className="auth-brand-tag">Academic Intelligence OS</span>
+          <div className="auth-left-top">
+            <div className="auth-brand-badge">
+              <span className="auth-brand-tag">Academic Intelligence System</span>
+            </div>
+            <div className="auth-headline">
+              <h1 className="auth-headline-title">
+                Your semester.<br />
+                In better <span className="auth-headline-accent">focus.</span>
+              </h1>
+            </div>
+            <p className="auth-tagline">
+              Bring deadlines, attendance thresholds, exam prep, and daily study priorities into
+              one clear, explainable academic workspace.
+            </p>
           </div>
 
-          <div className="auth-headline">
-            <h1 className="auth-headline-title">
-              Welcome <span className="auth-headline-accent">Back.</span>
-            </h1>
-          </div>
-
-          <p className="auth-tagline">
-            Log in to access your prioritized tasks, attendance health tracking, and conflict-free study schedule.
-          </p>
-
-          {/* Micro preview card */}
+          {/* Real Telemetry Snapshot */}
           <div className="auth-preview-card" aria-hidden="true">
             <div className="auth-preview-card-header">
               <div className="auth-preview-card-dot" />
-              <span>CampusFlow Intelligence Snapshot</span>
+              <span>System Telemetry · Deterministic</span>
             </div>
 
             <div className="auth-preview-items">
               <div className="auth-preview-item">
                 <div className="auth-preview-item-icon" style={{ color: 'var(--accent)' }}>
-                  <Zap size={15} />
+                  <Zap size={14} />
                 </div>
                 <div>
-                  <div className="auth-preview-item-title">Priority Queue Active</div>
-                  <div className="auth-preview-item-desc">Top task: DBMS Assignment (Score 87 · Due in 2d)</div>
+                  <div className="auth-preview-item-title">Priority Queue Engine</div>
+                  <div className="auth-preview-item-desc">Scores obligations (0–100) via 4 explainable weights</div>
                 </div>
               </div>
 
               <div className="auth-preview-item">
                 <div className="auth-preview-item-icon" style={{ color: 'var(--teal)' }}>
-                  <ShieldCheck size={15} />
+                  <ShieldCheck size={14} />
                 </div>
                 <div>
-                  <div className="auth-preview-item-title">Academic Health: 88% Optimal</div>
-                  <div className="auth-preview-item-desc">4 of 5 subjects securely above 75% attendance</div>
+                  <div className="auth-preview-item-title">Attendly Health Monitor</div>
+                  <div className="auth-preview-item-desc">Audits 75% cutoff & calculates exact recovery lectures</div>
                 </div>
               </div>
 
               <div className="auth-preview-item">
                 <div className="auth-preview-item-icon" style={{ color: 'var(--accent)' }}>
-                  <AlertTriangle size={15} />
+                  <AlertTriangle size={14} />
                 </div>
                 <div>
-                  <div className="auth-preview-item-title">Exam Proximity Alert</div>
-                  <div className="auth-preview-item-desc">DSA Module Test 3 approaching in 5 days</div>
+                  <div className="auth-preview-item-title">Collision Defense Radar</div>
+                  <div className="auth-preview-item-desc">48-hr forward scanning prevents overlapping evaluation stress</div>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="auth-left-footer">
-            <span>© 2026 CampusFlow AI · Transparent rule-based intelligence</span>
+            <span>CampusFlow AI · Academic Intelligence · v2.4.0</span>
           </div>
         </div>
-      </div>
+      </aside>
 
-      {/* ── RIGHT PANEL: SIGN-IN FORM OR OTP VERIFICATION ──────── */}
-      <div className="auth-right">
+      {/* ── RIGHT PANEL: FOCUSED SIGN-IN FORM ──────────────── */}
+      <main className="auth-right">
         <div className="auth-form-container">
           {otpStep ? (
             <OtpVerificationForm
@@ -172,7 +174,7 @@ export default function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForg
               maskedEmail={challengeData.maskedEmail}
               resendCooldownSeconds={challengeData.resendCooldownSeconds}
               title="VERIFY YOUR EMAIL"
-              subtitle="We've sent a verification code to your email address."
+              subtitle="We've sent a 6-digit verification code to your email address."
               onSuccess={(authData) => {
                 toast.success(`Welcome back, ${authData.user.name?.split(' ')[0] || 'Student'}.`);
                 onLogin(authData.user);
@@ -189,14 +191,14 @@ export default function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForg
                 id="btn-go-landing"
                 type="button"
               >
-                <ArrowLeft size={13} style={{ marginRight: 6 }} aria-hidden="true" />
+                <ArrowLeft size={13} aria-hidden="true" />
                 Back to Home
               </button>
 
               <div className="auth-form-header">
                 <div className="auth-logo-mark" aria-hidden="true">CF</div>
-                <h2 className="auth-form-title">Sign In</h2>
-                <p className="auth-form-sub">Access your CampusFlow AI student workspace.</p>
+                <h2 className="auth-form-title">Welcome back.</h2>
+                <p className="auth-form-sub">Sign in to continue to your academic workspace.</p>
               </div>
 
               {errors.general && (
@@ -206,9 +208,9 @@ export default function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForg
               )}
 
               <form onSubmit={handleSubmit} noValidate id="form-login" autoComplete="on">
-                <div className={`form-group ${errors.email ? 'has-error' : ''}`} style={{ marginBottom: 18 }}>
+                <div className={`form-group ${errors.email ? 'has-error' : ''}`}>
                   <label className="form-label" htmlFor="login-email">
-                    University Email
+                    University Email <span className="form-required">*</span>
                   </label>
                   <input
                     id="login-email"
@@ -225,10 +227,10 @@ export default function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForg
                   <FieldError msg={errors.email} />
                 </div>
 
-                <div className={`form-group ${errors.password ? 'has-error' : ''}`} style={{ marginBottom: 10 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <div className={`form-group ${errors.password ? 'has-error' : ''}`}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
                     <label className="form-label" htmlFor="login-password" style={{ marginBottom: 0 }}>
-                      Password
+                      Password <span className="form-required">*</span>
                     </label>
                     {onGoForgotPassword && (
                       <button
@@ -259,7 +261,7 @@ export default function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForg
                       className="password-toggle-btn"
                       onClick={() => setShowPw((v) => !v)}
                       aria-label={showPw ? 'Hide password' : 'Show password'}
-                      tabIndex={-1}
+                      tabIndex={0}
                     >
                       {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
@@ -272,7 +274,6 @@ export default function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForg
                   className="auth-submit-btn"
                   disabled={loading}
                   id="btn-login-submit"
-                  style={{ marginTop: 14 }}
                 >
                   {loading ? 'Authenticating…' : 'Sign In →'}
                 </button>
@@ -292,7 +293,7 @@ export default function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForg
             </>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }
