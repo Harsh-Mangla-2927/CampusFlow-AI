@@ -95,6 +95,38 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
     window.matchMedia &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // ── ACCESSIBLE EDITORIAL HEADING ENTRANCE REVEAL CONTROLLER ───────────────
+  const landingRootRef = useRef(null);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+
+    const root = landingRootRef.current;
+    if (!root) return;
+
+    root.classList.add('has-editorial-reveal');
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const items = entry.target.querySelectorAll('.editorial-reveal-item');
+            items.forEach((item) => item.classList.add('is-revealed'));
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+    );
+
+    const groups = root.querySelectorAll('.editorial-reveal-group');
+    groups.forEach((group) => observer.observe(group));
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [prefersReducedMotion]);
+
   // ── SCROLL-DRIVEN PORTAL ENGINE (SMOOTH & MEASURED) ───────────────────────
   useEffect(() => {
     if (prefersReducedMotion) {
@@ -502,7 +534,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
   const wordmarkTracking = `${0.06 - portalProgress * 0.04}em`;
 
   return (
-    <div className="landing-page" id="landing-top">
+    <div className="landing-page" id="landing-top" ref={landingRootRef}>
       {/* ── FIXED NAVIGATION BAR (~64PX) ───────────────────────────────── */}
       <header className="cinematic-nav" role="banner">
         <button
@@ -821,18 +853,20 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
         aria-labelledby="gallery-heading"
       >
         <div className="gallery-container">
-          <div className="gallery-header-block">
+          <div className="gallery-header-block editorial-reveal-group">
             <div className="gallery-header-row">
               <div>
-                <EditorialSectionLabel
-                  number="02"
-                  title="ACADEMIC IMAGERY"
-                  subtitle="FOCUS CADENCE"
-                />
-                <h2 id="gallery-heading" className="section-heading gallery-heading">
+                <div className="editorial-reveal-item" data-reveal-order="1">
+                  <EditorialSectionLabel
+                    number="02"
+                    title="ACADEMIC IMAGERY"
+                    subtitle="FOCUS CADENCE"
+                  />
+                </div>
+                <h2 id="gallery-heading" className="section-heading gallery-heading editorial-reveal-item" data-reveal-order="2">
                   Atmospheres of deep <span className="accent">academic focus</span>.
                 </h2>
-                <p className="section-subtext gallery-subtext">
+                <p className="section-subtext gallery-subtext editorial-reveal-item" data-reveal-order="3">
                   A curated visual reel across genuine university environments — reading archives, software laboratories, collaborative studios, and examination buffers.
                 </p>
               </div>
@@ -929,17 +963,19 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
         <div className="thesis-editorial-container">
           <div className="thesis-editorial-layout">
             {/* Left Column: Asymmetric Editorial Heading & Dynamic Chapter Monitor */}
-            <div className="thesis-editorial-left">
-              <EditorialSectionLabel
-                number="03"
-                title="PLATFORM THESIS"
-                subtitle="ARCHITECTURAL FOUNDATION"
-              />
-              <h2 id="statement-heading" className="section-heading thesis-editorial-headline">
+            <div className="thesis-editorial-left editorial-reveal-group">
+              <div className="editorial-reveal-item" data-reveal-order="1">
+                <EditorialSectionLabel
+                  number="03"
+                  title="PLATFORM THESIS"
+                  subtitle="ARCHITECTURAL FOUNDATION"
+                />
+              </div>
+              <h2 id="statement-heading" className="section-heading thesis-editorial-headline editorial-reveal-item" data-reveal-order="2">
                 Your semester.<br />
                 <span className="accent">Under control.</span>
               </h2>
-              <p className="section-subtext thesis-editorial-subtext">
+              <p className="section-subtext thesis-editorial-subtext editorial-reveal-item" data-reveal-order="3">
                 CampusFlow AI brings academic responsibilities into a clearer system, helping students understand their workload, prioritize important tasks, and plan their next steps.
               </p>
 
@@ -1067,16 +1103,18 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
       <section className="deck-section" id="section-deck" aria-labelledby="deck-heading">
         <div className="deck-grid">
           {/* Left Column: Context, Capabilities Checklist & Actions */}
-          <div className="deck-left-col">
-            <EditorialSectionLabel
-              number="04"
-              title="SYSTEM ARCHITECTURE"
-              subtitle="COMPUTATIONAL ENGINES"
-            />
-            <h2 id="deck-heading" className="section-heading deck-heading">
+          <div className="deck-left-col editorial-reveal-group">
+            <div className="editorial-reveal-item" data-reveal-order="1">
+              <EditorialSectionLabel
+                number="04"
+                title="SYSTEM ARCHITECTURE"
+                subtitle="COMPUTATIONAL ENGINES"
+              />
+            </div>
+            <h2 id="deck-heading" className="section-heading deck-heading editorial-reveal-item" data-reveal-order="2">
               Tactile control over your academic <span className="accent">trajectory</span>.
             </h2>
-            <p className="section-subtext deck-desc">
+            <p className="section-subtext deck-desc editorial-reveal-item" data-reveal-order="3">
               Six synchronized computational engines running transparent rule evaluations on your
               course subjects, attendance thresholds, submissions, and exam dates.
             </p>
@@ -1248,16 +1286,18 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
 
       {/* ── SECTION 4: FUNCTIONAL ROSTER (INTERACTIVE MODULE DIRECTORY) ─── */}
       <section className="roster-section" id="section-roster" aria-labelledby="roster-heading">
-        <div className="roster-header">
-          <EditorialSectionLabel
-            number="05"
-            title="FUNCTIONAL ROSTER"
-            subtitle="MODULE DIRECTORY"
-          />
-          <h2 id="roster-heading" className="section-heading roster-heading">
+        <div className="roster-header editorial-reveal-group">
+          <div className="editorial-reveal-item" data-reveal-order="1">
+            <EditorialSectionLabel
+              number="05"
+              title="FUNCTIONAL ROSTER"
+              subtitle="MODULE DIRECTORY"
+            />
+          </div>
+          <h2 id="roster-heading" className="section-heading roster-heading editorial-reveal-item" data-reveal-order="2">
             System modules & computational <span className="accent">rules</span>.
           </h2>
-          <p className="section-subtext roster-subtext">
+          <p className="section-subtext roster-subtext editorial-reveal-item" data-reveal-order="3">
             Six synchronized deterministic engines engineered to eliminate academic uncertainty,
             powered by explainable heuristics rather than black-box guesswork.
           </p>
@@ -1408,16 +1448,18 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
       <section className="dates-section" id="section-dates" aria-labelledby="dates-heading">
         {/* Header Row: Eyebrow, Heading, Subtext & Navigation Toolbar */}
         <div className="dates-header-row">
-          <div className="dates-header-col">
-            <EditorialSectionLabel
-              number="06"
-              title="STRUCTURED CALENDAR"
-              subtitle="PROGRESSION TIMELINE"
-            />
-            <h2 id="dates-heading" className="section-heading dates-heading">
+          <div className="dates-header-col editorial-reveal-group">
+            <div className="editorial-reveal-item" data-reveal-order="1">
+              <EditorialSectionLabel
+                number="06"
+                title="STRUCTURED CALENDAR"
+                subtitle="PROGRESSION TIMELINE"
+              />
+            </div>
+            <h2 id="dates-heading" className="section-heading dates-heading editorial-reveal-item" data-reveal-order="2">
               Academic schedule & submission <span className="accent">cadence</span>.
             </h2>
-            <p className="section-subtext dates-subtext">
+            <p className="section-subtext dates-subtext editorial-reveal-item" data-reveal-order="3">
               Illustrative curriculum timeline demonstrating how CampusFlow AI maps evaluation milestones,
               credit weightages, and proactive preparation cadences.
             </p>
@@ -1603,16 +1645,18 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
       {/* ── SECTION 6: EDITORIAL CLOSING SECTION WITH BALANCED CTAS ────── */}
       <section className="closing-section" aria-labelledby="closing-heading">
         <div className="closing-content">
-          <div className="closing-left">
-            <EditorialSectionLabel
-              number="07"
-              title="ACADEMIC COMMAND"
-              subtitle="GET STARTED"
-            />
-            <h2 id="closing-heading" className="section-heading closing-headline">
+          <div className="closing-left editorial-reveal-group">
+            <div className="editorial-reveal-item" data-reveal-order="1">
+              <EditorialSectionLabel
+                number="07"
+                title="ACADEMIC COMMAND"
+                subtitle="GET STARTED"
+              />
+            </div>
+            <h2 id="closing-heading" className="section-heading closing-headline editorial-reveal-item" data-reveal-order="2">
               Build a better rhythm for your <span className="accent">academic life</span>.
             </h2>
-            <p className="section-subtext closing-sub">
+            <p className="section-subtext closing-sub editorial-reveal-item" data-reveal-order="3">
               Transparent prioritization, automated risk detection, and seamless course organization
               in one unified workspace. Plan ahead, protect your standing, and study without panic.
             </p>
