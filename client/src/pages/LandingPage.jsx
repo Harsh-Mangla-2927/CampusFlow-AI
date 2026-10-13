@@ -545,7 +545,64 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
             </span>
           </div>
 
-          {/* 7. Minimal Corner Metadata */}
+          {/* 7. Editorial Hero Narrative (Primary Headline & CTAs) */}
+          <div
+            className="portal-editorial-content"
+            style={{
+              opacity: portalProgress > 0.12 ? Math.min((portalProgress - 0.12) * 2.2, 1) : 0,
+              transform: `translateY(${Math.max(20 - portalProgress * 20, 0)}px)`,
+              pointerEvents: portalProgress > 0.35 ? 'auto' : 'none',
+            }}
+          >
+            <div className="portal-eyebrow-pill">
+              <span className="portal-pill-dot" />
+              <span>ACADEMIC INTELLIGENCE PLATFORM</span>
+            </div>
+
+            <h1 className="portal-editorial-title">
+              Make room for the <span style={{ color: 'var(--amber)' }}>work that matters</span>.
+            </h1>
+
+            <p className="portal-editorial-subtitle">
+              Your academic life, intelligently organized. Plan your coursework, understand your progress,
+              and stay ahead of what matters without last-minute panic.
+            </p>
+
+            <div className="portal-editorial-actions">
+              <button
+                className="cinematic-nav-cta filled"
+                onClick={onEnter}
+                id="hero-cta-primary"
+              >
+                {user ? 'Open Workspace →' : 'Get Started Now →'}
+              </button>
+              <button
+                className="cinematic-nav-cta"
+                onClick={() => scrollTo('section-statement')}
+                id="hero-cta-secondary"
+              >
+                Explore Thesis ↓
+              </button>
+            </div>
+          </div>
+
+          {/* 8. Initial Scroll Cue */}
+          <div
+            className="portal-initial-cue"
+            style={{
+              opacity: Math.max(1 - portalProgress * 3.5, 0),
+            }}
+          >
+            <div className="portal-initial-sub">
+              Your academic life, intelligently organized.
+            </div>
+            <div className="portal-initial-scroll">
+              <span className="portal-scroll-dot" />
+              <span>Scroll to open portal</span>
+            </div>
+          </div>
+
+          {/* 9. Minimal Corner Metadata */}
           <div className="portal-meta-topleft">01 // ACADEMIC OPERATING SYSTEM</div>
           <div className="portal-meta-bottomleft">MONITORED WORKSPACE // VER 2.6</div>
           <div className="portal-meta-bottomright">EXPLAINABLE PRIORITY · ZERO CONFLICT</div>
