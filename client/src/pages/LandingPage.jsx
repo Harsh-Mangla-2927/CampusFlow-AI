@@ -829,10 +829,10 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
                   title="ACADEMIC IMAGERY"
                   subtitle="FOCUS CADENCE"
                 />
-                <h2 id="gallery-heading" className="section-heading">
-                  Atmospheres of deep academic <span className="accent">focus</span>.
+                <h2 id="gallery-heading" className="section-heading gallery-heading">
+                  Atmospheres of deep <span className="accent">academic focus</span>.
                 </h2>
-                <p className="section-subtext" style={{ marginTop: 12 }}>
+                <p className="section-subtext gallery-subtext">
                   A curated visual reel across genuine university environments — reading archives, software laboratories, collaborative studios, and examination buffers.
                 </p>
               </div>
