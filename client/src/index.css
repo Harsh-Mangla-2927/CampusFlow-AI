@@ -5192,15 +5192,15 @@ main[role="main"] {
 .contact-logo-mark {
   width: 32px;
   height: 32px;
-  background: var(--amber);
-  color: #0A0C0E;
+  background: var(--accent);
+  color: var(--accent-foreground, #0A0A0A);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-display);
   font-size: 13px;
   font-weight: 900;
-  border-radius: var(--r-sm);
+  border-radius: 0;
 }
 
 .contact-logo-text {
@@ -5242,16 +5242,16 @@ main[role="main"] {
   display: inline-flex;
   align-items: center;
   align-self: flex-start;
-  font-family: var(--font-body);
+  font-family: var(--font-mono);
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--amber);
-  background: var(--amber-dim);
-  border: 1px solid rgba(232, 145, 60, 0.25);
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid rgba(255, 61, 0, 0.25);
   padding: 5px 12px;
-  border-radius: 999px;
+  border-radius: 0;
 }
 
 .contact-hero-title {
@@ -5265,7 +5265,7 @@ main[role="main"] {
 }
 
 .accent-highlight {
-  color: var(--amber);
+  color: var(--accent);
 }
 
 .contact-hero-desc {
@@ -5280,7 +5280,7 @@ main[role="main"] {
   position: relative;
   width: 100%;
   height: 200px;
-  border-radius: var(--r-md);
+  border-radius: 0;
   overflow: hidden;
   border: 1px solid var(--border);
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
@@ -5316,7 +5316,7 @@ main[role="main"] {
 .contact-meta-card {
   background: var(--bg-surface);
   border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  border-radius: 0;
   padding: 16px;
   display: flex;
   align-items: flex-start;
@@ -5326,10 +5326,10 @@ main[role="main"] {
 .contact-meta-icon {
   width: 34px;
   height: 34px;
-  border-radius: var(--r-sm);
-  background: var(--amber-dim);
-  color: var(--amber);
-  border: 1px solid rgba(232, 145, 60, 0.25);
+  border-radius: 0;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid rgba(255, 61, 0, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5359,7 +5359,7 @@ main[role="main"] {
 .contact-form-card {
   background: var(--bg-surface);
   border: 1px solid var(--border);
-  border-radius: var(--r-lg);
+  border-radius: 0;
   padding: 36px 32px;
   box-shadow: 0 24px 50px rgba(0, 0, 0, 0.5);
 }
@@ -5403,14 +5403,16 @@ main[role="main"] {
 }
 
 .contact-form .form-label {
-  font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--fg-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
 }
 
 .contact-form .form-label .required {
-  color: var(--amber);
+  color: var(--accent);
 }
 
 .contact-form .form-input,
@@ -5418,7 +5420,7 @@ main[role="main"] {
   width: 100%;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  border-radius: 0;
   color: var(--fg-primary);
   font-family: var(--font-body);
   font-size: 13.5px;
@@ -5429,8 +5431,8 @@ main[role="main"] {
 .contact-form .form-input:focus,
 .contact-form .form-textarea:focus {
   outline: none;
-  border-color: var(--amber);
-  box-shadow: 0 0 0 2px var(--amber-dim);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-dim);
 }
 
 .contact-form .form-input::placeholder,
@@ -5444,15 +5446,15 @@ main[role="main"] {
 }
 
 .contact-submit-btn {
-  background: var(--amber);
-  color: #0A0C0E;
+  background: var(--accent);
+  color: var(--accent-foreground, #0A0A0A);
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   padding: 13px 20px;
-  border-radius: var(--r-md);
+  border-radius: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -5614,6 +5616,138 @@ main[role="main"] {
   .contact-form-card {
     padding: 24px 20px;
   }
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   404 NOT FOUND STYLES
+   ═════════════════════════════════════════════════════════════════════ */
+.notfound-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  background: var(--background);
+  position: relative;
+  overflow: hidden;
+}
+
+.notfound-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 480px;
+  height: 480px;
+  background: radial-gradient(circle, var(--accent-dim) 0%, transparent 70%);
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+.notfound-content {
+  position: relative;
+  z-index: 1;
+  max-width: 600px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.notfound-badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid rgba(255, 61, 0, 0.25);
+  padding: 6px 14px;
+  margin-bottom: 24px;
+}
+
+.notfound-code {
+  font-family: var(--font-display);
+  font-size: clamp(6rem, 14vw, 10rem);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -0.06em;
+  color: var(--fg-primary);
+  margin: 0 0 16px;
+}
+
+.notfound-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--fg-primary);
+  margin: 0 0 16px;
+}
+
+.notfound-desc {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--fg-muted);
+  line-height: 1.6;
+  max-width: 480px;
+  margin: 0 0 32px;
+}
+
+.notfound-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.notfound-quicklinks {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  width: 100%;
+}
+
+.quicklinks-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+
+.quicklinks-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.quicklink-btn {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--fg-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 8px 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: all var(--t-fast);
+}
+
+.quicklink-btn:hover {
+  border-color: var(--accent);
+  color: var(--fg-primary);
+  background: var(--bg-elevated);
 }
 
 
