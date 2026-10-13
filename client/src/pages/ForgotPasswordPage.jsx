@@ -64,8 +64,8 @@ export default function ForgotPasswordPage({ onGoLogin, onGoLanding }) {
 
   return (
     <div className="auth-shell">
-      {/* ── LEFT PANEL: BRANDING ─────────────────────────────── */}
-      <div className="auth-left">
+      {/* ── LEFT PANEL: CINEMATIC BRAND EXPERIENCE ────────── */}
+      <aside className="auth-left" aria-label="CampusFlow AI Account Recovery Overview">
         <div className="auth-left-bg" aria-hidden="true">
           <img
             src="/auth-space.jpg"
@@ -76,23 +76,25 @@ export default function ForgotPasswordPage({ onGoLogin, onGoLanding }) {
         </div>
 
         <div className="auth-left-inner">
-          <div className="auth-brand-badge">
-            <span className="auth-brand-tag">Academic Security Protocol</span>
+          <div className="auth-left-top">
+            <div className="auth-brand-badge">
+              <span className="auth-brand-tag">Academic Security Protocol</span>
+            </div>
+            <div className="auth-headline">
+              <h1 className="auth-headline-title">
+                Account<br />
+                <span className="auth-headline-accent">Recovery.</span>
+              </h1>
+            </div>
+            <p className="auth-tagline">
+              Reset your access credentials securely using your verified institutional educational email address.
+            </p>
           </div>
-
-          <div className="auth-headline">
-            <span className="auth-headline-lg">Account</span>
-            <span className="auth-headline-lg auth-headline-accent">Recovery.</span>
-          </div>
-
-          <p className="auth-tagline">
-            Reset your access credentials securely using your verified institutional email address.
-          </p>
 
           <div className="auth-preview-card" aria-hidden="true">
             <div className="auth-preview-card-header">
               <div className="auth-preview-card-dot" />
-              <span>CampusFlow Security Assurance</span>
+              <span>Security Assurance · Deterministic</span>
             </div>
 
             <div className="auth-preview-items">
@@ -107,25 +109,25 @@ export default function ForgotPasswordPage({ onGoLogin, onGoLanding }) {
               </div>
 
               <div className="auth-preview-item">
-                <div className="auth-preview-item-icon" style={{ color: 'var(--success)' }}>
+                <div className="auth-preview-item-icon" style={{ color: 'var(--teal)' }}>
                   <Zap size={14} />
                 </div>
                 <div>
                   <div className="auth-preview-item-title">Two-Factor Protected</div>
-                  <div className="auth-preview-item-desc">Subsequent sign-ins continue to require 2-step Email OTP verification</div>
+                  <div className="auth-preview-item-desc">Subsequent sign-ins continue to enforce 2-step Email OTP verification</div>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="auth-left-footer">
-            <span>© 2026 CampusFlow AI · Transparent rule-based intelligence</span>
+            <span>CampusFlow AI · Academic Intelligence · v2.4.0</span>
           </div>
         </div>
-      </div>
+      </aside>
 
       {/* ── RIGHT PANEL: FORGOT PASSWORD FORM ────────────────── */}
-      <div className="auth-right">
+      <main className="auth-right">
         <div className="auth-form-container">
           <button
             className="auth-back-link"
@@ -133,14 +135,14 @@ export default function ForgotPasswordPage({ onGoLogin, onGoLanding }) {
             id="btn-back-login"
             type="button"
           >
-            <ArrowLeft size={13} style={{ marginRight: 6 }} aria-hidden="true" />
+            <ArrowLeft size={13} aria-hidden="true" />
             Back to Sign In
           </button>
 
           <div className="auth-form-header">
             <div className="auth-logo-mark" aria-hidden="true">CF</div>
-            <h1>Forgot your password?</h1>
-            <p>Enter your registered university email address. We'll send you instructions to securely reset your password.</p>
+            <h2 className="auth-form-title">Forgot your password?</h2>
+            <p className="auth-form-sub">Enter your registered university email. We'll send you instructions to securely reset your password.</p>
           </div>
 
           {error && (
@@ -150,11 +152,11 @@ export default function ForgotPasswordPage({ onGoLogin, onGoLanding }) {
           )}
 
           {submitted ? (
-            <div className="auth-confirmation-box" style={{ background: '#111', border: '1px solid var(--border-strong)', padding: '24px', borderRadius: '4px', textAlign: 'center' }}>
+            <div className="auth-confirmation-box" style={{ background: '#111111', border: '1px solid var(--border)', padding: '28px 24px', textAlign: 'center' }}>
               <div style={{ color: 'var(--accent)', display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
                 <CheckCircle2 size={40} />
               </div>
-              <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--fg-primary)', marginBottom: 8, textTransform: 'uppercase' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--fg-primary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-mono)' }}>
                 Instructions Dispatched
               </h2>
               <p style={{ color: 'var(--fg-secondary)', fontSize: '13px', lineHeight: 1.6, marginBottom: 24 }}>
@@ -165,20 +167,21 @@ export default function ForgotPasswordPage({ onGoLogin, onGoLanding }) {
               </div>
               <button
                 type="button"
-                className="btn btn-primary btn-full"
+                className="auth-submit-btn"
                 onClick={onGoLogin}
                 id="btn-return-signin"
+                style={{ marginTop: 0 }}
               >
-                Return to Sign In
+                Return to Sign In →
               </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} noValidate id="form-forgot-password" autoComplete="on">
               <div className={`form-group ${error ? 'has-error' : ''}`}>
                 <label className="form-label" htmlFor="forgot-email">
-                  University Email
+                  University Email <span className="form-required">*</span>
                 </label>
-                <div className="input-with-icon">
+                <div style={{ position: 'relative' }}>
                   <input
                     id="forgot-email"
                     className={`form-input ${error ? 'input-error' : ''}`}
@@ -188,13 +191,15 @@ export default function ForgotPasswordPage({ onGoLogin, onGoLanding }) {
                       setEmail(e.target.value);
                       setError('');
                     }}
-                    placeholder="you@chitkara.edu.in"
+                    placeholder="student@chitkara.edu.in"
                     autoComplete="email"
                     required
                     inputMode="email"
                     disabled={loading}
+                    autoFocus
+                    style={{ paddingRight: 40 }}
                   />
-                  <div className="input-icon-btn" style={{ pointerEvents: 'none', color: 'var(--fg-muted)' }} aria-hidden="true">
+                  <div style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--fg-muted)' }} aria-hidden="true">
                     <Mail size={15} />
                   </div>
                 </div>
@@ -203,36 +208,28 @@ export default function ForgotPasswordPage({ onGoLogin, onGoLanding }) {
 
               <button
                 type="submit"
-                className="btn btn-primary btn-full"
+                className="auth-submit-btn"
                 disabled={loading}
                 id="btn-send-reset-link"
-                style={{ marginTop: 8 }}
               >
-                {loading ? (
-                  <>
-                    <span className="spinner" aria-hidden="true" />
-                    Sending Reset Link…
-                  </>
-                ) : (
-                  'Send Reset Link'
-                )}
+                {loading ? 'Sending Reset Link…' : 'Send Reset Link →'}
               </button>
 
-              <div className="auth-switch" style={{ marginTop: 24 }}>
-                Remember your password?{' '}
+              <div className="auth-footer-prompt">
+                <span>Remember your password?</span>
                 <button
                   className="auth-switch-link"
                   onClick={onGoLogin}
                   id="btn-switch-login"
                   type="button"
                 >
-                  Sign In
+                  Sign In →
                 </button>
               </div>
             </form>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }

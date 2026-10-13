@@ -112,8 +112,8 @@ export default function ResetPasswordPage({ token: initialToken, onGoLogin, onGo
 
   return (
     <div className="auth-shell">
-      {/* ── LEFT PANEL: BRANDING ─────────────────────────────── */}
-      <div className="auth-left">
+      {/* ── LEFT PANEL: CINEMATIC BRAND EXPERIENCE ────────── */}
+      <aside className="auth-left" aria-label="CampusFlow AI Password Reset Overview">
         <div className="auth-left-bg" aria-hidden="true">
           <img
             src="/auth-space.jpg"
@@ -124,23 +124,25 @@ export default function ResetPasswordPage({ token: initialToken, onGoLogin, onGo
         </div>
 
         <div className="auth-left-inner">
-          <div className="auth-brand-badge">
-            <span className="auth-brand-tag">Access Key Rotation</span>
+          <div className="auth-left-top">
+            <div className="auth-brand-badge">
+              <span className="auth-brand-tag">Access Key Rotation</span>
+            </div>
+            <div className="auth-headline">
+              <h1 className="auth-headline-title">
+                Secure<br />
+                <span className="auth-headline-accent">Credential.</span>
+              </h1>
+            </div>
+            <p className="auth-tagline">
+              Set a resilient password to protect your academic records, attendance logs, and study planning data.
+            </p>
           </div>
-
-          <div className="auth-headline">
-            <span className="auth-headline-lg">Secure</span>
-            <span className="auth-headline-lg auth-headline-accent">Credential.</span>
-          </div>
-
-          <p className="auth-tagline">
-            Set a resilient password to protect your academic records, attendance logs, and study planning data.
-          </p>
 
           <div className="auth-preview-card" aria-hidden="true">
             <div className="auth-preview-card-header">
               <div className="auth-preview-card-dot" />
-              <span>Password Security Standards</span>
+              <span>Password Security Standards · Deterministic</span>
             </div>
 
             <div className="auth-preview-items">
@@ -155,7 +157,7 @@ export default function ResetPasswordPage({ token: initialToken, onGoLogin, onGo
               </div>
 
               <div className="auth-preview-item">
-                <div className="auth-preview-item-icon" style={{ color: 'var(--success)' }}>
+                <div className="auth-preview-item-icon" style={{ color: 'var(--teal)' }}>
                   <ShieldCheck size={14} />
                 </div>
                 <div>
@@ -167,13 +169,13 @@ export default function ResetPasswordPage({ token: initialToken, onGoLogin, onGo
           </div>
 
           <div className="auth-left-footer">
-            <span>© 2026 CampusFlow AI · Transparent rule-based intelligence</span>
+            <span>CampusFlow AI · Academic Intelligence · v2.4.0</span>
           </div>
         </div>
-      </div>
+      </aside>
 
       {/* ── RIGHT PANEL: RESET PASSWORD FORM ─────────────────── */}
-      <div className="auth-right">
+      <main className="auth-right">
         <div className="auth-form-container">
           <button
             className="auth-back-link"
@@ -181,14 +183,14 @@ export default function ResetPasswordPage({ token: initialToken, onGoLogin, onGo
             id="btn-reset-back-login"
             type="button"
           >
-            <ArrowLeft size={13} style={{ marginRight: 6 }} aria-hidden="true" />
+            <ArrowLeft size={13} aria-hidden="true" />
             Back to Sign In
           </button>
 
           <div className="auth-form-header">
             <div className="auth-logo-mark" aria-hidden="true">CF</div>
-            <h1>Create a New Password</h1>
-            <p>Enter your new password below to regain access to your account.</p>
+            <h2 className="auth-form-title">Create a New Password</h2>
+            <p className="auth-form-sub">Enter your new strong password below to regain access to your account.</p>
           </div>
 
           {!token && (
@@ -197,11 +199,11 @@ export default function ResetPasswordPage({ token: initialToken, onGoLogin, onGo
               <div style={{ marginTop: 12 }}>
                 <button
                   type="button"
-                  className="btn btn-primary"
+                  className="auth-submit-btn"
                   onClick={onGoForgotPassword}
-                  style={{ fontSize: '12px', padding: '6px 14px' }}
+                  style={{ fontSize: '11px', height: '36px', width: 'auto', padding: '0 16px', display: 'inline-flex' }}
                 >
-                  Request New Link
+                  Request New Link →
                 </button>
               </div>
             </div>
@@ -214,11 +216,11 @@ export default function ResetPasswordPage({ token: initialToken, onGoLogin, onGo
           )}
 
           {resetSuccess ? (
-            <div className="auth-confirmation-box" style={{ background: '#111', border: '1px solid var(--border-strong)', padding: '24px', borderRadius: '4px', textAlign: 'center' }}>
+            <div className="auth-confirmation-box" style={{ background: '#111111', border: '1px solid var(--border)', padding: '28px 24px', textAlign: 'center' }}>
               <div style={{ color: 'var(--accent)', display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
                 <CheckCircle2 size={40} />
               </div>
-              <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--fg-primary)', marginBottom: 8, textTransform: 'uppercase' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--fg-primary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-mono)' }}>
                 Password Updated
               </h2>
               <p style={{ color: 'var(--fg-secondary)', fontSize: '13px', lineHeight: 1.6, marginBottom: 24 }}>
@@ -226,11 +228,12 @@ export default function ResetPasswordPage({ token: initialToken, onGoLogin, onGo
               </p>
               <button
                 type="button"
-                className="btn btn-primary btn-full"
+                className="auth-submit-btn"
                 onClick={onGoLogin}
                 id="btn-goto-signin"
+                style={{ marginTop: 0 }}
               >
-                Sign In Now
+                Sign In Now →
               </button>
             </div>
           ) : (
@@ -238,9 +241,9 @@ export default function ResetPasswordPage({ token: initialToken, onGoLogin, onGo
               {/* New Password */}
               <div className={`form-group ${errors.password ? 'has-error' : ''}`}>
                 <label className="form-label" htmlFor="reset-new-password">
-                  New Password <span className="required" aria-hidden="true">*</span>
+                  New Password <span className="form-required">*</span>
                 </label>
-                <div className="input-with-icon">
+                <div style={{ position: 'relative' }}>
                   <input
                     id="reset-new-password"
                     className={`form-input ${errors.password ? 'input-error' : ''}`}
@@ -251,13 +254,15 @@ export default function ResetPasswordPage({ token: initialToken, onGoLogin, onGo
                     autoComplete="new-password"
                     required
                     disabled={loading || !token}
+                    autoFocus
+                    style={{ paddingRight: 40 }}
                   />
                   <button
                     type="button"
-                    className="input-icon-btn"
+                    className="password-toggle-btn"
                     onClick={() => setShowPw(p => !p)}
                     aria-label={showPw ? 'Hide password' : 'Show password'}
-                    tabIndex={-1}
+                    tabIndex={0}
                   >
                     {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
@@ -267,7 +272,7 @@ export default function ResetPasswordPage({ token: initialToken, onGoLogin, onGo
                 {/* Password strength indicator */}
                 {pwStrength && (
                   <div className="pw-strength-bar-wrap" style={{ marginTop: 8 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: 4 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: 4, fontFamily: 'var(--font-mono)' }}>
                       <span style={{ color: 'var(--fg-muted)' }}>Strength:</span>
                       <span style={{ color: pwStrength.color, fontWeight: 700 }}>{pwStrength.label}</span>
                     </div>
@@ -277,15 +282,15 @@ export default function ResetPasswordPage({ token: initialToken, onGoLogin, onGo
                           key={level}
                           style={{
                             height: '100%',
-                            borderRadius: 2,
-                            background: level <= pwStrength.score ? pwStrength.color : 'var(--bg-tertiary)',
+                            borderRadius: 0,
+                            background: level <= pwStrength.score ? pwStrength.color : 'rgba(255,255,255,0.06)',
                             transition: 'background 0.2s',
                           }}
                         />
                       ))}
                     </div>
 
-                    <div className="pw-requirements-list" style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: '6px 12px', fontSize: '11px' }}>
+                    <div className="pw-requirements-list" style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: '6px 12px', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
                       <span style={{ color: pwStrength.reqs.minLength ? 'var(--success)' : 'var(--fg-faint)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                         {pwStrength.reqs.minLength ? <CheckCircle2 size={11} /> : <XCircle size={11} />} 8+ chars
                       </span>
@@ -306,9 +311,9 @@ export default function ResetPasswordPage({ token: initialToken, onGoLogin, onGo
               {/* Confirm New Password */}
               <div className={`form-group ${errors.confirmPassword ? 'has-error' : ''}`}>
                 <label className="form-label" htmlFor="reset-confirm-password">
-                  Confirm New Password <span className="required" aria-hidden="true">*</span>
+                  Confirm New Password <span className="form-required">*</span>
                 </label>
-                <div className="input-with-icon">
+                <div style={{ position: 'relative' }}>
                   <input
                     id="reset-confirm-password"
                     className={`form-input ${errors.confirmPassword ? 'input-error' : ''}`}
@@ -319,13 +324,14 @@ export default function ResetPasswordPage({ token: initialToken, onGoLogin, onGo
                     autoComplete="new-password"
                     required
                     disabled={loading || !token}
+                    style={{ paddingRight: 40 }}
                   />
                   <button
                     type="button"
-                    className="input-icon-btn"
+                    className="password-toggle-btn"
                     onClick={() => setShowCpw(p => !p)}
                     aria-label={showCpw ? 'Hide password' : 'Show password'}
-                    tabIndex={-1}
+                    tabIndex={0}
                   >
                     {showCpw ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
@@ -335,24 +341,16 @@ export default function ResetPasswordPage({ token: initialToken, onGoLogin, onGo
 
               <button
                 type="submit"
-                className="btn btn-primary btn-full"
+                className="auth-submit-btn"
                 disabled={loading || !token}
                 id="btn-submit-reset-password"
-                style={{ marginTop: 12 }}
               >
-                {loading ? (
-                  <>
-                    <span className="spinner" aria-hidden="true" />
-                    Resetting Password…
-                  </>
-                ) : (
-                  'Reset Password'
-                )}
+                {loading ? 'Resetting Password…' : 'Reset Password →'}
               </button>
             </form>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }

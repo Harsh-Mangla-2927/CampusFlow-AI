@@ -205,18 +205,14 @@ export default function OtpVerificationForm({
         id="btn-otp-back"
         type="button"
       >
-        <ArrowLeft size={13} style={{ marginRight: 6 }} aria-hidden="true" />
+        <ArrowLeft size={13} aria-hidden="true" />
         Change Email / Back
       </button>
 
-      <div className="otp-screen-header">
+      <div className="auth-form-header">
         <div className="auth-logo-mark" aria-hidden="true">CF</div>
-        <h1 style={{ textTransform: 'uppercase', letterSpacing: '-0.02em', fontSize: '26px', fontWeight: 900 }}>
-          {title}
-        </h1>
-        <p style={{ color: 'var(--fg-secondary)', fontSize: '14px', marginTop: 4 }}>
-          {subtitle}
-        </p>
+        <h2 className="auth-form-title">{title}</h2>
+        <p className="auth-form-sub">{subtitle}</p>
 
         {maskedEmail && (
           <div className="otp-badge-wrap" id="otp-masked-email-badge">
@@ -266,7 +262,7 @@ export default function OtpVerificationForm({
 
           <div>
             {cooldownSeconds > 0 ? (
-              <span style={{ color: 'var(--fg-faint)', fontSize: '11px' }}>
+              <span style={{ color: 'var(--fg-faint)', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>
                 Resend in {cooldownSeconds}s
               </span>
             ) : (
@@ -286,9 +282,10 @@ export default function OtpVerificationForm({
         <div className="otp-actions-column">
           <button
             type="submit"
-            className="btn btn-primary btn-full"
+            className="auth-submit-btn"
             disabled={verifying || digits.join('').length !== 6 || expirySeconds <= 0}
             id="btn-verify-otp"
+            style={{ marginTop: 0 }}
           >
             {verifying ? (
               <>
@@ -296,7 +293,7 @@ export default function OtpVerificationForm({
                 Verifying Code…
               </>
             ) : (
-              'Verify OTP'
+              'Verify OTP →'
             )}
           </button>
 
