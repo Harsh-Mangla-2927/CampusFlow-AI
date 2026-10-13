@@ -38,6 +38,18 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
   const galleryReelRef = useRef(null);
   const [reelPaused, setReelPaused] = useState(false);
 
+  // Platform Thesis scroll-driven active step state & refs
+  const [activeThesisStep, setActiveThesisStep] = useState(0);
+  const thesisPillarRefs = useRef([]);
+
+  const scrollToPillar = (idx) => {
+    setActiveThesisStep(idx);
+    const target = thesisPillarRefs.current[idx];
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
   const nudgeGallery = (direction = 1) => {
     if (!galleryReelRef.current) return;
     galleryReelRef.current.scrollBy({ left: direction * 400, behavior: 'smooth' });
@@ -82,10 +94,22 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
             }
           }
 
-          // Statement circular image drift
-          if (statementRef.current) {
-            const rect = statementRef.current.getBoundingClientRect();
-            setStatementScroll(rect.top);
+          // Track active Platform Thesis pillar based on viewport focus
+          if (thesisPillarRefs.current && thesisPillarRefs.current.length) {
+            const focusLine = window.innerHeight * 0.42;
+            let bestIdx = 0;
+            let minDistance = Infinity;
+            thesisPillarRefs.current.forEach((el, idx) => {
+              if (!el) return;
+              const rect = el.getBoundingClientRect();
+              const mid = rect.top + rect.height * 0.35;
+              const dist = Math.abs(mid - focusLine);
+              if (dist < minDistance) {
+                minDistance = dist;
+                bestIdx = idx;
+              }
+            });
+            setActiveThesisStep(bestIdx);
           }
 
           ticking = false;
@@ -324,6 +348,49 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
       sub: 'Continuous focus & academic momentum',
       img: '/statement-circle.jpg',
       alt: 'Students studying together in warm university hall',
+    },
+  ];
+
+  // ── PLATFORM THESIS EDITORIAL CHAPTERS ────────────────────────────────────
+  const THESIS_PILLARS = [
+    {
+      id: 'understand',
+      num: '01',
+      code: '01 — UNDERSTAND',
+      shortLabel: 'UNDERSTAND',
+      phaseLabel: 'PHASE 01 // COURSE & ATTENDANCE LEDGER',
+      title: 'Unified Course & Attendance Architecture',
+      desc: 'Consolidates every registered subject, credit weight, syllabus scope, and per-session attendance record into a single verified ledger. Real-time margin calculators enforce the statutory 75% cutoff so you know your safety threshold before missing a lecture.',
+      tags: ['Subject Ledgers', 'Statutory 75% Defense', 'Margin Calculator'],
+      systemAudit: 'ATTENDLY CORE PROTOCOL',
+      metricA: { label: 'Statutory Target', value: '75.0% Mandatory' },
+      metricB: { label: 'Recovery Margin', value: '+3 Buffer Sessions' },
+    },
+    {
+      id: 'prioritize',
+      num: '02',
+      code: '02 — PRIORITIZE',
+      shortLabel: 'PRIORITIZE',
+      phaseLabel: 'PHASE 02 // 0–100 PRIORITY SCORING',
+      title: 'Explainable 0–100 Priority Scoring',
+      desc: 'Replaces arbitrary to-do lists with transparent mathematical scoring. Every assignment, viva, and project is ranked using syllabus weight, time to deadline, and pending workload density. Audit triggers explain the exact rationale behind every top-ranked item.',
+      tags: ['Dynamic Priority Index', 'Collision Radar', 'Audit Triggers'],
+      systemAudit: 'PRIORITY MATRIX V2',
+      metricA: { label: 'Score Formula', value: 'Urgency + Syllabus + Load' },
+      metricB: { label: 'Audit Triggers', value: 'Transparent Rationale' },
+    },
+    {
+      id: 'plan',
+      num: '03',
+      code: '03 — PLAN',
+      shortLabel: 'PLAN',
+      phaseLabel: 'PHASE 03 // CADENCE & COLLISION PROTOCOLS',
+      title: 'Day-by-Day Study Cadences & Buffers',
+      desc: 'Generates balanced revision allocations based on exam proximity and syllabus complexity. The engine reserves mandatory 48-hour buffers prior to major midterms and finals, preventing deadline collisions and late-night panic.',
+      tags: ['Study Planner', '48-Hr Buffer Reserve', 'Target Milestones'],
+      systemAudit: 'CADENCE ENGINE PROTOCOL',
+      metricA: { label: 'Collision Defense', value: '48h Exam Lockout' },
+      metricB: { label: 'Daily Pacing', value: 'Balanced Sessions' },
     },
   ];
 
@@ -793,7 +860,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
         </div>
       </section>
 
-      {/* ── SECTION 03: PLATFORM THESIS (TYPOGRAPHY-LED EDITORIAL COMPOSITION) ── */}
+      {/* ── SECTION 03: PLATFORM THESIS (SCROLL-DRIVEN EDITORIAL TIMELINE) ── */}
       <section
         className="cinematic-statement-section"
         id="section-statement"
@@ -802,7 +869,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
       >
         <div className="thesis-editorial-container">
           <div className="thesis-editorial-layout">
-            {/* Left Column: Asymmetric Editorial Heading & Context */}
+            {/* Left Column: Asymmetric Editorial Heading & Dynamic Chapter Monitor */}
             <div className="thesis-editorial-left">
               <span className="section-eyebrow">03 // PLATFORM THESIS</span>
               <h2 id="statement-heading" className="section-heading">
@@ -810,79 +877,124 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
                 <span className="accent">Under control.</span>
               </h2>
               <p className="section-subtext thesis-editorial-subtext">
-                CampusFlow AI structures academic responsibilities into a proactive operating system —
-                continuously evaluating subject credits, statutory attendance thresholds, submission
-                deadlines, and exam proximities to eliminate semester friction.
+                CampusFlow AI brings academic responsibilities into a clearer system, helping students understand their workload, prioritize important tasks, and plan their next steps.
               </p>
+
+              {/* Dynamic Active Chapter Monitor Block */}
+              <div className="thesis-chapter-monitor" aria-live="polite">
+                <div className="thesis-chapter-top">
+                  <div className="thesis-chapter-num font-mono">
+                    {THESIS_PILLARS[activeThesisStep]?.num || '01'}
+                  </div>
+                  <div className="thesis-chapter-phase">
+                    {THESIS_PILLARS[activeThesisStep]?.phaseLabel || 'PHASE 01'}
+                  </div>
+                </div>
+
+                <div className="thesis-chapter-desc">
+                  {THESIS_PILLARS[activeThesisStep]?.title}
+                </div>
+
+                {/* 3-Part Step Selector Tabs */}
+                <div className="thesis-step-selector" role="tablist" aria-label="Thesis chapters">
+                  {THESIS_PILLARS.map((pillar, idx) => (
+                    <button
+                      key={pillar.id}
+                      role="tab"
+                      aria-selected={activeThesisStep === idx}
+                      aria-controls={`thesis-panel-${idx}`}
+                      className={`thesis-step-btn ${activeThesisStep === idx ? 'is-active' : ''}`}
+                      onClick={() => scrollToPillar(idx)}
+                      type="button"
+                    >
+                      <span className="thesis-step-code">{pillar.num}</span>
+                      <span className="thesis-step-label">{pillar.shortLabel}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Connected Progress Bar */}
+                <div className="thesis-progress-track">
+                  <div
+                    className="thesis-progress-bar"
+                    style={{ width: `${((activeThesisStep + 1) / THESIS_PILLARS.length) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Action Button */}
               <div className="thesis-editorial-action">
                 <button
                   className="btn btn-secondary btn-sm"
                   onClick={() => scrollTo('section-deck')}
                   style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}
+                  type="button"
                 >
                   Architecture & Engines ↓
                 </button>
               </div>
             </div>
 
-            {/* Right Column: Three Clearly Separated Editorial Rows */}
-            <div className="thesis-editorial-rows" role="region" aria-label="Thesis functional pillars">
-              {/* Pillar 01: UNDERSTAND */}
-              <div className="thesis-editorial-row">
-                <div className="thesis-row-num" aria-hidden="true">01</div>
-                <div className="thesis-row-body">
-                  <div className="thesis-row-label">01 — UNDERSTAND</div>
-                  <h3 className="thesis-row-title">Unified Course & Attendance Architecture</h3>
-                  <p className="thesis-row-desc">
-                    Consolidates every registered subject, credit weight, syllabus scope, and per-session
-                    attendance record into a single verified ledger. Real-time margin calculators enforce
-                    the statutory 75% cutoff so you know your safety threshold before missing a lecture.
-                  </p>
-                  <div className="thesis-row-tags">
-                    <span className="thesis-pill">Subject Ledgers</span>
-                    <span className="thesis-pill">Statutory 75% Defense</span>
-                    <span className="thesis-pill">Margin Calculator</span>
-                  </div>
-                </div>
-              </div>
+            {/* Right Column: Overlapping Editorial Stack */}
+            <div className="thesis-editorial-stack" role="region" aria-label="Thesis functional pillars">
+              {THESIS_PILLARS.map((pillar, idx) => {
+                const isActive = activeThesisStep === idx;
+                const isPassed = activeThesisStep > idx;
 
-              {/* Pillar 02: PRIORITIZE */}
-              <div className="thesis-editorial-row">
-                <div className="thesis-row-num" aria-hidden="true">02</div>
-                <div className="thesis-row-body">
-                  <div className="thesis-row-label">02 — PRIORITIZE</div>
-                  <h3 className="thesis-row-title">Explainable 0–100 Priority Scoring</h3>
-                  <p className="thesis-row-desc">
-                    Replaces arbitrary to-do lists with transparent mathematical scoring. Every assignment,
-                    viva, and project is ranked using syllabus weight, time to deadline, and pending workload density.
-                    Audit triggers explain the exact rationale behind every top-ranked item.
-                  </p>
-                  <div className="thesis-row-tags">
-                    <span className="thesis-pill">Dynamic Priority Index</span>
-                    <span className="thesis-pill">Collision Radar</span>
-                    <span className="thesis-pill">Audit Triggers</span>
-                  </div>
-                </div>
-              </div>
+                const statusClass = isActive
+                  ? 'is-active'
+                  : isPassed
+                  ? 'is-passed'
+                  : 'is-upcoming';
 
-              {/* Pillar 03: PLAN */}
-              <div className="thesis-editorial-row">
-                <div className="thesis-row-num" aria-hidden="true">03</div>
-                <div className="thesis-row-body">
-                  <div className="thesis-row-label">03 — PLAN</div>
-                  <h3 className="thesis-row-title">Day-by-Day Study Cadences & Buffers</h3>
-                  <p className="thesis-row-desc">
-                    Generates balanced revision allocations based on exam proximity and syllabus complexity.
-                    The engine reserves mandatory 48-hour buffers prior to major midterms and finals, preventing
-                    deadline collisions and late-night panic.
-                  </p>
-                  <div className="thesis-row-tags">
-                    <span className="thesis-pill">Study Planner</span>
-                    <span className="thesis-pill">48-Hr Buffer Reserve</span>
-                    <span className="thesis-pill">Target Milestones</span>
+                return (
+                  <div
+                    key={pillar.id}
+                    id={`thesis-panel-${idx}`}
+                    ref={(el) => (thesisPillarRefs.current[idx] = el)}
+                    className={`thesis-panel-card ${statusClass}`}
+                    style={{ '--card-index': idx }}
+                    tabIndex={0}
+                    onClick={() => setActiveThesisStep(idx)}
+                  >
+                    <div className="thesis-panel-header">
+                      <span className="thesis-panel-code">{pillar.code}</span>
+                      <div className={`thesis-panel-status ${isActive ? 'active' : ''}`}>
+                        <span className={`thesis-status-dot ${isActive ? 'pulse' : ''}`} />
+                        <span>{isActive ? `ACTIVE CHAPTER // ${pillar.num}` : `CHAPTER ${pillar.num}`}</span>
+                      </div>
+                    </div>
+
+                    <h3 className="thesis-panel-title">{pillar.title}</h3>
+                    <p className="thesis-panel-desc">{pillar.desc}</p>
+
+                    {/* Deterministic Engine Telemetry Micro-Readout */}
+                    <div className="thesis-engine-readout">
+                      <div className="thesis-readout-header">
+                        <span>{pillar.systemAudit}</span>
+                        <span>DETERMINISTIC RULE MATRIX</span>
+                      </div>
+                      <div className="thesis-readout-grid">
+                        <div className="thesis-readout-metric">
+                          <span className="thesis-readout-label">{pillar.metricA.label}</span>
+                          <span className="thesis-readout-val">{pillar.metricA.value}</span>
+                        </div>
+                        <div className="thesis-readout-metric">
+                          <span className="thesis-readout-label">{pillar.metricB.label}</span>
+                          <span className="thesis-readout-val">{pillar.metricB.value}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Capability Tags */}
+                    <div className="thesis-panel-tags">
+                      {pillar.tags.map((tag, tIdx) => (
+                        <span key={tIdx} className="thesis-pill">{tag}</span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </div>
+                );
+              })}
             </div>
           </div>
         </div>
