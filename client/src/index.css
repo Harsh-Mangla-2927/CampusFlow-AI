@@ -3743,10 +3743,10 @@ main[role="main"] {
   left: 0;
   width: 100%;
   height: 64px;
-  background: rgba(10, 12, 14, 0.90);
+  background: rgba(10, 10, 10, 0.92);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  border-bottom: 1px solid rgba(237, 231, 220, 0.13);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3774,7 +3774,7 @@ main[role="main"] {
 }
 
 .cinematic-brand-dot {
-  color: var(--amber);
+  color: var(--accent);
   margin-left: 2px;
 }
 
@@ -3800,7 +3800,7 @@ main[role="main"] {
 
 .cinematic-nav-link:hover,
 .cinematic-nav-link:focus-visible {
-  color: var(--amber);
+  color: var(--accent);
   outline: none;
 }
 
@@ -3817,8 +3817,8 @@ main[role="main"] {
   text-transform: uppercase;
   letter-spacing: 0.12em;
   padding: 9px 20px;
-  border-radius: 999px;
-  border: 1px solid rgba(237, 231, 220, 0.22);
+  border-radius: var(--r-none, 0px);
+  border: 1px solid var(--border);
   background: transparent;
   color: var(--fg-primary);
   cursor: pointer;
@@ -3827,16 +3827,16 @@ main[role="main"] {
 
 .cinematic-nav-cta:hover,
 .cinematic-nav-cta:focus-visible {
-  border-color: var(--amber);
-  color: var(--amber);
-  background: var(--amber-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
   outline: none;
 }
 
 .cinematic-nav-cta.filled {
-  background: var(--amber);
-  color: #0A0C0E;
-  border-color: var(--amber);
+  background: var(--accent);
+  color: var(--accent-foreground);
+  border-color: var(--accent);
   font-weight: 700;
 }
 
@@ -3844,7 +3844,7 @@ main[role="main"] {
 .cinematic-nav-cta.filled:focus-visible {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
-  color: #0A0C0E;
+  color: var(--accent-foreground);
   transform: translateY(-1px);
 }
 
@@ -3855,17 +3855,17 @@ main[role="main"] {
   justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: 8px;
-  border: 1px solid rgba(237, 231, 220, 0.15);
-  background: rgba(23, 27, 31, 0.6);
+  border-radius: var(--r-none, 0px);
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
   color: var(--fg-primary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .cinematic-nav-hamburger:hover {
-  border-color: var(--amber);
-  color: var(--amber);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* Mobile Drawer Overlay */
@@ -3875,10 +3875,10 @@ main[role="main"] {
   left: 0;
   width: 100%;
   height: calc(100vh - 64px);
-  background: rgba(10, 12, 14, 0.97);
+  background: rgba(10, 10, 10, 0.98);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-top: 1px solid rgba(237, 231, 220, 0.1);
+  border-top: 1px solid var(--border);
   z-index: 99;
   display: flex;
   flex-direction: column;
@@ -3908,9 +3908,9 @@ main[role="main"] {
   color: var(--fg-primary);
   text-align: left;
   padding: 14px 16px;
-  border-radius: 8px;
-  background: rgba(23, 27, 31, 0.5);
-  border: 1px solid rgba(237, 231, 220, 0.08);
+  border-radius: var(--r-none, 0px);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
   transition: all 0.2s ease;
   cursor: pointer;
   display: flex;
@@ -3920,9 +3920,9 @@ main[role="main"] {
 
 .cinematic-mobile-link:hover,
 .cinematic-mobile-link:focus-visible {
-  background: rgba(232, 145, 60, 0.08);
-  border-color: rgba(232, 145, 60, 0.3);
-  color: var(--amber);
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
   outline: none;
 }
 
@@ -3932,7 +3932,7 @@ main[role="main"] {
   gap: 12px;
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid rgba(237, 231, 220, 0.1);
+  border-top: 1px solid var(--border);
 }
 
 .cinematic-mobile-actions .cinematic-nav-cta {
@@ -3946,7 +3946,7 @@ main[role="main"] {
 .portal-hero-container {
   position: relative;
   height: 250vh;
-  background: #0A0C0E;
+  background: var(--background);
 }
 
 .portal-hero-stage {
@@ -3976,8 +3976,8 @@ main[role="main"] {
 .portal-duotone-layer {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(46, 107, 114, 0.75) 0%, rgba(232, 145, 60, 0.5) 100%);
-  mix-blend-mode: overlay;
+  background: linear-gradient(180deg, rgba(10, 10, 10, 0.2) 0%, rgba(10, 10, 10, 0.9) 100%);
+  mix-blend-mode: normal;
   z-index: 2;
   pointer-events: none;
   will-change: opacity;
@@ -3986,7 +3986,7 @@ main[role="main"] {
 .portal-radial-veil {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, transparent 35%, rgba(10, 12, 14, 0.88) 100%);
+  background: radial-gradient(ellipse at center, transparent 35%, rgba(10, 10, 10, 0.92) 100%);
   z-index: 3;
   pointer-events: none;
 }
@@ -3997,7 +3997,7 @@ main[role="main"] {
   left: 0;
   width: 50.5%;
   height: 100%;
-  background: #0A0C0E;
+  background: var(--background);
   z-index: 4;
   will-change: transform;
 }
@@ -4008,17 +4008,17 @@ main[role="main"] {
   right: 0;
   width: 50.5%;
   height: 100%;
-  background: #0A0C0E;
+  background: var(--background);
   z-index: 4;
   will-change: transform;
 }
 
 .portal-accent-dot-amber {
   position: absolute;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--amber);
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-none, 0px);
+  background: var(--accent);
   z-index: 6;
   pointer-events: none;
   will-change: transform;
@@ -4026,9 +4026,9 @@ main[role="main"] {
 
 .portal-accent-dot-teal {
   position: absolute;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-none, 0px);
   background: var(--teal);
   z-index: 6;
   pointer-events: none;
@@ -4063,7 +4063,7 @@ main[role="main"] {
   top: 84px;
   left: 40px;
   z-index: 8;
-  font-family: var(--font-body);
+  font-family: var(--font-mono);
   font-size: 10.5px;
   font-weight: 600;
   text-transform: uppercase;
@@ -4077,7 +4077,7 @@ main[role="main"] {
   bottom: 40px;
   left: 40px;
   z-index: 8;
-  font-family: var(--font-body);
+  font-family: var(--font-mono);
   font-size: 10.5px;
   font-weight: 600;
   text-transform: uppercase;
@@ -4091,12 +4091,12 @@ main[role="main"] {
   bottom: 40px;
   right: 40px;
   z-index: 8;
-  font-family: var(--font-body);
+  font-family: var(--font-mono);
   font-size: 10.5px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.15em;
-  color: var(--teal);
+  color: var(--accent);
   pointer-events: none;
 }
 
@@ -4112,12 +4112,12 @@ main[role="main"] {
   align-items: center;
   gap: 20px;
   padding: 40px 36px;
-  background: rgba(10, 12, 14, 0.78);
+  background: rgba(10, 10, 10, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(237, 231, 220, 0.14);
-  border-radius: 16px;
-  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--border);
+  border-radius: var(--r-none, 0px);
+  box-shadow: var(--shadow-elevated);
   transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
@@ -4126,22 +4126,22 @@ main[role="main"] {
   align-items: center;
   gap: 8px;
   padding: 6px 14px;
-  border-radius: 999px;
-  background: rgba(232, 145, 60, 0.12);
-  border: 1px solid rgba(232, 145, 60, 0.3);
-  font-family: var(--font-body);
+  border-radius: var(--r-none, 0px);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-border);
+  font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.14em;
-  color: var(--amber);
+  color: var(--accent);
   text-transform: uppercase;
 }
 
 .portal-pill-dot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
-  background: var(--amber);
+  border-radius: var(--r-none, 0px);
+  background: var(--accent);
 }
 
 .portal-editorial-title {
@@ -4205,7 +4205,7 @@ main[role="main"] {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--font-body);
+  font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
@@ -4216,8 +4216,8 @@ main[role="main"] {
 .portal-scroll-dot {
   width: 5px;
   height: 5px;
-  border-radius: 50%;
-  background: var(--amber);
+  border-radius: var(--r-none, 0px);
+  background: var(--accent);
   animation: pulseDot 2s infinite ease-in-out;
 }
 
@@ -4256,10 +4256,10 @@ main[role="main"] {
 
 .gallery-card {
   position: relative;
-  border-radius: 12px;
+  border-radius: var(--r-none, 0px);
   overflow: hidden;
   background: var(--bg-base);
-  border: 1px solid rgba(237, 231, 220, 0.12);
+  border: 1px solid var(--border);
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.4s ease;
   will-change: transform;
@@ -4268,7 +4268,7 @@ main[role="main"] {
 .gallery-card:hover {
   transform: translateY(-8px) rotate(0deg) scale(1.02) !important;
   box-shadow: 0 24px 50px rgba(0, 0, 0, 0.75);
-  border-color: rgba(232, 145, 60, 0.35);
+  border-color: var(--accent-border);
   z-index: 5;
 }
 
@@ -4300,7 +4300,7 @@ main[role="main"] {
 .gallery-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 40%, rgba(10, 12, 14, 0.92) 100%);
+  background: linear-gradient(180deg, transparent 40%, rgba(10, 10, 10, 0.94) 100%);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -4309,12 +4309,12 @@ main[role="main"] {
 }
 
 .gallery-card-tag {
-  font-family: var(--font-body);
+  font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  color: var(--amber);
+  color: var(--accent);
   margin-bottom: 6px;
 }
 
@@ -4620,10 +4620,10 @@ main[role="main"] {
   width: clamp(290px, 88%, 410px);
   height: 410px;
   background: var(--bg-elevated);
-  border: 1px solid rgba(237, 231, 220, 0.15);
-  border-radius: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-none, 0px);
   padding: 34px 30px;
-  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(237, 231, 220, 0.1);
+  box-shadow: var(--shadow-deck);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -4638,11 +4638,11 @@ main[role="main"] {
 
 .throwable-card.dragging {
   transition: none !important;
-  box-shadow: 0 36px 72px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(232, 145, 60, 0.35);
+  box-shadow: 0 36px 72px rgba(0, 0, 0, 0.85), 0 0 0 1px var(--accent-border);
 }
 
 .throwable-card-tag {
-  font-family: var(--font-body);
+  font-family: var(--font-mono);
   font-size: 10.5px;
   font-weight: 600;
   text-transform: uppercase;
@@ -4692,8 +4692,8 @@ main[role="main"] {
 }
 
 .throwable-card-metric {
-  font-family: var(--font-body);
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
   font-weight: 600;
   color: var(--fg-muted);
 }
@@ -4709,7 +4709,7 @@ main[role="main"] {
 }
 
 .deck-counter {
-  font-family: var(--font-body);
+  font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -4719,7 +4719,7 @@ main[role="main"] {
 .deck-nav-btn {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: var(--r-none, 0px);
   border: 1px solid var(--border);
   background: var(--bg-surface);
   color: var(--fg-primary);
@@ -4731,9 +4731,9 @@ main[role="main"] {
 }
 
 .deck-nav-btn:hover {
-  border-color: var(--amber);
-  color: var(--amber);
-  background: var(--amber-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
 }
 
 /* ── Section 4: Functional Roster Directory ── */
@@ -4863,25 +4863,25 @@ main[role="main"] {
 }
 
 .roster-badge {
-  font-family: var(--font-body);
-  font-size: 10.5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 3px 8px;
-  border-radius: 4px;
+  border-radius: var(--r-none, 0px);
 }
 
 .roster-badge.amber {
-  background: var(--amber-dim);
-  color: var(--amber);
-  border: 1px solid rgba(232, 145, 60, 0.25);
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
 }
 
 .roster-badge.teal {
   background: var(--teal-dim);
-  color: #57B3BE;
-  border: 1px solid rgba(46, 107, 114, 0.3);
+  color: var(--teal);
+  border: 1px solid rgba(20, 184, 166, 0.3);
 }
 
 .roster-link-text {
@@ -4893,7 +4893,7 @@ main[role="main"] {
 }
 
 .roster-card:hover .roster-link-text {
-  color: var(--amber);
+  color: var(--accent);
 }
 
 /* ── Section 5: Structured Calendar & Submission Cadence ── */
@@ -4930,7 +4930,7 @@ main[role="main"] {
 }
 
 .dates-th {
-  font-family: var(--font-body);
+  font-family: var(--font-mono);
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -4951,10 +4951,10 @@ main[role="main"] {
 }
 
 .dates-timeline-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--amber);
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-none, 0px);
+  background: var(--accent);
   display: inline-block;
   flex-shrink: 0;
 }
@@ -4970,23 +4970,24 @@ main[role="main"] {
   display: inline-flex;
   align-items: center;
   padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 11px;
+  border-radius: var(--r-none, 0px);
+  font-family: var(--font-mono);
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .dates-badge.amber {
-  background: var(--amber-dim);
-  color: var(--amber);
-  border: 1px solid rgba(232, 145, 60, 0.25);
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
 }
 
 .dates-badge.teal {
   background: var(--teal-dim);
-  color: #57B3BE;
-  border: 1px solid rgba(46, 107, 114, 0.3);
+  color: var(--teal);
+  border: 1px solid rgba(20, 184, 166, 0.3);
 }
 
 .dates-mobile-cards {
@@ -4998,7 +4999,7 @@ main[role="main"] {
 .dates-mobile-card {
   background: var(--bg-surface);
   border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  border-radius: var(--r-none, 0px);
   padding: 18px 16px;
   display: flex;
   flex-direction: column;
