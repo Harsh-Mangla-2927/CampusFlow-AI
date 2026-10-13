@@ -18,13 +18,15 @@ import {
 } from 'lucide-react';
 
 /* ── CINEMATIC EDITORIAL LANDING PAGE (REFINED & PROPORTIONED) ─────────────── */
-function EditorialSectionLabel({ number, title, subtitle }) {
+function EditorialSectionLabel({ number, title, subtitle, className = '' }) {
   return (
-    <div className="editorial-section-label">
+    <div className={`editorial-section-label ${className}`}>
       <span className="label-badge">[{number}]</span>
-      <span className="label-sep">—</span>
-      <span className="label-name">{title}</span>
-      {subtitle && <span className="label-sub">/ {subtitle}</span>}
+      <span className="label-sep">//</span>
+      <span className="label-name">
+        {title}
+        {subtitle && ` · ${subtitle}`}
+      </span>
     </div>
   );
 }
@@ -792,7 +794,6 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
             <EditorialSectionLabel
               number="01"
               title="ACADEMIC OPERATING SYSTEM"
-              subtitle="FOCUS PORTAL"
             />
 
             <h1 className="portal-editorial-title">
@@ -840,7 +841,16 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
           </div>
 
           {/* 9. Minimal Corner Metadata */}
-          <div className="portal-meta-topleft">01 // ACADEMIC OPERATING SYSTEM</div>
+          <div
+            className="portal-meta-topleft"
+            style={{
+              opacity: Math.max(1 - portalProgress * 2.5, 0),
+              transform: `translateY(-${portalProgress * 15}px)`,
+              transition: 'opacity 0.2s ease, transform 0.2s ease',
+            }}
+          >
+            <EditorialSectionLabel number="01" title="ACADEMIC OPERATING SYSTEM" />
+          </div>
           <div className="portal-meta-bottomleft">MONITORED WORKSPACE // VER 2.6</div>
           <div className="portal-meta-bottomright">EXPLAINABLE PRIORITY · ZERO CONFLICT</div>
         </div>
@@ -968,7 +978,6 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
                 <EditorialSectionLabel
                   number="03"
                   title="PLATFORM THESIS"
-                  subtitle="ARCHITECTURAL FOUNDATION"
                 />
               </div>
               <h2 id="statement-heading" className="section-heading thesis-editorial-headline editorial-reveal-item" data-reveal-order="2">
@@ -1107,8 +1116,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
             <div className="editorial-reveal-item" data-reveal-order="1">
               <EditorialSectionLabel
                 number="04"
-                title="SYSTEM ARCHITECTURE"
-                subtitle="COMPUTATIONAL ENGINES"
+                title="ARCHITECTURE & ENGINES"
               />
             </div>
             <h2 id="deck-heading" className="section-heading deck-heading editorial-reveal-item" data-reveal-order="2">
@@ -1291,7 +1299,6 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
             <EditorialSectionLabel
               number="05"
               title="FUNCTIONAL ROSTER"
-              subtitle="MODULE DIRECTORY"
             />
           </div>
           <h2 id="roster-heading" className="section-heading roster-heading editorial-reveal-item" data-reveal-order="2">
@@ -1453,7 +1460,6 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
               <EditorialSectionLabel
                 number="06"
                 title="STRUCTURED CALENDAR"
-                subtitle="PROGRESSION TIMELINE"
               />
             </div>
             <h2 id="dates-heading" className="section-heading dates-heading editorial-reveal-item" data-reveal-order="2">
