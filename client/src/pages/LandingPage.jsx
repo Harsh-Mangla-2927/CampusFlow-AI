@@ -394,11 +394,11 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
         </button>
 
         <nav className="cinematic-nav-links" aria-label="Page Sections">
-          <button className="cinematic-nav-link" onClick={() => scrollTo('section-statement')}>
-            Thesis
-          </button>
           <button className="cinematic-nav-link" onClick={() => scrollTo('section-gallery')}>
             Gallery
+          </button>
+          <button className="cinematic-nav-link" onClick={() => scrollTo('section-statement')}>
+            Thesis
           </button>
           <button className="cinematic-nav-link" onClick={() => scrollTo('section-deck')}>
             Architecture
@@ -451,22 +451,22 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
             <button
               className="cinematic-mobile-link"
               onClick={() => {
-                scrollTo('section-statement');
-                setMobileMenuOpen(false);
-              }}
-            >
-              <span>Platform Thesis</span>
-              <span style={{ color: 'var(--amber)' }}>01 →</span>
-            </button>
-            <button
-              className="cinematic-mobile-link"
-              onClick={() => {
                 scrollTo('section-gallery');
                 setMobileMenuOpen(false);
               }}
             >
               <span>Academic Gallery</span>
-              <span style={{ color: 'var(--amber)' }}>02 →</span>
+              <span style={{ color: 'var(--accent)' }}>02 →</span>
+            </button>
+            <button
+              className="cinematic-mobile-link"
+              onClick={() => {
+                scrollTo('section-statement');
+                setMobileMenuOpen(false);
+              }}
+            >
+              <span>Platform Thesis</span>
+              <span style={{ color: 'var(--accent)' }}>03 →</span>
             </button>
             <button
               className="cinematic-mobile-link"
@@ -476,7 +476,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
               }}
             >
               <span>Architecture & Engines</span>
-              <span style={{ color: 'var(--amber)' }}>03 →</span>
+              <span style={{ color: 'var(--accent)' }}>04 →</span>
             </button>
             <button
               className="cinematic-mobile-link"
@@ -486,7 +486,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
               }}
             >
               <span>Functional Roster</span>
-              <span style={{ color: 'var(--amber)' }}>04 →</span>
+              <span style={{ color: 'var(--accent)' }}>05 →</span>
             </button>
             <button
               className="cinematic-mobile-link"
@@ -496,7 +496,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
               }}
             >
               <span>Structured Schedule</span>
-              <span style={{ color: 'var(--amber)' }}>05 →</span>
+              <span style={{ color: 'var(--accent)' }}>06 →</span>
             </button>
             {onGoContact && (
               <button
@@ -507,7 +507,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
                 }}
               >
                 <span>Contact Support</span>
-                <span style={{ color: 'var(--teal)' }}>06 →</span>
+                <span style={{ color: 'var(--accent)' }}>07 →</span>
               </button>
             )}
 
@@ -643,7 +643,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
             </div>
 
             <h1 className="portal-editorial-title">
-              Make room for the <span style={{ color: 'var(--amber)' }}>work that matters</span>.
+              Make room for the <span className="accent">work that matters</span>.
             </h1>
 
             <p className="portal-editorial-subtitle">
@@ -661,10 +661,10 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
               </button>
               <button
                 className="cinematic-nav-cta"
-                onClick={() => scrollTo('section-statement')}
+                onClick={() => scrollTo('section-gallery')}
                 id="hero-cta-secondary"
               >
-                Explore Thesis ↓
+                Explore Gallery ↓
               </button>
             </div>
           </div>
@@ -702,11 +702,11 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
           <div className="gallery-header-block">
             <div className="gallery-header-row">
               <div>
-                <span className="statement-eyebrow">02 // ACADEMIC IMAGERY · FOCUS CADENCE</span>
-                <h2 id="gallery-heading" className="statement-large-text">
-                  Atmospheres of deep academic <span style={{ color: 'var(--accent)' }}>focus</span>.
+                <span className="section-eyebrow">02 // ACADEMIC IMAGERY · FOCUS CADENCE</span>
+                <h2 id="gallery-heading" className="section-heading">
+                  Atmospheres of deep academic <span className="accent">focus</span>.
                 </h2>
-                <p className="statement-subtext" style={{ marginTop: 12 }}>
+                <p className="section-subtext" style={{ marginTop: 12 }}>
                   A curated visual reel across genuine university environments — reading archives, software laboratories, collaborative studios, and examination buffers.
                 </p>
               </div>
@@ -804,12 +804,12 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
           <div className="thesis-editorial-layout">
             {/* Left Column: Asymmetric Editorial Heading & Context */}
             <div className="thesis-editorial-left">
-              <span className="thesis-editorial-eyebrow">03 / THE CAMPUSFLOW THESIS</span>
-              <h2 id="statement-heading" className="thesis-editorial-headline">
+              <span className="section-eyebrow">03 // PLATFORM THESIS</span>
+              <h2 id="statement-heading" className="section-heading">
                 Your semester.<br />
-                <span style={{ color: 'var(--accent)' }}>Under control.</span>
+                <span className="accent">Under control.</span>
               </h2>
-              <p className="thesis-editorial-subtext">
+              <p className="section-subtext thesis-editorial-subtext">
                 CampusFlow AI structures academic responsibilities into a proactive operating system —
                 continuously evaluating subject credits, statutory attendance thresholds, submission
                 deadlines, and exam proximities to eliminate semester friction.
@@ -893,11 +893,11 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
         <div className="deck-grid">
           {/* Left Column: Context, Capabilities Checklist & Actions */}
           <div className="deck-left-col">
-            <span className="deck-eyebrow">02 / ARCHITECTURE & ENGINES</span>
-            <h2 id="deck-heading" className="deck-heading">
-              Tactile Control Over Your Academic Trajectory.
+            <span className="section-eyebrow">04 // ARCHITECTURE & ENGINES</span>
+            <h2 id="deck-heading" className="section-heading">
+              Tactile control over your academic <span className="accent">trajectory</span>.
             </h2>
-            <p className="deck-desc">
+            <p className="section-subtext deck-desc">
               Six synchronized computational engines running transparent rule evaluations on your
               course subjects, attendance thresholds, submissions, and exam dates.
             </p>
@@ -1070,11 +1070,11 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
       {/* ── SECTION 4: FUNCTIONAL ROSTER (INTERACTIVE MODULE DIRECTORY) ─── */}
       <section className="roster-section" id="section-roster" aria-labelledby="roster-heading">
         <div className="roster-header">
-          <div className="roster-eyebrow">03 / FUNCTIONAL ROSTER</div>
-          <h2 id="roster-heading" className="roster-heading">
-            System Modules & Computational Rules.
+          <div className="section-eyebrow">05 // FUNCTIONAL ROSTER</div>
+          <h2 id="roster-heading" className="section-heading">
+            System modules & computational <span className="accent">rules</span>.
           </h2>
-          <p className="roster-subtext">
+          <p className="section-subtext">
             Six synchronized deterministic engines engineered to eliminate academic uncertainty,
             powered by explainable heuristics rather than black-box guesswork.
           </p>
@@ -1224,11 +1224,11 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
       {/* ── SECTION 5: STRUCTURED CALENDAR & TIMELINE CADENCE ───────────── */}
       <section className="dates-section" id="section-dates" aria-labelledby="dates-heading">
         <div className="dates-header">
-          <div className="statement-eyebrow">04 / STRUCTURED CALENDAR</div>
-          <h2 id="dates-heading" className="roster-heading">
-            Academic Schedule & Submission Cadence.
+          <div className="section-eyebrow">06 // STRUCTURED CALENDAR</div>
+          <h2 id="dates-heading" className="section-heading">
+            Academic schedule & submission <span className="accent">cadence</span>.
           </h2>
-          <p className="dates-subtext">
+          <p className="section-subtext dates-subtext">
             Illustrative curriculum timeline demonstrating how CampusFlow AI maps evaluation milestones,
             credit weightages, and proactive preparation cadences.
           </p>
@@ -1294,12 +1294,11 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
       <section className="closing-section" aria-labelledby="closing-heading">
         <div className="closing-content">
           <div className="closing-left">
-            <span className="statement-eyebrow">ACADEMIC COMMAND // GET STARTED TODAY</span>
-            <h2 id="closing-heading" className="closing-headline">
-              Build a better rhythm for your{' '}
-              <span style={{ color: 'var(--amber)' }}>academic life</span>.
+            <span className="section-eyebrow">07 // ACADEMIC COMMAND · GET STARTED</span>
+            <h2 id="closing-heading" className="section-heading closing-headline">
+              Build a better rhythm for your <span className="accent">academic life</span>.
             </h2>
-            <p className="closing-sub">
+            <p className="section-subtext closing-sub">
               Transparent prioritization, automated risk detection, and seamless course organization
               in one unified workspace. Plan ahead, protect your standing, and study without panic.
             </p>

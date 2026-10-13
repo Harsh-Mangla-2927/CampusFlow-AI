@@ -4226,6 +4226,94 @@ main[role="main"] {
   50% { transform: scale(1.6); opacity: 1; }
 }
 
+/* ═════════════════════════════════════════════════════════════════════
+   STANDARDIZED WEBSITE-WIDE HEADING TYPOGRAPHY SYSTEM
+   ═════════════════════════════════════════════════════════════════════ */
+
+/* 1. Small Uppercase Monospace Section Labels (Eyebrows) */
+.section-eyebrow,
+.statement-eyebrow,
+.thesis-editorial-eyebrow,
+.deck-eyebrow,
+.roster-eyebrow,
+.dates-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  margin-bottom: 14px;
+  display: inline-block;
+}
+
+/* 2. Standard Section Headings Across Entire Website */
+.section-heading,
+.statement-large-text,
+.thesis-editorial-headline,
+.deck-heading,
+.roster-heading,
+.dates-heading,
+.closing-headline {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 3.8vw, 3.4rem);
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  color: var(--fg-primary);
+  margin: 0 0 16px;
+}
+
+/* Consistent Emphasized Words in Vermilion Accent Token */
+.section-heading .accent,
+.section-heading span,
+.statement-large-text .accent,
+.statement-large-text span,
+.thesis-editorial-headline .accent,
+.thesis-editorial-headline span,
+.deck-heading .accent,
+.deck-heading span,
+.roster-heading .accent,
+.roster-heading span,
+.dates-heading .accent,
+.dates-heading span,
+.closing-headline .accent,
+.closing-headline span,
+.portal-editorial-title .accent,
+.portal-editorial-title span,
+.statement-highlight {
+  color: var(--accent);
+}
+
+/* 3. Section Supporting Subtext */
+.section-subtext,
+.statement-subtext,
+.thesis-editorial-subtext,
+.deck-desc,
+.roster-subtext,
+.dates-subtext,
+.closing-sub {
+  font-family: var(--font-body);
+  font-size: 15.5px;
+  color: var(--fg-secondary);
+  line-height: 1.7;
+  max-width: 620px;
+}
+
+/* 4. Subsection Headings (Card / Feature Level) */
+.subsection-heading,
+.thesis-row-title,
+.rec-title,
+.roster-card-title,
+.deck-card-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 1.8vw, 1.55rem);
+  font-weight: 800;
+  color: var(--fg-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
 /* ── Section 02: Cinematic Curved Horizontal Film Reel Gallery ── */
 .academic-gallery-section {
   position: relative;
@@ -4497,32 +4585,7 @@ main[role="main"] {
   flex-direction: column;
 }
 
-.thesis-editorial-eyebrow {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--accent);
-  margin-bottom: 20px;
-  display: inline-block;
-}
-
-.thesis-editorial-headline {
-  font-family: var(--font-display);
-  font-size: clamp(2.6rem, 4.4vw, 4.2rem);
-  font-weight: 900;
-  line-height: 1.05;
-  letter-spacing: -0.04em;
-  color: var(--fg-primary);
-  margin: 0 0 24px;
-}
-
 .thesis-editorial-subtext {
-  font-family: var(--font-body);
-  font-size: 15.5px;
-  color: var(--fg-secondary);
-  line-height: 1.7;
   max-width: 480px;
   margin: 0 0 32px;
 }
@@ -4667,30 +4730,7 @@ main[role="main"] {
   gap: 20px;
 }
 
-.deck-eyebrow {
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--amber);
-}
 
-.deck-heading {
-  font-family: var(--font-display);
-  font-size: clamp(32px, 3.8vw, 48px);
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  line-height: 1.15;
-  color: var(--fg-primary);
-}
-
-.deck-desc {
-  font-family: var(--font-body);
-  font-size: 15.5px;
-  color: var(--fg-secondary);
-  line-height: 1.65;
-}
 
 .deck-checklist {
   display: flex;
@@ -4864,31 +4904,7 @@ main[role="main"] {
   max-width: 760px;
 }
 
-.roster-eyebrow {
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--teal);
-  margin-bottom: 12px;
-}
 
-.roster-heading {
-  font-family: var(--font-display);
-  font-size: clamp(32px, 3.8vw, 46px);
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  color: var(--fg-primary);
-  margin-bottom: 14px;
-}
-
-.roster-subtext {
-  font-family: var(--font-body);
-  font-size: 15px;
-  color: var(--fg-secondary);
-  line-height: 1.65;
-}
 
 .roster-directory-grid {
   display: grid;
@@ -5177,20 +5193,10 @@ main[role="main"] {
 }
 
 .closing-headline {
-  font-family: var(--font-display);
-  font-size: clamp(34px, 4.6vw, 62px);
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  color: var(--fg-primary);
-  line-height: 1.12;
   margin: 14px 0 16px;
 }
 
 .closing-sub {
-  font-family: var(--font-body);
-  font-size: 16px;
-  color: var(--fg-secondary);
-  line-height: 1.65;
   max-width: 640px;
   margin: 0 auto;
 }
