@@ -62,7 +62,7 @@ function Topbar({ activePage, onMobileToggle, mobileOpen }) {
             <span style={{ color: healthColor, fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: 13 }}>
               {health}%
             </span>
-            <span style={{ color: 'var(--fg-faint)', fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            <span style={{ color: 'var(--fg-faint)', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
               Health
             </span>
           </div>

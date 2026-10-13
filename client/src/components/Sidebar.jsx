@@ -96,7 +96,7 @@ function Sidebar({ activePage, onNavigate, user, onLogout, mobileOpen, onMobileC
               </div>
               <div className="sidebar-user-info">
                 <div className="sidebar-user-name">{user.name}</div>
-                <div className="sidebar-user-meta">
+                <div className="sidebar-user-meta" style={{ fontFamily: 'var(--font-mono)', fontSize: 11 }}>
                   {user.course ? `${user.course} · Sem ${user.semester}` : user.email}
                 </div>
               </div>

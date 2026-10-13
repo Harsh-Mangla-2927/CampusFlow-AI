@@ -10,7 +10,7 @@ export function LoadingState({ message = 'Loading…' }) {
         <div className="loading-dot" />
         <div className="loading-dot" />
       </div>
-      <p className="state-desc" style={{ fontSize: 13, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg-faint)' }}>
+      <p className="state-desc" style={{ fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--fg-faint)', fontFamily: 'var(--font-mono)' }}>
         {message}
       </p>
     </div>
@@ -61,7 +61,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = 560 }) {
       aria-modal="true"
       aria-labelledby="modal-title"
     >
-      <div className="modal-box" style={{ maxWidth }}>
+      <div className="modal-box" style={{ maxWidth, borderRadius: 'var(--r-none, 0px)' }}>
         <div className="modal-header">
           <span className="modal-title" id="modal-title">{title}</span>
           <button
@@ -90,11 +90,11 @@ export function StatCard({ label, value, accentColor, icon, detail }) {
           </div>
         )}
       </div>
-      <div className="stat-card-label">{label}</div>
+      <div className="stat-card-label" style={{ fontFamily: 'var(--font-mono)' }}>{label}</div>
       <div className="stat-card-value" style={{ color: accentColor || 'var(--fg-primary)' }}>
         {value}
       </div>
-      {detail && <div className="stat-card-detail">{detail}</div>}
+      {detail && <div className="stat-card-detail" style={{ fontFamily: 'var(--font-mono)' }}>{detail}</div>}
     </div>
   );
 }
@@ -107,7 +107,7 @@ export function ProgressBar({ value = 0, color = 'var(--accent)', label }) {
       {label && (
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
           <span style={{ fontSize: 12, color: 'var(--fg-muted)' }}>{label}</span>
-          <span style={{ fontSize: 12, fontWeight: 700, color, fontFamily: 'var(--font-display)' }}>{Math.round(clamped)}%</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color, fontFamily: 'var(--font-mono)' }}>{Math.round(clamped)}%</span>
         </div>
       )}
       <div className="progress-bar-wrapper" role="progressbar" aria-valuenow={clamped} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
@@ -135,11 +135,11 @@ export function SectionHeader({ overline, title, children }) {
     }}>
       <div>
         {overline && (
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg-faint)', marginBottom: 4 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--accent)', fontFamily: 'var(--font-mono)', marginBottom: 4 }}>
             {overline}
           </div>
         )}
-        <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.03em', color: 'var(--fg-primary)', lineHeight: 1 }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.02em', color: 'var(--fg-primary)', lineHeight: 1 }}>
           {title}
         </div>
       </div>
@@ -172,10 +172,10 @@ export function AcademicHealthRing({ score, size = 100 }) {
         />
       </svg>
       <div>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '2.4rem', fontWeight: 700, color, letterSpacing: '-0.02em', lineHeight: 1 }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: '2.4rem', fontWeight: 800, color, letterSpacing: '-0.02em', lineHeight: 1 }}>
           {score}%
         </div>
-        <div style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--fg-secondary)', marginTop: 6 }}>
+        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--fg-secondary)', marginTop: 6, fontFamily: 'var(--font-mono)' }}>
           Academic Health
         </div>
       </div>
