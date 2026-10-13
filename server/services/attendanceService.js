@@ -3,11 +3,12 @@
  *
  * Implements business logic for:
  *  - Aggregated overall and subject-level attendance calculations
- *  - Attendly-style register extraction with slot and topic details
- *  - Interactive attendance calculator (consecutive required vs allowable misses)
- *  - Actionable, explainable insights
- *  - Sample university dataset generation for testing / demo mode
- *  - Provider status and security boundaries
+ *  - Real Code Brigade / Chalkpad Pro live synchronization & data parsing
+ *  - Attendance register extraction with lecture numbers and period slots
+ *  - Interactive attendance calculator
+ *  - Explainable, transparent academic insights
+ *  - Sample university dataset generation for demo / evaluation mode
+ *  - Resilient synchronization with stale-record preservation on upstream outages
  */
 
 'use strict';
@@ -15,6 +16,8 @@
 const mongoose = require('mongoose');
 const Subject = require('../models/Subject');
 const AttendanceSession = require('../models/AttendanceSession');
+const CodeBrigadeSession = require('../models/CodeBrigadeSession');
+const codeBrigadeConnector = require('./codeBrigadeConnector');
 const {
   calculatePercentage,
   determineStanding,
@@ -34,12 +37,15 @@ const {
 async function getDashboardSummary(userId, targetThreshold = 75) {
   const threshold = Math.min(100, Math.max(1, safeNumber(targetThreshold, 75)));
 
-  // Fetch all active subjects for this user
+  // 1. Check Code Brigade connection status
+  const cbSession = await CodeBrigadeSession.findOne({ user: userId }).lean();
+
+  // 2. Fetch all active subjects for this user
   const subjects = await Subject.find({ user: userId, isActive: true })
     .sort({ createdAt: 1 })
     .lean();
 
-  // Find latest attendance session to provide accurate last sync / update timestamp
+  // 3. Find latest attendance session to provide accurate activity timestamp
   const latestSession = await AttendanceSession.findOne({ user: userId })
     .sort({ updatedAt: -1 })
     .select('updatedAt date')
@@ -88,6 +94,7 @@ async function getDashboardSummary(userId, targetThreshold = 75) {
       canMissMessage: canMiss.message,
       isTargetMet: recovery.isMet,
       isTargetImpossible: recovery.impossible,
+      source: subj.source || 'LOCAL',
     };
   });
 
@@ -101,6 +108,87 @@ async function getDashboardSummary(userId, targetThreshold = 75) {
 
   // Generate transparent rule-based insights
   const insights = generateInsights(subjectMetrics, threshold);
+
+  // Determine honest, verified Data Source descriptor
+  let dataSource = {
+    provider: 'NOT_CONNECTED',
+    providerLabel: 'Connection Required (0 Classes)',
+    isConnected: false,
+    isLive: false,
+    isStale: false,
+    isSample: false,
+    lastSyncedAt: null,
+    studentName: '',
+    rollNumber: '',
+    notice: 'Connect your Code Brigade account or load the demo dataset to view attendance.',
+  };
+
+  if (cbSession && cbSession.status === 'CONNECTED' && cbSession.lastSyncStatus === 'SUCCESS') {
+    dataSource = {
+      provider: 'CODE_BRIGADE_LIVE',
+      providerLabel: 'Live University Data (Code Brigade)',
+      isConnected: true,
+      isLive: true,
+      isStale: false,
+      isSample: false,
+      lastSyncedAt: cbSession.lastSyncedAt,
+      studentName: cbSession.studentName,
+      rollNumber: cbSession.rollNumber,
+      notice: `Connected to Chitkara University portal as ${cbSession.studentName || cbSession.username}. Real-time synchronization active.`,
+    };
+  } else if (cbSession && (cbSession.lastSyncStatus === 'STALE' || cbSession.status === 'CONNECTED')) {
+    dataSource = {
+      provider: 'CODE_BRIGADE_STALE',
+      providerLabel: 'University Data (Stale — Upstream Timeout)',
+      isConnected: true,
+      isLive: false,
+      isStale: true,
+      isSample: false,
+      lastSyncedAt: cbSession.lastSyncedAt,
+      studentName: cbSession.studentName,
+      rollNumber: cbSession.rollNumber,
+      notice: 'University portal is temporarily slow or unreachable. Retaining your last verified attendance records.',
+    };
+  } else if (cbSession && cbSession.status === 'EXPIRED') {
+    dataSource = {
+      provider: 'CODE_BRIGADE_EXPIRED',
+      providerLabel: 'Authentication Required (Session Expired)',
+      isConnected: false,
+      isLive: false,
+      isStale: true,
+      isSample: false,
+      lastSyncedAt: cbSession.lastSyncedAt,
+      studentName: cbSession.studentName,
+      rollNumber: cbSession.rollNumber,
+      notice: 'Your university login session has expired. Please re-enter your credentials to synchronize.',
+    };
+  } else if (isSampleDataset) {
+    dataSource = {
+      provider: 'SAMPLE_DATASET',
+      providerLabel: 'Sample University Dataset (Demo Mode)',
+      isConnected: false,
+      isLive: false,
+      isStale: false,
+      isSample: true,
+      lastSyncedAt: null,
+      studentName: 'Demo Student',
+      rollNumber: 'DEMO-CS-2026',
+      notice: 'Currently displaying verified 5-subject engineering sample dataset for Attendly evaluation.',
+    };
+  } else if (totalConducted > 0) {
+    dataSource = {
+      provider: 'CAMPUSFLOW_LOCAL',
+      providerLabel: 'CampusFlow Local Academic Register',
+      isConnected: false,
+      isLive: false,
+      isStale: false,
+      isSample: false,
+      lastSyncedAt: latestSession ? latestSession.updatedAt : null,
+      studentName: '',
+      rollNumber: '',
+      notice: 'Tracking local subject attendance. Connect Code Brigade to import official university records.',
+    };
+  }
 
   return {
     overall: {
@@ -122,16 +210,303 @@ async function getDashboardSummary(userId, targetThreshold = 75) {
     },
     subjects: subjectMetrics,
     insights,
-    dataSource: {
-      provider: isSampleDataset ? 'SAMPLE_DATASET' : 'CAMPUSFLOW_LOCAL',
-      providerLabel: isSampleDataset ? 'Sample University Dataset (Demo Mode)' : 'CampusFlow Local Academic Register',
-      isSample: isSampleDataset,
-      lastUpdated: latestSession ? latestSession.updatedAt : null,
-      externalSyncAvailable: false,
-      externalSyncNotice:
-        'Chitkara Code Brigade / Chalkpad Pro does not provide a public developer API or authorized OAuth 2.0 endpoint. All records are isolated and stored securely in your private CampusFlow repository.',
+    dataSource,
+  };
+}
+
+/**
+ * Connect student's Code Brigade / Chalkpad Pro credentials and trigger initial sync.
+ *
+ * @param {string|ObjectId} userId
+ * @param {Object} credentials { username, password, schoolCode }
+ * @returns {Promise<Object>}
+ */
+async function connectCodeBrigade(userId, credentials) {
+  const { username, password, schoolCode = '800002' } = credentials;
+
+  if (!username || !password) {
+    const error = new Error('University username and password are required.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  // Authenticate with upstream university portal
+  const authResult = await codeBrigadeConnector.login(username, password, schoolCode);
+
+  if (authResult.requiresOTP) {
+    return {
+      success: false,
+      requiresOTP: true,
+      authUserId: authResult.authUserId,
+      otpHint: authResult.otpHint,
+      deviceUUID: authResult.deviceUUID,
+      message: 'OTP verification required by university portal.',
+    };
+  }
+
+  if (!authResult.success) {
+    const error = new Error(authResult.error || 'Failed to authenticate with university portal.');
+    error.statusCode = 401;
+    throw error;
+  }
+
+  const { userData, deviceUUID, securityToken } = authResult;
+
+  // Save session securely in MongoDB bound to this student's userId
+  let sessionDoc = await CodeBrigadeSession.findOne({ user: userId });
+  if (!sessionDoc) {
+    sessionDoc = new CodeBrigadeSession({ user: userId });
+  }
+
+  sessionDoc.username = username.trim();
+  sessionDoc.schoolCode = schoolCode;
+  sessionDoc.apiKey = userData.apiKey;
+  sessionDoc.securityToken = securityToken;
+  sessionDoc.deviceUUID = deviceUUID;
+  sessionDoc.userId = userData.userId;
+  sessionDoc.sessionId = userData.sessionId;
+  sessionDoc.roleId = userData.roleId;
+  sessionDoc.studentId = userData.studentId;
+  sessionDoc.studentName = userData.name;
+  sessionDoc.rollNumber = userData.rollNumber;
+  sessionDoc.status = 'CONNECTED';
+  sessionDoc.lastSyncStatus = 'SUCCESS';
+  sessionDoc.lastSyncError = '';
+
+  await sessionDoc.save();
+
+  // Run initial synchronization to fetch official subjects and attendance
+  try {
+    await syncCodeBrigade(userId);
+  } catch (syncErr) {
+    console.warn('Initial sync warning after successful connection:', syncErr.message);
+  }
+
+  return {
+    success: true,
+    message: `Connected successfully as ${userData.name || username}.`,
+    userData: {
+      name: userData.name,
+      rollNumber: userData.rollNumber,
+      username: username.trim(),
     },
   };
+}
+
+/**
+ * Verify OTP challenged by Code Brigade and complete connection.
+ *
+ * @param {string|ObjectId} userId
+ * @param {Object} otpPayload { authUserId, otpText, deviceUUID }
+ * @returns {Promise<Object>}
+ */
+async function verifyCodeBrigadeOtp(userId, otpPayload) {
+  const { authUserId, otpText, deviceUUID } = otpPayload;
+
+  if (!authUserId || !otpText) {
+    const error = new Error('Auth User ID and OTP code are required.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const verifyResult = await codeBrigadeConnector.verifyOtp(authUserId, otpText, deviceUUID);
+  if (!verifyResult.success) {
+    const error = new Error(verifyResult.error || 'Invalid OTP code.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const { userData } = verifyResult;
+
+  let sessionDoc = await CodeBrigadeSession.findOne({ user: userId });
+  if (!sessionDoc) {
+    sessionDoc = new CodeBrigadeSession({ user: userId });
+  }
+
+  sessionDoc.apiKey = userData.apiKey;
+  sessionDoc.deviceUUID = deviceUUID;
+  sessionDoc.userId = userData.userId;
+  sessionDoc.sessionId = userData.sessionId;
+  sessionDoc.roleId = userData.roleId;
+  sessionDoc.studentId = userData.studentId;
+  sessionDoc.studentName = userData.name;
+  sessionDoc.rollNumber = userData.rollNumber;
+  sessionDoc.status = 'CONNECTED';
+  sessionDoc.lastSyncStatus = 'SUCCESS';
+  sessionDoc.lastSyncError = '';
+
+  await sessionDoc.save();
+
+  try {
+    await syncCodeBrigade(userId);
+  } catch (syncErr) {
+    console.warn('Sync warning after OTP verification:', syncErr.message);
+  }
+
+  return {
+    success: true,
+    message: `OTP verified. Connected as ${userData.name}.`,
+    userData: {
+      name: userData.name,
+      rollNumber: userData.rollNumber,
+    },
+  };
+}
+
+/**
+ * Synchronize live attendance from Code Brigade into CampusFlow AI database.
+ *
+ * @param {string|ObjectId} userId
+ * @returns {Promise<Object>}
+ */
+async function syncCodeBrigade(userId) {
+  const session = await CodeBrigadeSession.findOne({ user: userId });
+  if (!session || session.status === 'DISCONNECTED') {
+    const error = new Error('No university account connected. Please connect Code Brigade first.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  try {
+    // Fetch live university data via connector
+    const result = await codeBrigadeConnector.fetchAttendance(session);
+    const { subjects: parsedSubjects, registers: parsedRegisters } = result;
+
+    if (parsedSubjects.length === 0 && parsedRegisters.length === 0) {
+      console.warn('Notice: Code Brigade returned empty attendance payload.');
+    }
+
+    // 1. Synchronize Subjects
+    const subjectMap = new Map(); // courseCode -> SubjectDoc
+
+    for (const rawSubj of parsedSubjects) {
+      let subjDoc = await Subject.findOne({
+        user: userId,
+        code: rawSubj.code,
+      });
+
+      if (!subjDoc) {
+        // Try matching by name
+        subjDoc = await Subject.findOne({
+          user: userId,
+          name: new RegExp(`^${rawSubj.name.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i'),
+        });
+      }
+
+      if (subjDoc) {
+        // Update existing subject with official counts
+        subjDoc.totalClasses = rawSubj.totalClasses;
+        subjDoc.attendedClasses = rawSubj.attendedClasses;
+        if (rawSubj.teacher && !subjDoc.teacher) subjDoc.teacher = rawSubj.teacher;
+        subjDoc.source = 'CODE_BRIGADE';
+        await subjDoc.save();
+      } else {
+        // Create new subject document
+        subjDoc = await Subject.create({
+          user: userId,
+          name: rawSubj.name,
+          code: rawSubj.code,
+          teacher: rawSubj.teacher || '',
+          credits: 4,
+          totalClasses: rawSubj.totalClasses,
+          attendedClasses: rawSubj.attendedClasses,
+          attendanceThreshold: 75,
+          color: '#FF3D00',
+          source: 'CODE_BRIGADE',
+          isActive: true,
+        });
+      }
+
+      subjectMap.set(rawSubj.code, subjDoc);
+    }
+
+    // 2. Synchronize Register Sessions
+    let syncedSessionsCount = 0;
+
+    for (const reg of parsedRegisters) {
+      let subjDoc = subjectMap.get(reg.courseCode);
+      if (!subjDoc) {
+        subjDoc = await Subject.findOne({ user: userId, code: reg.courseCode });
+      }
+
+      if (subjDoc && Array.isArray(reg.entries)) {
+        for (const entry of reg.entries) {
+          const normDate = AttendanceSession.normalizeDate(entry.date);
+
+          // Check if session record already exists
+          const existingSession = await AttendanceSession.findOne({
+            user: userId,
+            subject: subjDoc._id,
+            date: normDate,
+          });
+
+          if (existingSession) {
+            existingSession.status = entry.status;
+            existingSession.period = entry.period || '';
+            existingSession.topic = `Lecture ${entry.lectureNum}`;
+            existingSession.source = 'CODE_BRIGADE';
+            await existingSession.save();
+          } else {
+            await AttendanceSession.create({
+              user: userId,
+              subject: subjDoc._id,
+              date: normDate,
+              status: entry.status,
+              period: entry.period || '',
+              topic: `Lecture ${entry.lectureNum}`,
+              source: 'CODE_BRIGADE',
+            });
+          }
+          syncedSessionsCount++;
+        }
+      }
+    }
+
+    // Update session timestamp & status
+    session.lastSyncedAt = new Date();
+    session.lastSyncStatus = 'SUCCESS';
+    session.lastSyncError = '';
+    session.status = 'CONNECTED';
+    await session.save();
+
+    return {
+      success: true,
+      syncedSubjects: parsedSubjects.length,
+      syncedSessions: syncedSessionsCount,
+      timestamp: session.lastSyncedAt,
+    };
+  } catch (err) {
+    if (err.code === 'SESSION_EXPIRED') {
+      session.status = 'EXPIRED';
+      session.lastSyncStatus = 'FAILED';
+      session.lastSyncError = 'University session expired.';
+    } else {
+      // Mark as STALE to preserve records while informing user of upstream outage
+      session.lastSyncStatus = 'STALE';
+      session.lastSyncError = err.message;
+    }
+    await session.save();
+
+    // Preserve existing database records! Never wipe valid data because of an upstream failure.
+    throw err;
+  }
+}
+
+/**
+ * Disconnect Code Brigade session for student.
+ *
+ * @param {string|ObjectId} userId
+ */
+async function disconnectCodeBrigade(userId) {
+  const session = await CodeBrigadeSession.findOne({ user: userId });
+  if (session) {
+    session.status = 'DISCONNECTED';
+    session.apiKey = '';
+    session.securityToken = '';
+    session.lastSyncStatus = 'NEVER';
+    await session.save();
+  }
+  return { success: true, message: 'Code Brigade account unlinked.' };
 }
 
 /**
@@ -188,6 +563,7 @@ async function getSubjectRegister(userId, subjectId, queryParams = {}) {
       standingLabel: standing.label,
       classesNeededForThreshold: recovery.required ?? 0,
       classesCanMiss: canMiss.canMiss ?? 0,
+      source: subject.source || 'LOCAL',
     },
     sessions: sessions.map((s) => ({
       _id: s._id,
@@ -195,6 +571,7 @@ async function getSubjectRegister(userId, subjectId, queryParams = {}) {
       status: s.status,
       topic: s.topic || '',
       period: s.period || '',
+      source: s.source || 'MANUAL',
       correctedAt: s.correctedAt,
       correctedFrom: s.correctedFrom,
       createdAt: s.createdAt,
@@ -323,6 +700,7 @@ async function seedSampleDataset(userId) {
       totalClasses: cfg.totalClasses,
       attendedClasses: cfg.attendedClasses,
       attendanceThreshold: 75,
+      source: 'SAMPLE',
       isActive: true,
     });
 
@@ -339,6 +717,7 @@ async function seedSampleDataset(userId) {
         status: sess.status,
         topic: sess.topic,
         period: sess.period,
+        source: 'SAMPLE',
       };
     });
 
@@ -368,6 +747,10 @@ async function clearSampleDataset(userId) {
 module.exports = {
   getDashboardSummary,
   getSubjectRegister,
+  connectCodeBrigade,
+  verifyCodeBrigadeOtp,
+  syncCodeBrigade,
+  disconnectCodeBrigade,
   seedSampleDataset,
   clearSampleDataset,
 };

@@ -3,11 +3,13 @@
  *
  * Implements cumulative attendance tracking and Attendly-inspired dashboard APIs:
  *  - Aggregated overall metrics with configurable threshold
+ *  - Real Code Brigade / Chalkpad Pro live connector & sync
  *  - Subject-level cards with conducted/attended/missed metrics
  *  - Subject attendance register (sessions, periods, topics, status)
  *  - Mathematical attendance calculator (classes required & classes can miss)
  *  - Explainable, transparent academic insights
- *  - Data source status and sample dataset toggle for evaluation
+ *  - Honest data source status reporting
+ *  - Sample university dataset toggle for evaluation
  *  - Atomic session recording and correction
  */
 
@@ -16,6 +18,7 @@
 const mongoose = require('mongoose');
 const Subject = require('../models/Subject');
 const AttendanceSession = require('../models/AttendanceSession');
+const CodeBrigadeSession = require('../models/CodeBrigadeSession');
 const attendanceService = require('../services/attendanceService');
 const {
   calculateClassesToAttend,
@@ -43,6 +46,114 @@ const getAttendanceSummary = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
+      data: summary,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Connect Code Brigade account with student credentials.
+ * POST /api/attendance/connect
+ * Body: { username, password, schoolCode }
+ */
+const connectCodeBrigade = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const result = await attendanceService.connectCodeBrigade(userId, req.body);
+
+    if (result.requiresOTP) {
+      return res.status(200).json({
+        success: true,
+        requiresOTP: true,
+        data: {
+          authUserId: result.authUserId,
+          otpHint: result.otpHint,
+          deviceUUID: result.deviceUUID,
+        },
+        message: result.message,
+      });
+    }
+
+    const summary = await attendanceService.getDashboardSummary(userId);
+
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      data: summary,
+    });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || 'Failed to connect to Code Brigade.',
+    });
+  }
+};
+
+/**
+ * Verify OTP if challenged by Code Brigade portal.
+ * POST /api/attendance/verify-otp
+ * Body: { authUserId, otpText, deviceUUID }
+ */
+const verifyCodeBrigadeOtp = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const result = await attendanceService.verifyCodeBrigadeOtp(userId, req.body);
+    const summary = await attendanceService.getDashboardSummary(userId);
+
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      data: summary,
+    });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || 'OTP verification failed.',
+    });
+  }
+};
+
+/**
+ * Trigger manual synchronization with Code Brigade.
+ * POST /api/attendance/sync
+ */
+const syncAttendance = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    await attendanceService.syncCodeBrigade(userId);
+    const summary = await attendanceService.getDashboardSummary(userId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Attendance successfully synchronized with Code Brigade.',
+      data: summary,
+    });
+  } catch (error) {
+    // If upstream timed out or is unreachable, fetch current cached records without crashing
+    const summary = await attendanceService.getDashboardSummary(userId);
+    res.status(error.statusCode || 502).json({
+      success: false,
+      message: error.message || 'Failed to synchronize with university server.',
+      data: summary, // Preserve last valid records!
+    });
+  }
+};
+
+/**
+ * Disconnect Code Brigade session.
+ * POST /api/attendance/disconnect
+ */
+const disconnectCodeBrigade = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    await attendanceService.disconnectCodeBrigade(userId);
+    const summary = await attendanceService.getDashboardSummary(userId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Code Brigade session unlinked.',
       data: summary,
     });
   } catch (error) {
@@ -118,30 +229,60 @@ const calculateAttendanceMetrics = async (req, res, next) => {
 };
 
 /**
- * Get verified data source status.
+ * Get honest verified data source status.
  * GET /api/attendance/source-status
  */
 const getDataSourceStatus = async (req, res, next) => {
   try {
     const userId = req.user._id;
+    const cbSession = await CodeBrigadeSession.findOne({ user: userId }).lean();
     const sampleCount = await Subject.countDocuments({ user: userId, code: /^SMP-/ });
+    const subjectCount = await Subject.countDocuments({ user: userId, isActive: true });
+
+    let provider = 'NOT_CONNECTED';
+    let providerTitle = 'No University Account Connected';
+    let isConnected = false;
+    let isLive = false;
+    let isStale = false;
+
+    if (cbSession && cbSession.status === 'CONNECTED' && cbSession.lastSyncStatus === 'SUCCESS') {
+      provider = 'CODE_BRIGADE_LIVE';
+      providerTitle = 'Live University Data (Code Brigade)';
+      isConnected = true;
+      isLive = true;
+    } else if (cbSession && cbSession.lastSyncStatus === 'STALE') {
+      provider = 'CODE_BRIGADE_STALE';
+      providerTitle = 'University Data (Stale — Upstream Timeout)';
+      isConnected = true;
+      isStale = true;
+    } else if (cbSession && cbSession.status === 'EXPIRED') {
+      provider = 'CODE_BRIGADE_EXPIRED';
+      providerTitle = 'Authentication Required (Session Expired)';
+    } else if (sampleCount > 0) {
+      provider = 'SAMPLE_DEMO';
+      providerTitle = 'Sample University Dataset (Demo Mode)';
+    } else if (subjectCount > 0) {
+      provider = 'CAMPUSFLOW_LOCAL';
+      providerTitle = 'CampusFlow Local Academic Register';
+    }
 
     res.status(200).json({
       success: true,
       data: {
-        provider: sampleCount > 0 ? 'SAMPLE_DEMO' : 'CAMPUSFLOW_LOCAL',
+        provider,
+        providerTitle,
+        isConnected,
+        isLive,
+        isStale,
         isSampleData: sampleCount > 0,
-        providerTitle: sampleCount > 0
-          ? 'Sample University Dataset (Active)'
-          : 'CampusFlow Local Academic Register',
+        lastSyncedAt: cbSession?.lastSyncedAt || null,
+        studentName: cbSession?.studentName || '',
+        rollNumber: cbSession?.rollNumber || '',
+        username: cbSession?.username || '',
+        lastSyncStatus: cbSession?.lastSyncStatus || 'NEVER',
+        lastSyncError: cbSession?.lastSyncError || '',
         securityNotice:
-          'No external scraping or unauthorized Code Brigade / Chalkpad credentials are used. Student records are isolated and stored in the secure application database.',
-        externalIntegration: {
-          available: false,
-          serviceName: 'Code Brigade / Chalkpad Pro',
-          status: 'OFFICIAL_API_UNAVAILABLE',
-          reason: 'University does not provide public developer APIs or OAuth 2.0 authorization endpoints.',
-        },
+          'University credentials are strictly processed server-side with allowlisted requests to cuiet.codebrigade.in. No raw session cookies or passwords are sent to React.',
       },
     });
   } catch (error) {
@@ -250,11 +391,11 @@ const markAttendance = async (req, res, next) => {
       });
     }
 
-    // Create session record
+    // Create session record (marked as MANUAL entry)
     let attendanceSession;
     if (hasTx) {
       const created = await AttendanceSession.create(
-        [{ user: userId, subject: subjectId, date: sessionDate, status, topic: topic || '', period: period || '' }],
+        [{ user: userId, subject: subjectId, date: sessionDate, status, topic: topic || '', period: period || '', source: 'MANUAL' }],
         { session }
       );
       attendanceSession = created[0];
@@ -266,6 +407,7 @@ const markAttendance = async (req, res, next) => {
         status,
         topic: topic || '',
         period: period || '',
+        source: 'MANUAL',
       });
     }
 
@@ -460,6 +602,10 @@ const getAttendanceHistory = async (req, res, next) => {
 
 module.exports = {
   getAttendanceSummary,
+  connectCodeBrigade,
+  verifyCodeBrigadeOtp,
+  syncAttendance,
+  disconnectCodeBrigade,
   getSubjectRegister,
   calculateAttendanceMetrics,
   getDataSourceStatus,

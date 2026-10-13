@@ -18,7 +18,13 @@ import {
   Flame,
   Award,
   Sparkles,
-  BookOpen
+  BookOpen,
+  Link2,
+  Unlink,
+  KeyRound,
+  Lock,
+  User,
+  GraduationCap
 } from 'lucide-react';
 import { attendanceAPI, subjectsAPI } from '../services/api';
 import { Modal, LoadingState, ErrorState, EmptyState } from '../components/SharedComponents';
@@ -31,6 +37,7 @@ export default function AttendancePage() {
   // Core Data State
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState('');
   const [dashboardData, setDashboardData] = useState(null);
   const [threshold, setThreshold] = useState(75);
@@ -49,6 +56,19 @@ export default function AttendancePage() {
   const [markPeriod, setMarkPeriod] = useState('Lecture 1 (09:00 - 10:00 AM)');
   const [markTopic, setMarkTopic] = useState('');
   const [submittingMark, setSubmittingMark] = useState(false);
+
+  // Connect Code Brigade Modal State
+  const [connectModalOpen, setConnectModalOpen] = useState(false);
+  const [cbUsername, setCbUsername] = useState('');
+  const [cbPassword, setCbPassword] = useState('');
+  const [cbSchoolCode, setCbSchoolCode] = useState('800002'); // CUIET Chitkara
+  const [connecting, setConnecting] = useState(false);
+  const [otpRequired, setOtpRequired] = useState(false);
+  const [authUserId, setAuthUserId] = useState('');
+  const [otpHint, setOtpHint] = useState('');
+  const [deviceUUID, setDeviceUUID] = useState('');
+  const [cbOtpText, setCbOtpText] = useState('');
+  const [disconnecting, setDisconnecting] = useState(false);
 
   // Custom Simulator / Calculator State
   const [calcSubjectId, setCalcSubjectId] = useState('OVERALL');
@@ -74,6 +94,7 @@ export default function AttendancePage() {
     } finally {
       if (!isSilent) setLoading(false);
       setRefreshing(false);
+      setSyncing(false);
     }
   }, [threshold]);
 
@@ -81,10 +102,107 @@ export default function AttendancePage() {
     fetchSummary(threshold);
   }, [fetchSummary, threshold]);
 
-  const handleManualRefresh = () => {
+  // Handle Manual Refresh
+  const handleManualRefresh = async () => {
     setRefreshing(true);
-    fetchSummary(threshold, true);
-    toast.info('Synchronizing attendance records…');
+    // If Code Brigade is connected, attempt a live sync first
+    if (dashboardData?.dataSource?.isConnected) {
+      handleSyncAttendance();
+    } else {
+      fetchSummary(threshold, true);
+      toast.info('Refreshed local attendance records.');
+    }
+  };
+
+  // Trigger live synchronization with Code Brigade
+  const handleSyncAttendance = async () => {
+    setSyncing(true);
+    toast.info('Connecting to Code Brigade to synchronize attendance…');
+    try {
+      const res = await attendanceAPI.syncAttendance();
+      if (res.data) setDashboardData(res.data);
+      toast.success('Live attendance synchronized with Code Brigade!');
+    } catch (err) {
+      // Retain last valid data on error
+      if (err.data) setDashboardData(err.data);
+      toast.error(err.message || 'Failed to sync with university server. Showing last valid records.');
+    } finally {
+      setSyncing(false);
+      setRefreshing(false);
+    }
+  };
+
+  // Connect Code Brigade credentials
+  const handleConnectCodeBrigade = async (e) => {
+    e.preventDefault();
+    setConnecting(true);
+    try {
+      const res = await attendanceAPI.connectCodeBrigade({
+        username: cbUsername,
+        password: cbPassword,
+        schoolCode: cbSchoolCode,
+      });
+
+      if (res.requiresOTP) {
+        setOtpRequired(true);
+        setAuthUserId(res.data.authUserId);
+        setOtpHint(res.data.otpHint);
+        setDeviceUUID(res.data.deviceUUID);
+        toast.info(res.message || 'OTP sent by university portal. Please verify.');
+        return;
+      }
+
+      toast.success(res.message || 'Connected to Code Brigade successfully!');
+      if (res.data) setDashboardData(res.data);
+      setConnectModalOpen(false);
+      setCbPassword('');
+      setOtpRequired(false);
+    } catch (err) {
+      toast.error(err.message || 'Failed to connect to Code Brigade.');
+    } finally {
+      setConnecting(false);
+    }
+  };
+
+  // Verify OTP for Code Brigade
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    setConnecting(true);
+    try {
+      const res = await attendanceAPI.verifyCodeBrigadeOtp({
+        authUserId,
+        otpText: cbOtpText,
+        deviceUUID,
+      });
+      toast.success(res.message || 'OTP verified! Connected to Code Brigade.');
+      if (res.data) setDashboardData(res.data);
+      setConnectModalOpen(false);
+      setOtpRequired(false);
+      setCbOtpText('');
+      setCbPassword('');
+    } catch (err) {
+      toast.error(err.message || 'OTP verification failed.');
+    } finally {
+      setConnecting(false);
+    }
+  };
+
+  // Disconnect Code Brigade
+  const handleDisconnectCodeBrigade = async () => {
+    if (!window.confirm('Are you sure you want to unlink Code Brigade? Your current records will remain saved locally.')) {
+      return;
+    }
+    setDisconnecting(true);
+    try {
+      const res = await attendanceAPI.disconnectCodeBrigade();
+      toast.success(res.message || 'Code Brigade account unlinked.');
+      if (res.data) setDashboardData(res.data);
+      setSourceNoticeOpen(false);
+    } catch (err) {
+      toast.error(err.message || 'Failed to unlink Code Brigade.');
+    } finally {
+      setDisconnecting(false);
+    }
   };
 
   const handleThresholdChange = (val) => {
@@ -113,12 +231,12 @@ export default function AttendancePage() {
     try {
       await attendanceAPI.correctSession(sessionId, { status: newStatus });
       toast.success(`Attendance updated to ${newStatus}.`);
-      
+
       // Update local register view
       if (registerData && registerData.sessions) {
         setRegisterData(prev => ({
           ...prev,
-          sessions: prev.sessions.map(s => s._id === sessionId ? { ...s, status: newStatus } : s),
+          sessions: prev.sessions.map(s => s._id === sessionId ? { ...s, status: newStatus, source: 'MANUAL' } : s),
         }));
       }
 
@@ -318,27 +436,70 @@ export default function AttendancePage() {
             </div>
             <h1 className="attendly-title">Attendance Intelligence</h1>
             <p className="attendly-subtitle">
-              Cumulative session logging, shortfall prevention, and institutional threshold management.
+              Official university synchronization, session-by-session registers, and shortfall prevention.
             </p>
           </div>
 
           <div className="attendly-header-actions">
-            {/* Data Source Badge / Modal trigger */}
+            {/* Real Data Source Status Badge & Action */}
             <button
               className="btn btn-secondary btn-sm"
               onClick={() => setSourceNoticeOpen(true)}
               id="btn-source-status"
-              title="Inspect verified data source"
+              title="Inspect data source & synchronization status"
             >
-              <Database size={13} style={{ color: dataSource.isSample ? 'var(--accent)' : 'var(--success)' }} aria-hidden="true" />
+              <Database
+                size={13}
+                style={{
+                  color: dataSource.isLive
+                    ? 'var(--success)'
+                    : dataSource.isStale
+                    ? 'var(--warning)'
+                    : dataSource.isSample
+                    ? 'var(--accent)'
+                    : 'var(--fg-faint)',
+                }}
+                aria-hidden="true"
+              />
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11 }}>
-                {dataSource.isSample ? 'Sample Demo Mode' : 'Verified Local DB'}
+                {dataSource.isLive
+                  ? 'Live University Data'
+                  : dataSource.isStale
+                  ? 'University Stale'
+                  : dataSource.isSample
+                  ? 'Sample Demo Mode'
+                  : dataSource.provider === 'CAMPUSFLOW_LOCAL'
+                  ? 'Local Records'
+                  : 'Not Connected (0 Classes)'}
               </span>
             </button>
 
+            {/* Connect / Sync Code Brigade Button */}
+            {dataSource.isConnected ? (
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={handleSyncAttendance}
+                disabled={syncing}
+                id="btn-sync-codebrigade"
+                title="Synchronize official attendance from Code Brigade"
+              >
+                <RefreshCw size={13} className={syncing ? 'animate-spin' : ''} aria-hidden="true" />
+                {syncing ? 'Syncing…' : 'Sync University'}
+              </button>
+            ) : (
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => setConnectModalOpen(true)}
+                id="btn-connect-codebrigade"
+              >
+                <Link2 size={13} aria-hidden="true" />
+                Connect Code Brigade
+              </button>
+            )}
+
             {/* Quick Mark Class Button */}
             <button
-              className="btn btn-primary btn-sm"
+              className="btn btn-ghost btn-sm"
               onClick={() => {
                 if (subjects.length > 0) setMarkSubjectId(subjects[0]._id);
                 setMarkModalOpen(true);
@@ -353,14 +514,54 @@ export default function AttendancePage() {
             <button
               className="btn btn-secondary btn-sm"
               onClick={handleManualRefresh}
-              disabled={refreshing}
+              disabled={refreshing || syncing}
               id="btn-refresh-attendance"
             >
-              <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} aria-hidden="true" />
+              <RefreshCw size={13} className={refreshing || syncing ? 'animate-spin' : ''} aria-hidden="true" />
               Refresh
             </button>
           </div>
         </header>
+
+        {/* ── NOT CONNECTED CALLOUT (When student has 0 classes) ── */}
+        {!dataSource.isConnected && !dataSource.isSample && overall.totalClasses === 0 && (
+          <div style={{
+            padding: '16px 20px',
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--accent)',
+            borderLeft: '4px solid var(--accent)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 16,
+          }}>
+            <div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700, color: 'var(--fg-primary)' }}>
+                No Attendance Records Connected
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--fg-muted)', marginTop: 2 }}>
+                Your account currently has 0 classes recorded. Connect your university Code Brigade credentials to sync your official courses, or load our verified demo set to explore the dashboard.
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => setConnectModalOpen(true)}
+              >
+                <Link2 size={13} aria-hidden="true" />
+                Connect Code Brigade
+              </button>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => handleToggleSampleDataset('seed')}
+                disabled={togglingSample}
+              >
+                Load Demo Set
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ── SECTION A: OVERALL ATTENDANCE HERO CARD ──────────── */}
         <section aria-labelledby="overall-attendance-heading">
@@ -432,6 +633,7 @@ export default function AttendancePage() {
                   </span>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-muted)' }}>
                     {subjects.length} active subject{subjects.length === 1 ? '' : 's'}
+                    {dataSource.studentName ? ` • ${dataSource.studentName}` : ''}
                   </span>
                 </div>
 
@@ -533,11 +735,16 @@ export default function AttendancePage() {
             <EmptyState
               icon={<BookOpen size={24} />}
               title="No Subject Records"
-              description="Add your academic subjects to begin tracking session attendance or seed the demo dataset."
+              description="Connect your university Code Brigade account to import official subjects, or seed the demo dataset."
               action={
-                <button className="btn btn-primary btn-sm" onClick={() => handleToggleSampleDataset('seed')}>
-                  Seed Attendly Demo Dataset
-                </button>
+                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                  <button className="btn btn-primary btn-sm" onClick={() => setConnectModalOpen(true)}>
+                    Connect Code Brigade
+                  </button>
+                  <button className="btn btn-secondary btn-sm" onClick={() => handleToggleSampleDataset('seed')}>
+                    Load Demo Dataset
+                  </button>
+                </div>
               }
             />
           ) : (
@@ -556,6 +763,9 @@ export default function AttendancePage() {
                           <div className="attendly-subject-name">{subj.name}</div>
                           <div className="attendly-subject-meta">
                             <span>{subj.code}</span>
+                            {subj.source === 'CODE_BRIGADE' && (
+                              <span style={{ color: 'var(--success)', fontWeight: 600 }}>• OFFICIAL</span>
+                            )}
                             {subj.teacher && <span>• {subj.teacher}</span>}
                           </div>
                         </div>
@@ -888,44 +1098,218 @@ export default function AttendancePage() {
           <div className="attendly-source-card">
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <ShieldCheck size={16} style={{ color: 'var(--success)' }} aria-hidden="true" />
+                <ShieldCheck
+                  size={16}
+                  style={{ color: dataSource.isLive ? 'var(--success)' : dataSource.isStale ? 'var(--warning)' : 'var(--accent)' }}
+                  aria-hidden="true"
+                />
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--fg-primary)' }}>
-                  Data Integrity & Isolation Verification
+                  Data Integrity & Synchronization Engine
                 </span>
               </div>
               <div style={{ fontSize: 12, color: 'var(--fg-muted)', maxWidth: 680, lineHeight: 1.5 }}>
                 Current Provider: <strong>{dataSource.providerLabel}</strong>.
-                {dataSource.lastUpdated ? ` Last recorded activity on ${formatDate(dataSource.lastUpdated)}.` : ' No recorded activity yet.'}
+                {dataSource.lastSyncedAt && (
+                  <span> Last synchronized at {formatDate(dataSource.lastSyncedAt, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}.</span>
+                )}
                 <br />
-                CampusFlow isolates records per student and refuses unverified external scraping proxies to protect student credentials.
+                {dataSource.notice}
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              {dataSource.isSample ? (
-                <button
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => handleToggleSampleDataset('clear')}
-                  disabled={togglingSample}
-                  id="btn-clear-sample-data"
-                >
-                  Clear Demo Data & Use My Records
-                </button>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              {dataSource.isConnected ? (
+                <>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    onClick={handleSyncAttendance}
+                    disabled={syncing}
+                    id="btn-sync-bottom"
+                  >
+                    <RefreshCw size={13} className={syncing ? 'animate-spin' : ''} aria-hidden="true" />
+                    {syncing ? 'Syncing…' : 'Sync Live Data'}
+                  </button>
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={handleDisconnectCodeBrigade}
+                    disabled={disconnecting}
+                    style={{ color: 'var(--danger)' }}
+                  >
+                    <Unlink size={13} aria-hidden="true" />
+                    Unlink Account
+                  </button>
+                </>
               ) : (
-                <button
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => handleToggleSampleDataset('seed')}
-                  disabled={togglingSample}
-                  id="btn-load-sample-data"
-                >
-                  Load Attendly University Demo Set
-                </button>
+                <>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    onClick={() => setConnectModalOpen(true)}
+                    id="btn-connect-bottom"
+                  >
+                    <Link2 size={13} aria-hidden="true" />
+                    Connect Code Brigade
+                  </button>
+
+                  {dataSource.isSample ? (
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => handleToggleSampleDataset('clear')}
+                      disabled={togglingSample}
+                    >
+                      Clear Demo Set
+                    </button>
+                  ) : (
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => handleToggleSampleDataset('seed')}
+                      disabled={togglingSample}
+                    >
+                      Load Demo Set
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>
         </section>
 
       </div>
+
+      {/* ── MODAL: CONNECT CODE BRIGADE ACCOUNT ──────────────── */}
+      <Modal
+        isOpen={connectModalOpen}
+        onClose={() => { setConnectModalOpen(false); setOtpRequired(false); }}
+        title="Connect Code Brigade University Portal"
+        maxWidth={500}
+      >
+        {!otpRequired ? (
+          <form onSubmit={handleConnectCodeBrigade}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s4)' }}>
+              <div style={{
+                padding: '10px 14px',
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border)',
+                fontSize: 12,
+                color: 'var(--fg-secondary)',
+                lineHeight: 1.5,
+              }}>
+                <div style={{ color: 'var(--fg-primary)', fontWeight: 700, marginBottom: 2 }}>
+                  Direct University Integration
+                </div>
+                Connect your official <strong>Chitkara University (CUIET)</strong> Chalkpad Pro account.
+                Credentials are processed securely on your isolated server; passwords are never persisted.
+              </div>
+
+              <div>
+                <label className="form-label" htmlFor="cb-school">University Institute Code</label>
+                <input
+                  id="cb-school"
+                  type="text"
+                  className="form-input"
+                  value={cbSchoolCode}
+                  onChange={e => setCbSchoolCode(e.target.value)}
+                  placeholder="800002"
+                  disabled
+                  title="CUIET Chitkara University (800002)"
+                />
+              </div>
+
+              <div>
+                <label className="form-label" htmlFor="cb-user">University Roll No / Username</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    id="cb-user"
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. 241099xxxx or student email"
+                    value={cbUsername}
+                    onChange={e => setCbUsername(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="form-label" htmlFor="cb-pass">University Password</label>
+                <input
+                  id="cb-pass"
+                  type="password"
+                  className="form-input"
+                  placeholder="Chalkpad Pro login password"
+                  value={cbPassword}
+                  onChange={e => setCbPassword(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setConnectModalOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-sm"
+                  disabled={connecting}
+                >
+                  {connecting ? 'Authenticating with University…' : 'Connect & Import Attendance'}
+                </button>
+              </div>
+            </div>
+          </form>
+        ) : (
+          <form onSubmit={handleVerifyOtp}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s4)' }}>
+              <div style={{
+                padding: '12px 14px',
+                background: 'rgba(255, 61, 0, 0.08)',
+                border: '1px solid var(--accent)',
+                fontSize: 12,
+                color: 'var(--fg-primary)',
+              }}>
+                <strong>OTP Verification Required</strong>
+                <p style={{ margin: '4px 0 0 0', color: 'var(--fg-muted)' }}>
+                  Chalkpad Pro issued an OTP to your registered destination: <strong>{otpHint}</strong>.
+                </p>
+              </div>
+
+              <div>
+                <label className="form-label" htmlFor="cb-otp">Enter One-Time Password (OTP)</label>
+                <input
+                  id="cb-otp"
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. 123456"
+                  value={cbOtpText}
+                  onChange={e => setCbOtpText(e.target.value)}
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setOtpRequired(false)}
+                >
+                  Back
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-sm"
+                  disabled={connecting}
+                >
+                  {connecting ? 'Verifying OTP…' : 'Complete Verification'}
+                </button>
+              </div>
+            </div>
+          </form>
+        )}
+      </Modal>
 
       {/* ── MODAL: SUBJECT DETAILED REGISTER ─────────────────── */}
       <Modal
@@ -990,16 +1374,28 @@ export default function AttendancePage() {
                       <div className="attendly-register-date">
                         {formatDate(session.date, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
                       </div>
-                      {session.period && (
-                        <div className="attendly-register-period">
-                          {session.period}
-                        </div>
-                      )}
-                      {session.topic && (
-                        <div className="attendly-register-topic">
-                          {session.topic}
-                        </div>
-                      )}
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 2 }}>
+                        {session.period && (
+                          <span className="attendly-register-period">
+                            {session.period}
+                          </span>
+                        )}
+                        {session.topic && (
+                          <span className="attendly-register-topic">
+                            • {session.topic}
+                          </span>
+                        )}
+                        <span
+                          style={{
+                            fontSize: 9,
+                            fontFamily: 'var(--font-mono)',
+                            color: session.source === 'CODE_BRIGADE' ? 'var(--success)' : 'var(--fg-faint)',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          [{session.source || 'MANUAL'}]
+                        </span>
+                      </div>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -1150,11 +1546,11 @@ export default function AttendancePage() {
         </form>
       </Modal>
 
-      {/* ── MODAL: SOURCE NOTICE & CODE BRIGADE DISCLOSURE ──── */}
+      {/* ── MODAL: SOURCE NOTICE & CODE BRIGADE STATUS ──────── */}
       <Modal
         isOpen={sourceNoticeOpen}
         onClose={() => setSourceNoticeOpen(false)}
-        title="Attendance Data Source & Security Policy"
+        title="Attendance Data Integrity & Integration Status"
         maxWidth={540}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s4)', fontSize: 13, lineHeight: 1.6, color: 'var(--fg-secondary)' }}>
@@ -1164,15 +1560,15 @@ export default function AttendancePage() {
 
           <div style={{ padding: '12px', background: 'var(--bg-elevated)', border: '1px solid var(--border)', fontSize: 12 }}>
             <div style={{ color: 'var(--fg-primary)', fontWeight: 700, marginBottom: 4 }}>
-              Why direct Code Brigade ERP sync is not enabled:
+              University Portal Architecture:
             </div>
-            Chitkara University's Chalkpad / Code Brigade system currently does not provide an authorized, public OAuth 2.0 developer gateway.
-            To guarantee that student credentials are never compromised, CampusFlow AI strictly avoids credential scraping and unauthorized proxy interception.
+            {dataSource.notice}
+            {dataSource.lastSyncedAt && (
+              <div style={{ marginTop: 6, color: 'var(--fg-primary)', fontFamily: 'var(--font-mono)' }}>
+                Latest Synchronized: {formatDate(dataSource.lastSyncedAt, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </div>
+            )}
           </div>
-
-          <p>
-            You can evaluate the full Attendly dashboard using our verified <strong>Sample University Dataset</strong> (simulating 5 engineering subjects with detailed session registers), or maintain your private local records.
-          </p>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
             <button
@@ -1181,21 +1577,20 @@ export default function AttendancePage() {
             >
               Close
             </button>
-            {dataSource.isSample ? (
+            {dataSource.isConnected ? (
               <button
                 className="btn btn-primary btn-sm"
-                onClick={() => handleToggleSampleDataset('clear')}
-                disabled={togglingSample}
+                onClick={() => { setSourceNoticeOpen(false); handleSyncAttendance(); }}
+                disabled={syncing}
               >
-                Switch to My Records
+                Synchronize Now
               </button>
             ) : (
               <button
                 className="btn btn-primary btn-sm"
-                onClick={() => handleToggleSampleDataset('seed')}
-                disabled={togglingSample}
+                onClick={() => { setSourceNoticeOpen(false); setConnectModalOpen(true); }}
               >
-                Load Demo Dataset
+                Connect Code Brigade
               </button>
             )}
           </div>

@@ -16,6 +16,10 @@ const express = require('express');
 const router = express.Router();
 const {
   getAttendanceSummary,
+  connectCodeBrigade,
+  verifyCodeBrigadeOtp,
+  syncAttendance,
+  disconnectCodeBrigade,
   getSubjectRegister,
   calculateAttendanceMetrics,
   getDataSourceStatus,
@@ -32,6 +36,12 @@ router.use(protect);
 // Dashboard summary & statistics
 router.get('/summary', getAttendanceSummary);
 router.get('/dashboard', getAttendanceSummary);
+
+// Real Code Brigade integration endpoints
+router.post('/connect', connectCodeBrigade);
+router.post('/verify-otp', verifyCodeBrigadeOtp);
+router.post('/sync', syncAttendance);
+router.post('/disconnect', disconnectCodeBrigade);
 
 // Data source & sync status
 router.get('/source-status', getDataSourceStatus);

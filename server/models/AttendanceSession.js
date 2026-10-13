@@ -52,6 +52,12 @@ const attendanceSessionSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    // Source of record: MANUAL entry, CODE_BRIGADE imported, or SAMPLE demo
+    source: {
+      type: String,
+      enum: ['MANUAL', 'CODE_BRIGADE', 'SAMPLE'],
+      default: 'MANUAL',
+    },
     // Track corrections for audit trail
     correctedAt: {
       type: Date,

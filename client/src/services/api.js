@@ -168,6 +168,34 @@ export const attendanceAPI = {
     request('/attendance/calculator', { method: 'POST', body: JSON.stringify(data) }),
 
   /**
+   * Connect student Code Brigade account.
+   * POST /api/attendance/connect
+   */
+  connectCodeBrigade: (data) =>
+    request('/attendance/connect', { method: 'POST', body: JSON.stringify(data) }),
+
+  /**
+   * Verify OTP during Code Brigade connection.
+   * POST /api/attendance/verify-otp
+   */
+  verifyCodeBrigadeOtp: (data) =>
+    request('/attendance/verify-otp', { method: 'POST', body: JSON.stringify(data) }),
+
+  /**
+   * Trigger manual sync with Code Brigade.
+   * POST /api/attendance/sync
+   */
+  syncAttendance: () =>
+    request('/attendance/sync', { method: 'POST' }),
+
+  /**
+   * Disconnect Code Brigade account.
+   * POST /api/attendance/disconnect
+   */
+  disconnectCodeBrigade: () =>
+    request('/attendance/disconnect', { method: 'POST' }),
+
+  /**
    * Get verified data source status.
    * GET /api/attendance/source-status
    */

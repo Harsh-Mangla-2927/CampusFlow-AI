@@ -71,6 +71,11 @@ const subjectSchema = new mongoose.Schema(
       type: String,
       default: '#6366f1',
     },
+    source: {
+      type: String,
+      enum: ['LOCAL', 'CODE_BRIGADE', 'SAMPLE'],
+      default: 'LOCAL',
+    },
     isActive: {
       type: Boolean,
       default: true,
