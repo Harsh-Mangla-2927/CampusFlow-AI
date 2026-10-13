@@ -18,6 +18,17 @@ import {
 } from 'lucide-react';
 
 /* ── CINEMATIC EDITORIAL LANDING PAGE (REFINED & PROPORTIONED) ─────────────── */
+function EditorialSectionLabel({ number, title, subtitle }) {
+  return (
+    <div className="editorial-section-label">
+      <span className="label-badge">[{number}]</span>
+      <span className="label-sep">—</span>
+      <span className="label-name">{title}</span>
+      {subtitle && <span className="label-sub">/ {subtitle}</span>}
+    </div>
+  );
+}
+
 export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
   const [portalProgress, setPortalProgress] = useState(0);
   const [statementScroll, setStatementScroll] = useState(0);
@@ -746,10 +757,11 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
               pointerEvents: portalProgress > 0.35 ? 'auto' : 'none',
             }}
           >
-            <div className="portal-eyebrow-pill">
-              <span className="portal-pill-dot" />
-              <span>ACADEMIC INTELLIGENCE PLATFORM</span>
-            </div>
+            <EditorialSectionLabel
+              number="01"
+              title="ACADEMIC OPERATING SYSTEM"
+              subtitle="FOCUS PORTAL"
+            />
 
             <h1 className="portal-editorial-title">
               Make room for the <span className="accent">work that matters</span>.
@@ -811,7 +823,11 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
           <div className="gallery-header-block">
             <div className="gallery-header-row">
               <div>
-                <span className="section-eyebrow">02 // ACADEMIC IMAGERY · FOCUS CADENCE</span>
+                <EditorialSectionLabel
+                  number="02"
+                  title="ACADEMIC IMAGERY"
+                  subtitle="FOCUS CADENCE"
+                />
                 <h2 id="gallery-heading" className="section-heading">
                   Atmospheres of deep academic <span className="accent">focus</span>.
                 </h2>
@@ -913,7 +929,11 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
           <div className="thesis-editorial-layout">
             {/* Left Column: Asymmetric Editorial Heading & Dynamic Chapter Monitor */}
             <div className="thesis-editorial-left">
-              <span className="section-eyebrow">03 // PLATFORM THESIS</span>
+              <EditorialSectionLabel
+                number="03"
+                title="PLATFORM THESIS"
+                subtitle="ARCHITECTURAL FOUNDATION"
+              />
               <h2 id="statement-heading" className="section-heading">
                 Your semester.<br />
                 <span className="accent">Under control.</span>
@@ -1047,7 +1067,11 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
         <div className="deck-grid">
           {/* Left Column: Context, Capabilities Checklist & Actions */}
           <div className="deck-left-col">
-            <span className="section-eyebrow">04 // ARCHITECTURE & ENGINES</span>
+            <EditorialSectionLabel
+              number="04"
+              title="SYSTEM ARCHITECTURE"
+              subtitle="COMPUTATIONAL ENGINES"
+            />
             <h2 id="deck-heading" className="section-heading">
               Tactile control over your academic <span className="accent">trajectory</span>.
             </h2>
@@ -1224,7 +1248,11 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
       {/* ── SECTION 4: FUNCTIONAL ROSTER (INTERACTIVE MODULE DIRECTORY) ─── */}
       <section className="roster-section" id="section-roster" aria-labelledby="roster-heading">
         <div className="roster-header">
-          <div className="section-eyebrow">05 // FUNCTIONAL ROSTER</div>
+          <EditorialSectionLabel
+            number="05"
+            title="FUNCTIONAL ROSTER"
+            subtitle="MODULE DIRECTORY"
+          />
           <h2 id="roster-heading" className="section-heading">
             System modules & computational <span className="accent">rules</span>.
           </h2>
@@ -1380,7 +1408,11 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
         {/* Header Row: Eyebrow, Heading, Subtext & Navigation Toolbar */}
         <div className="dates-header-row">
           <div className="dates-header-col">
-            <span className="section-eyebrow">06 // STRUCTURED CALENDAR</span>
+            <EditorialSectionLabel
+              number="06"
+              title="STRUCTURED CALENDAR"
+              subtitle="PROGRESSION TIMELINE"
+            />
             <h2 id="dates-heading" className="section-heading">
               Academic schedule & submission <span className="accent">cadence</span>.
             </h2>
@@ -1571,7 +1603,11 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
       <section className="closing-section" aria-labelledby="closing-heading">
         <div className="closing-content">
           <div className="closing-left">
-            <span className="section-eyebrow">07 // ACADEMIC COMMAND · GET STARTED</span>
+            <EditorialSectionLabel
+              number="07"
+              title="ACADEMIC COMMAND"
+              subtitle="GET STARTED"
+            />
             <h2 id="closing-heading" className="section-heading closing-headline">
               Build a better rhythm for your <span className="accent">academic life</span>.
             </h2>
