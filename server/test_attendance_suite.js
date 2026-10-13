@@ -7,7 +7,8 @@
  *  3. Allowable missed classes formula: floor((attended - target * conducted) / target)
  *  4. Standing determination (Good Standing, Warning, Attendance Shortage)
  *  5. Insights and shortfall rankings
- *  6. API routes and authorization protection
+ *  6. Code Brigade & Chalkpad Pro HTML/Register Parsers (regex, fallback, entity cleaning)
+ *  7. HTTP API routes, Code Brigade connect endpoints, and authorization protection
  */
 
 'use strict';
