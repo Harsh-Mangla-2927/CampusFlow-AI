@@ -172,10 +172,10 @@ export function AcademicHealthRing({ score, size = 100 }) {
         />
       </svg>
       <div>
-        <div style={{ fontFamily: 'var(--font-display)', fontSize: '3rem', fontWeight: 900, color, letterSpacing: '-0.04em', lineHeight: 1 }}>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '2.4rem', fontWeight: 700, color, letterSpacing: '-0.02em', lineHeight: 1 }}>
           {score}%
         </div>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg-faint)', marginTop: 4 }}>
+        <div style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--fg-secondary)', marginTop: 6 }}>
           Academic Health
         </div>
       </div>

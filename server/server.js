@@ -11,6 +11,7 @@ const taskRoutes = require('./routes/taskRoutes');
 const examRoutes = require('./routes/examRoutes');
 const studyPlanRoutes = require('./routes/studyPlanRoutes');
 const intelligenceRoutes = require('./routes/intelligenceRoutes');
+const contactRoutes = require('./routes/contactRoutes');
 
 dotenv.config();
 
@@ -55,6 +56,7 @@ app.use('/api/subjects', subjectRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/exams', examRoutes);
 app.use('/api/study-plans', studyPlanRoutes);
+app.use('/api/contact', contactRoutes);
 app.use('/api', intelligenceRoutes); // /api/dashboard, /api/analytics, etc.
 
 // --- Error Handling (must be last) ---

@@ -136,13 +136,13 @@ function DashboardPage({ onNavigate }) {
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
                       <div style={{
-                        fontFamily: 'var(--font-display)', fontSize: '1.8rem', fontWeight: 900,
-                        lineHeight: 1, letterSpacing: '-0.03em',
+                        fontFamily: 'var(--font-body)', fontSize: '1.4rem', fontWeight: 700,
+                        lineHeight: 1, letterSpacing: '-0.01em',
                         color: task.priorityLevel === 'HIGH' ? 'var(--danger)' : task.priorityLevel === 'MEDIUM' ? 'var(--warning)' : 'var(--success)',
                       }}>
                         {task.priorityScore || '—'}
                       </div>
-                      <div style={{ fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--fg-faint)' }}>score</div>
+                      <div style={{ fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg-muted)' }}>score</div>
                     </div>
                   </div>
                   <div className="priority-card-meta">

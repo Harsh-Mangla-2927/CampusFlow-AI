@@ -312,9 +312,84 @@ CampusFlow AI Team`;
   }
 }
 
+/**
+ * Send a Contact Us inquiry to support and confirmation to the sender.
+ * @param {Object} data { name, email, subject, message }
+ * @returns {Promise<{ sent: boolean }>}
+ */
+async function sendContactUsEmail({ name, email, subject, message }) {
+  if (!isEmailConfigured()) {
+    const err = new Error('Email delivery is not configured on this server. Please configure SMTP in server/.env.');
+    err.code = 'EMAIL_NOT_CONFIGURED';
+    err.status = 503;
+    throw err;
+  }
+
+  const tp = getTransporter();
+  if (!tp) {
+    const err = new Error('Failed to initialize email transport.');
+    err.code = 'EMAIL_TRANSPORT_FAILED';
+    err.status = 503;
+    throw err;
+  }
+
+  const from = process.env.EMAIL_FROM || `CampusFlow AI Support <${process.env.SMTP_USER}>`;
+  const supportEmail = process.env.SUPPORT_EMAIL || process.env.SMTP_USER;
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"/></head>
+    <body style="margin:0;padding:24px;background:#0B0D11;font-family:'Inter',sans-serif;color:#F8FAFC;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;margin:0 auto;background:#13161F;border:1px solid #252A3B;border-radius:16px;padding:32px;">
+        <tr>
+          <td style="padding-bottom:20px;border-bottom:1px solid #252A3B;">
+            <div style="font-size:18px;font-weight:800;color:#FFFFFF;letter-spacing:0.02em;">
+              CAMPUSFLOW <span style="color:#C8F135;">AI</span>
+            </div>
+            <div style="font-size:12px;color:#94A3B8;margin-top:4px;">New Contact Inquiry Received</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:24px 0;">
+            <p style="margin:0 0 12px;font-size:14px;color:#CBD5E1;"><strong>Sender:</strong> ${name} &lt;${email}&gt;</p>
+            <p style="margin:0 0 16px;font-size:14px;color:#CBD5E1;"><strong>Subject:</strong> ${subject}</p>
+            <div style="background:#0B0D11;border:1px solid #252A3B;border-radius:12px;padding:18px;font-size:14px;line-height:1.6;color:#F8FAFC;white-space:pre-wrap;">${message}</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="border-top:1px solid #252A3B;padding-top:18px;font-size:12px;color:#64748B;">
+            Sent securely via CampusFlow AI Contact Service.
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  try {
+    await tp.sendMail({
+      from,
+      to: supportEmail,
+      replyTo: email,
+      subject: `[CampusFlow Contact] ${subject} - from ${name}`,
+      text: `CampusFlow AI Contact Message\n\nFrom: ${name} <${email}>\nSubject: ${subject}\n\nMessage:\n${message}`,
+      html: htmlContent,
+    });
+    return { sent: true };
+  } catch (err) {
+    console.error('[EmailService] Failed to send contact message:', err.message);
+    const sendErr = new Error(`Failed to deliver message: ${err.message}`);
+    sendErr.code = 'EMAIL_SEND_FAILED';
+    sendErr.status = 502;
+    throw sendErr;
+  }
+}
+
 module.exports = {
   sendOtpEmail,
   sendWelcomeEmail,
   sendPasswordResetEmail,
+  sendContactUsEmail,
   isEmailConfigured,
 };

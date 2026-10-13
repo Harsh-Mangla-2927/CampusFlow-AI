@@ -9,7 +9,7 @@ function FieldError({ msg }) {
   return <div className="field-error" role="alert">{msg}</div>;
 }
 
-function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForgotPassword }) {
+export default function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForgotPassword }) {
   const { toast } = useToast();
   const [f, setF]             = useState({ email: '', password: '' });
   const [errors, setErrors]   = useState({});
@@ -93,14 +93,24 @@ function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForgotPassword }) {
     <div className="auth-shell">
       {/* ── LEFT PANEL: BRANDING & PRODUCT PREVIEW ────────────── */}
       <div className="auth-left">
+        <div className="auth-left-bg" aria-hidden="true">
+          <img
+            src="/auth-space.jpg"
+            alt=""
+            className="auth-bg-img"
+          />
+          <div className="auth-bg-overlay" />
+        </div>
+
         <div className="auth-left-inner">
           <div className="auth-brand-badge">
             <span className="auth-brand-tag">Academic Intelligence OS</span>
           </div>
 
           <div className="auth-headline">
-            <span className="auth-headline-lg">Welcome</span>
-            <span className="auth-headline-lg auth-headline-accent">Back.</span>
+            <h1 className="auth-headline-title">
+              Welcome <span className="auth-headline-accent">Back.</span>
+            </h1>
           </div>
 
           <p className="auth-tagline">
@@ -116,8 +126,8 @@ function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForgotPassword }) {
 
             <div className="auth-preview-items">
               <div className="auth-preview-item">
-                <div className="auth-preview-item-icon" style={{ color: 'var(--accent)' }}>
-                  <Zap size={14} />
+                <div className="auth-preview-item-icon" style={{ color: 'var(--amber)' }}>
+                  <Zap size={15} />
                 </div>
                 <div>
                   <div className="auth-preview-item-title">Priority Queue Active</div>
@@ -126,8 +136,8 @@ function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForgotPassword }) {
               </div>
 
               <div className="auth-preview-item">
-                <div className="auth-preview-item-icon" style={{ color: 'var(--success)' }}>
-                  <ShieldCheck size={14} />
+                <div className="auth-preview-item-icon" style={{ color: 'var(--teal)' }}>
+                  <ShieldCheck size={15} />
                 </div>
                 <div>
                   <div className="auth-preview-item-title">Academic Health: 88% Optimal</div>
@@ -136,8 +146,8 @@ function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForgotPassword }) {
               </div>
 
               <div className="auth-preview-item">
-                <div className="auth-preview-item-icon" style={{ color: 'var(--warning)' }}>
-                  <AlertTriangle size={14} />
+                <div className="auth-preview-item-icon" style={{ color: 'var(--amber)' }}>
+                  <AlertTriangle size={15} />
                 </div>
                 <div>
                   <div className="auth-preview-item-title">Exam Proximity Alert</div>
@@ -185,66 +195,69 @@ function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForgotPassword }) {
 
               <div className="auth-form-header">
                 <div className="auth-logo-mark" aria-hidden="true">CF</div>
-                <h1>Sign In</h1>
-                <p>Access your CampusFlow AI student workspace.</p>
+                <h2 className="auth-form-title">Sign In</h2>
+                <p className="auth-form-sub">Access your CampusFlow AI student workspace.</p>
               </div>
 
               {errors.general && (
-                <div className="alert alert-danger" role="alert" id="login-error-alert">
+                <div className="alert alert-danger" role="alert" id="login-error-alert" style={{ marginBottom: 18 }}>
                   {errors.general}
                 </div>
               )}
 
               <form onSubmit={handleSubmit} noValidate id="form-login" autoComplete="on">
-                <div className={`form-group ${errors.email ? 'has-error' : ''}`}>
+                <div className={`form-group ${errors.email ? 'has-error' : ''}`} style={{ marginBottom: 18 }}>
                   <label className="form-label" htmlFor="login-email">
                     University Email
                   </label>
                   <input
                     id="login-email"
-                    className={`form-input ${errors.email ? 'input-error' : ''}`}
                     type="email"
-                    value={f.email}
-                    onChange={e => set('email', e.target.value)}
-                    placeholder="you@chitkara.edu.in"
+                    name="email"
                     autoComplete="email"
-                    required
-                    inputMode="email"
+                    className="form-input"
+                    placeholder="student@chitkara.edu.in"
+                    value={f.email}
+                    onChange={(e) => set('email', e.target.value)}
                     disabled={loading}
+                    autoFocus
                   />
                   <FieldError msg={errors.email} />
                 </div>
 
-                <div className={`form-group ${errors.password ? 'has-error' : ''}`}>
-                  <div className="auth-label-row">
-                    <label className="form-label" htmlFor="login-password">
+                <div className={`form-group ${errors.password ? 'has-error' : ''}`} style={{ marginBottom: 10 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <label className="form-label" htmlFor="login-password" style={{ marginBottom: 0 }}>
                       Password
                     </label>
-                    <button
-                      type="button"
-                      className="auth-forgot-link"
-                      onClick={onGoForgotPassword}
-                      id="btn-forgot-password"
-                    >
-                      Forgot password?
-                    </button>
+                    {onGoForgotPassword && (
+                      <button
+                        type="button"
+                        onClick={onGoForgotPassword}
+                        className="auth-forgot-link"
+                        id="btn-forgot-password"
+                      >
+                        Forgot password?
+                      </button>
+                    )}
                   </div>
-                  <div className="input-with-icon">
+                  <div style={{ position: 'relative' }}>
                     <input
                       id="login-password"
-                      className={`form-input ${errors.password ? 'input-error' : ''}`}
                       type={showPw ? 'text' : 'password'}
-                      value={f.password}
-                      onChange={e => set('password', e.target.value)}
-                      placeholder="Enter your password"
+                      name="password"
                       autoComplete="current-password"
-                      required
+                      className="form-input"
+                      placeholder="••••••••"
+                      value={f.password}
+                      onChange={(e) => set('password', e.target.value)}
                       disabled={loading}
+                      style={{ paddingRight: 40 }}
                     />
                     <button
                       type="button"
-                      className="input-icon-btn"
-                      onClick={() => setShowPw(p => !p)}
+                      className="password-toggle-btn"
+                      onClick={() => setShowPw((v) => !v)}
                       aria-label={showPw ? 'Hide password' : 'Show password'}
                       tabIndex={-1}
                     >
@@ -256,30 +269,24 @@ function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForgotPassword }) {
 
                 <button
                   type="submit"
-                  className="btn btn-primary btn-full"
+                  className="auth-submit-btn"
                   disabled={loading}
-                  id="btn-login"
+                  id="btn-login-submit"
+                  style={{ marginTop: 14 }}
                 >
-                  {loading ? (
-                    <>
-                      <span className="spinner" aria-hidden="true" />
-                      Validating credentials…
-                    </>
-                  ) : (
-                    'Sign In'
-                  )}
+                  {loading ? 'Authenticating…' : 'Sign In →'}
                 </button>
               </form>
 
-              <div className="auth-switch">
-                Don't have an account yet?{' '}
+              <div className="auth-footer-prompt">
+                <span>New to CampusFlow AI?</span>
                 <button
+                  type="button"
                   className="auth-switch-link"
                   onClick={onGoRegister}
-                  id="btn-go-register"
-                  type="button"
+                  id="btn-switch-register"
                 >
-                  Create Account
+                  Create an account →
                 </button>
               </div>
             </>
@@ -289,5 +296,3 @@ function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForgotPassword }) {
     </div>
   );
 }
-
-export default LoginPage;

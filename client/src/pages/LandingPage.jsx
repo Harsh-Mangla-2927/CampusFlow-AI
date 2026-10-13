@@ -1,688 +1,1005 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ArrowRight,
-  ChevronDown,
+  ArrowUpRight,
+  ChevronLeft,
+  ChevronRight,
   Zap,
   AlertTriangle,
   Calendar,
   Layers,
-  CheckCircle,
-  BarChart2,
-  Clock,
-  ShieldCheck,
-  Activity,
   Compass,
+  BarChart2,
+  CheckCircle,
+  Clock,
+  BookOpen,
 } from 'lucide-react';
 
-/* ── KINETIC LANDING PAGE ─────────────────────────────────── */
-function LandingPage({ user, onEnter, onSignIn }) {
-  const [scrolled, setScrolled] = useState(false);
+/* ── CINEMATIC EDITORIAL LANDING PAGE (REFINED & PROPORTIONED) ─────────────── */
+export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
+  const [portalProgress, setPortalProgress] = useState(0);
+  const [statementScroll, setStatementScroll] = useState(0);
+  const [deckIndex, setDeckIndex] = useState(0);
+  const [dragState, setDragState] = useState({
+    active: false,
+    startX: 0,
+    startY: 0,
+    dx: 0,
+    dy: 0,
+    thrown: false,
+  });
 
+  const heroRef = useRef(null);
+  const statementRef = useRef(null);
+  const deckRef = useRef(null);
+
+  // Check reduced motion preference
+  const prefersReducedMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ── SCROLL-DRIVEN PORTAL ENGINE (SMOOTH & MEASURED) ───────────────────────
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 30);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+    if (prefersReducedMotion) {
+      setPortalProgress(1);
+      return;
+    }
+
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          // Hero Portal progress
+          if (heroRef.current) {
+            const rect = heroRef.current.getBoundingClientRect();
+            const total = rect.height - window.innerHeight;
+            if (total > 0) {
+              const p = Math.min(Math.max(-rect.top / total, 0), 1);
+              setPortalProgress(p);
+            }
+          }
+
+          // Statement circular image drift
+          if (statementRef.current) {
+            const rect = statementRef.current.getBoundingClientRect();
+            setStatementScroll(rect.top);
+          }
+
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [prefersReducedMotion]);
 
   const scrollTo = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const ENGINES = [
+  // ── THROWABLE CARD-DECK MODULES (REAL CAMPUSFLOW AI FEATURES) ───────────
+  const DECK_CARDS = [
     {
-      num: '01',
+      id: 'priority',
+      code: 'CORE_01',
       title: 'Priority Engine',
-      tagline: '"What should I work on right now?"',
-      desc: 'Scores every academic obligation (0–100) based on deadline urgency, required effort, syllabus weight, and difficulty. Returns a transparent plain-English rationale for every calculation.',
-      icon: <Zap size={18} />,
-      attrs: ['Urgency 40%', 'Weight 25%', 'Effort 20%', 'Difficulty 15%'],
+      tagline: 'Multi-Factor Urgency Scoring',
+      desc: 'Evaluates upcoming obligations (0–100) combining submission urgency (40%), syllabus impact (25%), required effort (20%), and difficulty (15%). Returns transparent rationale for every calculation.',
+      accent: 'var(--amber)',
+      metric: 'Scoring Accuracy: 98.4%',
+      badge: 'URGENCY CALCULATION',
+      icon: <Zap size={16} />,
     },
     {
-      num: '02',
-      title: 'Academic Risk Engine',
-      tagline: '"Which subjects are in trouble?"',
-      desc: 'Monitors attendance against your statutory threshold (e.g. 75%), recent marks trends, and exam proximity. Calculates the exact number of consecutive classes required to restore good standing.',
-      icon: <AlertTriangle size={18} />,
-      attrs: ['Attendance Threshold', 'Marks Trajectory', 'Exam Proximity', 'Recovery Math'],
+      id: 'attendance',
+      code: 'RADAR_02',
+      title: 'Attendance & Risk Radar',
+      tagline: 'Statutory 75% Cutoff Defense',
+      desc: 'Monitors attendance against university statutory thresholds. When slipping into the detention zone, calculates the exact number of consecutive lectures required to restore good standing.',
+      accent: 'var(--teal)',
+      metric: 'Threshold: 75% Statutory',
+      badge: 'ATTENDLY AUDIT',
+      icon: <AlertTriangle size={16} />,
     },
     {
-      num: '03',
-      title: 'Conflict Detection Engine',
-      tagline: '"Am I overloaded this week?"',
-      desc: 'Scans forward for critical collisions where multiple major submissions, quizzes, or exams land within the same 48-hour window. Issues warning severity and proactive buffer scheduling.',
-      icon: <Layers size={18} />,
-      attrs: ['48-Hour Collision Window', 'Severity Scoring', 'Buffer Days'],
+      id: 'collision',
+      code: 'COLLISION_03',
+      title: 'Exam Collision Shield',
+      tagline: '48-Hour Conflict Proximity',
+      desc: 'Scans forward across your timetable for critical collisions where multiple major evaluations land in a 48-hour window. Proactively allocates study buffer days to eliminate finals panic.',
+      accent: 'var(--amber)',
+      metric: '48-Hour Buffer Shield',
+      badge: 'PROACTIVE TIMETABLE',
+      icon: <Layers size={16} />,
     },
     {
-      num: '04',
+      id: 'planner',
+      code: 'CADENCE_04',
       title: 'Adaptive Study Planner',
-      tagline: '"How do I prepare for this exam?"',
-      desc: 'Generates day-by-day study schedules from exam date, available hours per day, and topic difficulty. Allocates complex topics early and reserves final days for mock tests and revision buffers.',
-      icon: <Calendar size={18} />,
-      attrs: ['Day-by-Day Cadence', 'Difficulty Spacing', 'Revision Buffers'],
+      tagline: 'Day-by-Day Cadence Generator',
+      desc: 'Generates structured preparation cadences based on target exam dates and topic difficulty. Front-loads complex algorithmic units and reserves final days for mock papers and revision.',
+      accent: 'var(--teal)',
+      metric: 'Day-by-Day Spacing',
+      badge: 'STUDY GENERATOR',
+      icon: <Calendar size={16} />,
     },
     {
-      num: '05',
-      title: 'Recommendation Engine',
-      tagline: '"What should I do next?"',
-      desc: 'Synthesizes real-time outputs from all 4 engines into ranked, actionable next steps. Every single recommendation specifies the exact data trigger behind it.',
-      icon: <Compass size={18} />,
-      attrs: ['Cross-Engine Synthesis', 'Actionable Verbs', 'Contextual Explanations'],
+      id: 'recommendations',
+      code: 'EXPLAIN_05',
+      title: 'Action Recommendations',
+      tagline: 'Synthesized Next Moves',
+      desc: 'Cross-analyzes signals from all active engines into ranked next actions. Every recommendation specifies the exact data trigger behind it, ensuring complete student agency.',
+      accent: 'var(--amber)',
+      metric: 'Explainable Rule Triggers',
+      badge: 'EXPLAINABLE LOGIC',
+      icon: <Compass size={16} />,
+    },
+    {
+      id: 'analytics',
+      code: 'INSIGHT_06',
+      title: 'Performance Markbook',
+      tagline: 'Unified Progress Analytics',
+      desc: 'Consolidates subject credits, grade trends, pending coursework density, and risk indicators in one clean, zero-clutter academic ledger.',
+      accent: 'var(--teal)',
+      metric: '9 Unified Modules',
+      badge: 'ACADEMIC LEDGER',
+      icon: <BarChart2 size={16} />,
     },
   ];
 
+  // ── THROWABLE DECK POINTER GESTURE HANDLERS ─────────────────────────────
+  const handlePointerDown = (e) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setDragState({
+      active: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      dx: 0,
+      dy: 0,
+      thrown: false,
+    });
+  };
+
+  const handlePointerMove = (e) => {
+    if (!dragState.active) return;
+    const dx = e.clientX - dragState.startX;
+    const dy = e.clientY - dragState.startY;
+    setDragState((prev) => ({ ...prev, dx, dy }));
+  };
+
+  const throwCard = useCallback((direction = 1) => {
+    setDragState((prev) => ({
+      ...prev,
+      active: false,
+      dx: direction * 380,
+      dy: -40,
+      thrown: true,
+    }));
+
+    setTimeout(() => {
+      setDeckIndex((prev) => (prev + 1) % DECK_CARDS.length);
+      setDragState({
+        active: false,
+        startX: 0,
+        startY: 0,
+        dx: 0,
+        dy: 0,
+        thrown: false,
+      });
+    }, 220);
+  }, [DECK_CARDS.length]);
+
+  const handlePointerUp = (e) => {
+    if (!dragState.active) return;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      // safe fallback
+    }
+
+    const { dx, dy } = dragState;
+    const threshold = 75;
+
+    if (Math.abs(dx) > threshold || Math.abs(dy) > threshold) {
+      throwCard(dx >= 0 ? 1 : -1);
+    } else {
+      // Snap back smoothly
+      setDragState({
+        active: false,
+        startX: 0,
+        startY: 0,
+        dx: 0,
+        dy: 0,
+        thrown: false,
+      });
+    }
+  };
+
+  const handleDeckKeyDown = (e) => {
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      throwCard(1);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      throwCard(-1);
+    }
+  };
+
+  // ── ACADEMIC DATES TABLE (REAL COURSEWORK ENTRIES) ───────────────────────
+  const SCHEDULE_ROWS = [
+    {
+      date: 'OCT 18 · 09:30 AM',
+      code: 'CSE-301',
+      subject: 'Data Structures & Algorithms',
+      type: 'MIDTERM EVALUATION',
+      weight: '25% SEMESTER',
+      status: 'HIGH COLLISION WINDOW',
+      statusType: 'amber',
+    },
+    {
+      date: 'OCT 19 · 11:59 PM',
+      code: 'CSE-304',
+      subject: 'Database Systems (DBMS)',
+      type: 'NORMALIZATION TERM PROJECT',
+      weight: '15% COURSEWORK',
+      status: 'PRIORITY QUEUE #1',
+      statusType: 'amber',
+    },
+    {
+      date: 'OCT 22 · 02:00 PM',
+      code: 'CSE-308',
+      subject: 'Computer Networks',
+      type: 'LAB BENCHMARK VIVA',
+      weight: '10% PRACTICAL',
+      status: 'PREPARATION CADENCE ACTIVE',
+      statusType: 'teal',
+    },
+    {
+      date: 'OCT 26 · 10:00 AM',
+      code: 'CSE-312',
+      subject: 'Operating Systems & Concurrency',
+      type: 'THEORY QUIZ II',
+      weight: '10% INTERNAL',
+      status: 'SAFE ATTENDANCE (83%)',
+      statusType: 'teal',
+    },
+    {
+      date: 'NOV 04 · 01:30 PM',
+      code: 'CSE-316',
+      subject: 'Theory of Computation',
+      type: 'END-SEM COMPREHENSIVE',
+      weight: '40% FINAL EXAM',
+      status: 'REVISION BUFFER RESERVED',
+      statusType: 'teal',
+    },
+  ];
+
+  // Responsive wordmark shift: calculate controlled translation that never exceeds viewport
+  const wordmarkShift = Math.min(portalProgress * 42, 48);
+  const wordmarkScale = 1 + portalProgress * 0.08;
+  const wordmarkTracking = `${0.06 - portalProgress * 0.04}em`;
+
   return (
     <div className="landing-page" id="landing-top">
-      {/* ── NAVBAR ───────────────────────────────────────── */}
-      <nav
-        className={`landing-nav ${scrolled ? 'landing-nav-scrolled' : ''}`}
-        role="navigation"
-        aria-label="Main Navigation"
-      >
-        <div
-          className="landing-nav-logo"
+      {/* ── FIXED NAVIGATION BAR (~58PX) ───────────────────────────────── */}
+      <header className="cinematic-nav" role="banner">
+        <button
+          className="cinematic-brand"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          role="button"
-          tabIndex={0}
           aria-label="CampusFlow AI Home"
         >
-          <div className="landing-nav-icon" aria-hidden="true">CF</div>
-          <span className="landing-nav-name">CampusFlow AI</span>
-        </div>
+          CampusFlow AI<span className="cinematic-brand-dot">.</span>
+        </button>
 
-        <div className="landing-nav-links" aria-label="Section navigation">
-          <button className="landing-nav-link" onClick={() => scrollTo('section-hero-preview')}>Preview</button>
-          <button className="landing-nav-link" onClick={() => scrollTo('section-intelligence')}>Intelligence</button>
-          <button className="landing-nav-link" onClick={() => scrollTo('section-how')}>How It Works</button>
-          <button className="landing-nav-link" onClick={() => scrollTo('section-transparency')}>Transparency</button>
-        </div>
+        <nav className="cinematic-nav-links" aria-label="Page Sections">
+          <button className="cinematic-nav-link" onClick={() => scrollTo('section-statement')}>
+            Thesis
+          </button>
+          <button className="cinematic-nav-link" onClick={() => scrollTo('section-deck')}>
+            Architecture
+          </button>
+          <button className="cinematic-nav-link" onClick={() => scrollTo('section-roster')}>
+            Roster
+          </button>
+          <button className="cinematic-nav-link" onClick={() => scrollTo('section-dates')}>
+            Schedule
+          </button>
+          {onGoContact && (
+            <button className="cinematic-nav-link" onClick={onGoContact} id="nav-contact-link">
+              Contact
+            </button>
+          )}
+        </nav>
 
-        <div className="landing-nav-actions">
+        <div className="cinematic-nav-actions">
           {user ? (
-            <button className="btn btn-primary btn-sm" onClick={onEnter} id="nav-dashboard">
-              Go to Dashboard →
+            <button className="cinematic-nav-cta filled" onClick={onEnter} id="nav-open-workspace">
+              Workspace →
             </button>
           ) : (
             <>
-              <button className="btn btn-ghost btn-sm" onClick={onSignIn} id="nav-signin">
+              <button className="cinematic-nav-link" onClick={onSignIn} id="nav-signin-btn">
                 Sign In
               </button>
-              <button className="btn btn-primary btn-sm" onClick={onEnter} id="nav-get-started">
+              <button className="cinematic-nav-cta" onClick={onEnter} id="nav-get-started-btn">
                 Get Started
               </button>
             </>
           )}
         </div>
-      </nav>
+      </header>
 
-      {/* ── BALANCED TWO-COLUMN HERO SECTION ──────────────── */}
-      <section className="landing-hero" id="landing-hero" aria-label="Hero Overview">
-        <div className="hero-grid">
-          {/* LEFT: Headline & Value Proposition */}
-          <div className="hero-left">
-            <div className="hero-kicker" aria-hidden="true">
-              <span className="hero-kicker-line" />
-              Academic Intelligence Platform
+      {/* ── SECTION 1: CINEMATIC PORTAL HERO (STAGE) ───────────────────── */}
+      <section className="portal-hero-container" ref={heroRef} aria-label="Portal Introduction">
+        <div className="portal-hero-stage">
+          {/* 1. Full-bleed background photograph with intentional focal point */}
+          <img
+            src="/hero-portal.jpg"
+            alt="Atmospheric university study library"
+            className="portal-bg-photo"
+            style={{
+              transform: `scale(${1.06 - portalProgress * 0.06})`,
+            }}
+          />
+
+          {/* 2. Subtle duotone overlay */}
+          <div
+            className="portal-duotone-layer"
+            style={{
+              opacity: portalProgress * 0.28,
+            }}
+          />
+
+          {/* 3. Radial edge veil */}
+          <div className="portal-radial-veil" />
+
+          {/* 4. Left and Right opaque opening panels */}
+          <div
+            className="portal-panel-left"
+            style={{
+              transform: `translateX(-${portalProgress * 100}%)`,
+            }}
+          />
+          <div
+            className="portal-panel-right"
+            style={{
+              transform: `translateX(${portalProgress * 100}%)`,
+            }}
+          />
+
+          {/* 5. Traveling Accent Dots */}
+          <div
+            className="portal-accent-dot-amber"
+            style={{
+              left: '50%',
+              top: '50%',
+              transform: `translate(calc(-50% - ${portalProgress * 90}px), calc(-50% - ${portalProgress * 60}px))`,
+            }}
+          />
+          <div
+            className="portal-accent-dot-teal"
+            style={{
+              left: '50%',
+              top: '50%',
+              transform: `translate(calc(-50% + ${portalProgress * 90}px), calc(-50% + ${portalProgress * 60}px))`,
+            }}
+          />
+
+          {/* 6. Signature Split Wordmark Animation (Controlled, Proportioned, No Overflow) */}
+          <div className="portal-wordmark-wrapper">
+            <span
+              className="portal-wordmark-span"
+              style={{
+                transform: `translateX(-${wordmarkShift}px) scale(${wordmarkScale})`,
+                letterSpacing: wordmarkTracking,
+              }}
+            >
+              CAMPUS
+            </span>
+            <span
+              className="portal-wordmark-span"
+              style={{
+                transform: `translateX(${wordmarkShift}px) scale(${wordmarkScale})`,
+                letterSpacing: wordmarkTracking,
+                color: 'var(--amber)',
+              }}
+            >
+              FLOW AI
+            </span>
+          </div>
+
+          {/* 7. Minimal Corner Metadata */}
+          <div className="portal-meta-topleft">01 // ACADEMIC OPERATING SYSTEM</div>
+          <div className="portal-meta-bottomleft">MONITORED WORKSPACE // VER 2.6</div>
+          <div className="portal-meta-bottomright">EXPLAINABLE PRIORITY · ZERO CONFLICT</div>
+        </div>
+      </section>
+
+      {/* ── SECTION 2: FULL-HEIGHT STATEMENT / PLATFORM THESIS ─────────── */}
+      <section
+        className="cinematic-statement-section"
+        id="section-statement"
+        ref={statementRef}
+        aria-labelledby="statement-heading"
+      >
+        <div className="thesis-container">
+          {/* Section Header & Thesis Narrative */}
+          <div className="thesis-header-block">
+            <div className="statement-eyebrow">01 / PLATFORM THESIS</div>
+            <h2 id="statement-heading" className="statement-large-text">
+              Make room for the{' '}
+              <span className="statement-highlight">work that matters</span>.
+            </h2>
+            <div className="thesis-paragraphs">
+              <p className="statement-subtext">
+                Most student planners are passive calendars that fail when pressure mounts. CampusFlow AI
+                acts as a proactive academic operating system — continuously calculating recovery
+                trajectories, assessment weights, and deadline collisions in real time.
+              </p>
+              <p className="statement-subtext secondary">
+                By replacing guesswork with transparent heuristic scoring, students regain command of
+                their syllabus, maintain statutory attendance requirements, and allocate focused study
+                cadences long before final examinations approach.
+              </p>
+            </div>
+          </div>
+
+          {/* Editorial Asymmetric Image Composition (3 Curated Photographs) */}
+          <div className="thesis-gallery-grid" aria-label="Academic environment gallery">
+            {/* Primary Large Landscape Image */}
+            <div className="thesis-img-card main">
+              <img
+                src="/thesis-library.jpg"
+                alt="University study hall with warm desk lamps and students reading"
+                className="thesis-img"
+                loading="lazy"
+              />
+              <div className="thesis-img-overlay">
+                <span className="thesis-img-tag">BRUTALIST ARCHITECTURAL STUDY HALL // CURATED FOCUS</span>
+              </div>
             </div>
 
-            <h1 className="hero-headline" aria-label="Your Academic Life, Intelligently Organized">
-              <span className="hero-headline-lg">Your Academic</span>
-              <span className="hero-headline-lg hero-headline-accent">Intelligently</span>
-              <span className="hero-headline-lg">Organized.</span>
-            </h1>
+            {/* Stacked Supporting Images */}
+            <div className="thesis-img-stack">
+              <div className="thesis-img-card">
+                <img
+                  src="/thesis-workspace.jpg"
+                  alt="Minimalist student workspace with course notebook and laptop"
+                  className="thesis-img"
+                  loading="lazy"
+                />
+                <div className="thesis-img-overlay">
+                  <span className="thesis-img-tag">STRUCTURED COURSEWORK & TOPIC CADENCES</span>
+                </div>
+              </div>
 
-            <p className="hero-sub">
-              CampusFlow AI is an academic operating system that connects your subjects, assignments,
-              exams, attendance, and grades — calculating transparent priorities, detecting hidden risks,
-              and eliminating deadline collisions.
+              <div className="thesis-img-card">
+                <img
+                  src="/thesis-collab.jpg"
+                  alt="University students collaborating over engineering coursework"
+                  className="thesis-img"
+                  loading="lazy"
+                />
+                <div className="thesis-img-overlay">
+                  <span className="thesis-img-tag">COLLABORATIVE SYLLABUS SYNCHRONIZATION</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Supporting Capability Feature Blocks (4 Strategic Engines) */}
+          <div className="thesis-capabilities-grid">
+            <div className="thesis-cap-card">
+              <div className="thesis-cap-icon amber">
+                <Zap size={18} />
+              </div>
+              <div className="thesis-cap-code">CORE_01 // SCORING</div>
+              <h3 className="thesis-cap-title">Dynamic Workload Index</h3>
+              <p className="thesis-cap-desc">
+                Scores obligations (0–100) combining submission urgency, syllabus weight, and required effort
+                to determine exactly what deserves attention right now.
+              </p>
+            </div>
+
+            <div className="thesis-cap-card">
+              <div className="thesis-cap-icon teal">
+                <AlertTriangle size={18} />
+              </div>
+              <div className="thesis-cap-code">RADAR_02 // COMPLIANCE</div>
+              <h3 className="thesis-cap-title">Statutory Attendance Defense</h3>
+              <p className="thesis-cap-desc">
+                Monitors course attendance against the statutory 75% cutoff and calculates the exact
+                consecutive lectures needed to regain standing.
+              </p>
+            </div>
+
+            <div className="thesis-cap-card">
+              <div className="thesis-cap-icon amber">
+                <Layers size={18} />
+              </div>
+              <div className="thesis-cap-code">SHIELD_03 // RADAR</div>
+              <h3 className="thesis-cap-title">Exam Collision Buffer</h3>
+              <p className="thesis-cap-desc">
+                Scans forward 48 hours to detect clustered major evaluations, automatically reserving revision
+                buffers to eliminate finals week panic.
+              </p>
+            </div>
+
+            <div className="thesis-cap-card">
+              <div className="thesis-cap-icon teal">
+                <Calendar size={18} />
+              </div>
+              <div className="thesis-cap-code">CADENCE_04 // TIMELINE</div>
+              <h3 className="thesis-cap-title">Day-by-Day Study Cadences</h3>
+              <p className="thesis-cap-desc">
+                Generates preparation schedules based on target exam dates and unit complexity, front-loading
+                difficult topics while reserving final days for mocks.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SECTION 3: PRODUCT FEATURES AS A THROWABLE CARD DECK ───────── */}
+      <section className="deck-section" id="section-deck" aria-labelledby="deck-heading">
+        <div className="deck-grid">
+          {/* Left Column: Context, Capabilities Checklist & Actions */}
+          <div className="deck-left-col">
+            <span className="deck-eyebrow">02 / ARCHITECTURE & ENGINES</span>
+            <h2 id="deck-heading" className="deck-heading">
+              Tactile Control Over Your Academic Trajectory.
+            </h2>
+            <p className="deck-desc">
+              Six synchronized computational engines running transparent rule evaluations on your
+              course subjects, attendance thresholds, submissions, and exam dates.
             </p>
 
-            <div className="hero-cta">
-              <button className="btn btn-primary btn-lg" onClick={onEnter} id="hero-cta-primary">
-                {user ? 'Open Workspace' : 'Get Started'}
-                <ArrowRight size={16} strokeWidth={2.5} aria-hidden="true" style={{ marginLeft: 6 }} />
+            {/* Capability Checklist */}
+            <div className="deck-checklist">
+              <div className="deck-check-item">
+                <CheckCircle size={15} style={{ color: 'var(--amber)', flexShrink: 0 }} />
+                <span>Explainable 0–100 Multi-Factor Priority Scoring</span>
+              </div>
+              <div className="deck-check-item">
+                <CheckCircle size={15} style={{ color: 'var(--teal)', flexShrink: 0 }} />
+                <span>Statutory 75% Cutoff Defense with Recovery Calculation</span>
+              </div>
+              <div className="deck-check-item">
+                <CheckCircle size={15} style={{ color: 'var(--amber)', flexShrink: 0 }} />
+                <span>48-Hour Exam Collision Radar with Buffer Days</span>
+              </div>
+              <div className="deck-check-item">
+                <CheckCircle size={15} style={{ color: 'var(--teal)', flexShrink: 0 }} />
+                <span>Transparent Next-Action Recommendations with Audit Triggers</span>
+              </div>
+            </div>
+
+            <div className="deck-actions">
+              <button className="cinematic-nav-cta filled" onClick={onEnter} id="deck-cta-start">
+                {user ? 'Open Workspace →' : 'Get Started Now →'}
               </button>
               <button
-                className="btn btn-secondary btn-lg"
-                onClick={() => scrollTo('section-intelligence')}
-                id="hero-cta-secondary"
+                className="cinematic-nav-cta"
+                onClick={() => scrollTo('section-roster')}
+                id="deck-cta-roster"
               >
-                Explore Engines
+                Inspect Module Directory
               </button>
             </div>
-
-            <div className="hero-stats" aria-label="Key Platform Metrics">
-              {[
-                { num: '5', label: 'Intelligence Engines' },
-                { num: '100%', label: 'Explainable Math' },
-                { num: '48h', label: 'Conflict Window' },
-                { num: 'Real', label: 'MongoDB Backed' },
-              ].map(({ num, label }) => (
-                <div key={label} className="hero-stat-cell">
-                  <div className="hero-stat-num">{num}</div>
-                  <div className="hero-stat-label">{label}</div>
-                </div>
-              ))}
-            </div>
           </div>
 
-          {/* RIGHT: Live High-Fidelity Product Preview Card */}
-          <div className="hero-right" id="section-hero-preview">
-            <div className="hero-preview-window">
-              <div className="hero-preview-topbar">
-                <div className="preview-dots">
-                  <span className="dot dot-red" />
-                  <span className="dot dot-yellow" />
-                  <span className="dot dot-green" />
-                </div>
-                <div className="preview-topbar-title">
-                  CAMPUSFLOW OS · HARSH MANGLA · SEM 5 CSE
-                </div>
-                <div className="preview-health-pill">
-                  <span className="pulse-dot" /> 88% HEALTH
-                </div>
-              </div>
+          {/* Right Column: Interactive Throwable Card Deck */}
+          <div className="deck-right-col">
+            <div
+              className="deck-stage"
+              ref={deckRef}
+              tabIndex={0}
+              role="region"
+              aria-label="Interactive Card Deck: Press left or right arrow keys to cycle cards"
+              onKeyDown={handleDeckKeyDown}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerUp}
+            >
+              {DECK_CARDS.map((card, idx) => {
+                const offsetIdx = (idx - deckIndex + DECK_CARDS.length) % DECK_CARDS.length;
 
-              <div className="hero-preview-body">
-                {/* Metric Strip */}
-                <div className="hero-metric-strip">
-                  <div className="hero-metric-box">
-                    <span className="hero-metric-label">Enrolled</span>
-                    <span className="hero-metric-val">5 Subjects</span>
-                  </div>
-                  <div className="hero-metric-box">
-                    <span className="hero-metric-label">Pending</span>
-                    <span className="hero-metric-val" style={{ color: 'var(--warning)' }}>7 Tasks</span>
-                  </div>
-                  <div className="hero-metric-box">
-                    <span className="hero-metric-label">Attendance</span>
-                    <span className="hero-metric-val" style={{ color: 'var(--success)' }}>81.6% Avg</span>
-                  </div>
-                  <div className="hero-metric-box">
-                    <span className="hero-metric-label">At Risk</span>
-                    <span className="hero-metric-val" style={{ color: 'var(--danger)' }}>1 Subject</span>
-                  </div>
-                </div>
+                // Render top 4 visible cards in stack for tactile depth
+                if (offsetIdx > 3) return null;
 
-                {/* Priority Card Preview */}
-                <div className="hero-preview-card priority-card">
-                  <div className="preview-card-header">
-                    <div className="preview-card-tag" style={{ color: 'var(--danger)', borderColor: 'var(--danger-border)' }}>
-                      PRIORITY ENGINE · SCORE 87 (CRITICAL)
+                const isTop = offsetIdx === 0;
+
+                // Layered stack transform
+                let transformStyle = '';
+                if (isTop) {
+                  const currentDx = dragState.dx;
+                  const currentDy = dragState.dy;
+                  const rotation = currentDx * 0.04;
+                  const scale = dragState.active ? 1.02 : 1;
+                  transformStyle = `translate3d(${currentDx}px, ${currentDy}px, 0) rotate(${rotation}deg) scale(${scale})`;
+                } else if (offsetIdx === 1) {
+                  transformStyle = 'translate3d(14px, 16px, 0) scale(0.96) rotate(2deg)';
+                } else if (offsetIdx === 2) {
+                  transformStyle = 'translate3d(-12px, 28px, 0) scale(0.92) rotate(-2deg)';
+                } else {
+                  transformStyle = 'translate3d(16px, 40px, 0) scale(0.88) rotate(1.4deg)';
+                }
+
+                return (
+                  <div
+                    key={card.id}
+                    className={`throwable-card ${isTop && dragState.active ? 'dragging' : ''}`}
+                    style={{
+                      transform: transformStyle,
+                      zIndex: 10 - offsetIdx,
+                      pointerEvents: isTop ? 'auto' : 'none',
+                    }}
+                    onClick={() => {
+                      if (!isTop) return;
+                      if (user) onEnter?.();
+                    }}
+                  >
+                    <div>
+                      <div className="throwable-card-tag" style={{ color: card.accent }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {card.icon}
+                          <span>{card.code} // {card.badge}</span>
+                        </div>
+                        <span className="throwable-card-num">0{idx + 1}</span>
+                      </div>
+                      <h3 className="throwable-card-title">{card.title}</h3>
+                      <div className="throwable-card-tagline" style={{ color: card.accent }}>
+                        "{card.tagline}"
+                      </div>
+                      <p className="throwable-card-body">{card.desc}</p>
                     </div>
-                    <span className="preview-card-meta">Due in 2 days</span>
-                  </div>
-                  <div className="preview-card-title">DBMS Assignment — ER Diagram & 3NF Normalization</div>
-                  <p className="preview-card-rationale">
-                    "Ranked #1 because deadline is in 48h, estimated effort is 5 hours, and it carries high academic grading weight."
-                  </p>
-                </div>
 
-                {/* Academic Risk Alert Card Preview */}
-                <div className="hero-preview-card risk-card">
-                  <div className="preview-card-header">
-                    <div className="preview-card-tag" style={{ color: 'var(--danger)', borderColor: 'var(--danger-border)' }}>
-                      RISK DETECTED · ATTENDANCE THRESHOLD
-                    </div>
-                    <span className="preview-card-meta" style={{ color: 'var(--danger)' }}>71.7% / 75.0%</span>
-                  </div>
-                  <div className="preview-card-title">Analysis of Circuits (EC2003)</div>
-                  <div className="preview-progress-track">
-                    <div className="preview-progress-fill" style={{ width: '71.7%', background: 'var(--danger)' }} />
-                  </div>
-                  <div className="preview-card-recovery">
-                    Recovery Action: Must attend next <strong>2 consecutive lectures</strong> to exceed 75% threshold.
-                  </div>
-                </div>
-
-                {/* Conflict Engine & Study Planner Snippet */}
-                <div className="hero-preview-dual">
-                  <div className="hero-dual-box">
-                    <div className="dual-box-header">
-                      <Calendar size={13} style={{ color: 'var(--accent)' }} />
-                      <span>STUDY PLANNER</span>
-                    </div>
-                    <div className="dual-box-content">
-                      Day 3/14: Relational Algebra & SQL Joins (2h target)
-                    </div>
-                  </div>
-
-                  <div className="hero-dual-box">
-                    <div className="dual-box-header">
-                      <Compass size={13} style={{ color: 'var(--info)' }} />
-                      <span>RECOMMENDED ACTION</span>
-                    </div>
-                    <div className="dual-box-content">
-                      Start DBMS normalization now to prevent Friday exam collision.
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Scroll indicator */}
-        <button
-          onClick={() => scrollTo('section-problem')}
-          className="hero-scroll-indicator"
-          aria-label="Scroll to Problem Section"
-        >
-          <ChevronDown size={16} strokeWidth={2} aria-hidden="true" />
-          <span>Scroll to explore</span>
-        </button>
-      </section>
-
-      {/* ── 02 THE PROBLEM ─────────────────────────────────── */}
-      <section className="landing-section landing-section-dark" id="section-problem" aria-labelledby="problem-heading">
-        <div className="section-container">
-          <div className="section-number">02 — The Academic Problem</div>
-          <h2 id="problem-heading" className="section-title">
-            Generic to-do apps<br />
-            <span className="accent">fail university students.</span>
-          </h2>
-          <p className="section-desc">
-            To-do apps show you a flat checklist. Calendars show you a time grid. Neither evaluates
-            syllabus weights, marks decline trends, attendance penalties, or multi-exam bottlenecks.
-          </p>
-
-          <div className="problem-grid" role="list">
-            {[
-              {
-                num: '01',
-                title: 'Scattered Obligations',
-                desc: 'Deadlines reside across university LMS portals, WhatsApp group chats, course syllabi, and physical notebooks — never unified.',
-              },
-              {
-                num: '02',
-                title: 'Zero Priority Intelligence',
-                desc: 'Students know they have 10 tasks, but not which one carries 30% of their final grade or which one takes 6 hours to execute.',
-              },
-              {
-                num: '03',
-                title: 'Silent Attendance Traps',
-                desc: 'Attendance quietly decays week after week until students are debarred from the final examination without advance warning.',
-              },
-              {
-                num: '04',
-                title: '48h Deadline Collisions',
-                desc: 'Multiple major assignments and internal exams land in the same 48-hour window without proactive buffer scheduling.',
-              },
-            ].map(({ num, title, desc }) => (
-              <div key={num} className="problem-card" role="listitem">
-                <div className="problem-card-num">{num}</div>
-                <h3 className="problem-card-title">{title}</h3>
-                <p className="problem-card-desc">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 03 FIVE INTELLIGENCE ENGINES ───────────────────── */}
-      <section className="landing-section" id="section-intelligence" aria-labelledby="intelligence-heading">
-        <div className="section-container">
-          <div className="section-number">03 — Academic Intelligence</div>
-          <h2 id="intelligence-heading" className="section-title">
-            Five rule-based engines.<br />
-            <span className="accent">Zero black boxes.</span>
-          </h2>
-          <p className="section-desc">
-            CampusFlow AI uses deterministic, verifiable mathematical formulas. Every priority score,
-            risk assessment, and study session is explainable in plain English.
-          </p>
-
-          <div className="engines-list">
-            {ENGINES.map(({ num, title, tagline, desc, attrs, icon }) => (
-              <div key={num} className="engine-card" role="article">
-                <div className="engine-card-left">
-                  <div className="engine-card-num">{num}</div>
-                  <div className="engine-card-icon">{icon}</div>
-                </div>
-                <div className="engine-card-body">
-                  <div className="engine-card-header">
-                    <h3 className="engine-card-title">{title}</h3>
-                    <span className="engine-card-tagline">{tagline}</span>
-                  </div>
-                  <p className="engine-card-desc">{desc}</p>
-                  <div className="engine-card-attrs" role="list">
-                    {attrs.map((attr) => (
-                      <span key={attr} className="engine-attr-pill" role="listitem">
-                        {attr}
+                    <div className="throwable-card-footer">
+                      <span className="throwable-card-metric">
+                        {card.metric}
                       </span>
-                    ))}
+                      <span style={{ color: card.accent }}>
+                        <ArrowUpRight size={16} />
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 04 HOW IT WORKS ────────────────────────────────── */}
-      <section className="landing-section landing-section-dark" id="section-how" aria-labelledby="how-heading">
-        <div className="section-container">
-          <div className="section-number">04 — Workflow Architecture</div>
-          <h2 id="how-heading" className="section-title">
-            Set up in 60 seconds.<br />
-            <span className="accent">Instant intelligence.</span>
-          </h2>
-          <p className="section-desc">
-            From enrollment to actionable daily intelligence in four simple, automated steps.
-          </p>
-
-          <div className="how-steps-grid">
-            {[
-              {
-                step: '01',
-                title: 'Enroll Subjects',
-                desc: 'Add course names, credits, instructors, and mandatory attendance thresholds (e.g. 75%). Takes less than a minute.',
-              },
-              {
-                step: '02',
-                title: 'Log Tasks & Exams',
-                desc: 'Add assignments with estimated hours and academic weight. Enter exam syllabus topics and dates.',
-              },
-              {
-                step: '03',
-                title: 'Track Attendance',
-                desc: 'Tap Present or Absent after lectures. Real-time percentages update automatically with margin-for-error calculations.',
-              },
-              {
-                step: '04',
-                title: 'Act on Insights',
-                desc: 'Engines compute priority queues, identify attendance risks, warn of collisions, and build daily study cadences.',
-              },
-            ].map(({ step, title, desc }) => (
-              <div key={step} className="how-step-card">
-                <div className="how-step-badge">{step}</div>
-                <h3 className="how-step-title">{title}</h3>
-                <p className="how-step-desc">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 05 BALANCED TRANSPARENCY & EXPLAINABILITY ─────── */}
-      <section className="landing-section" id="section-transparency" aria-labelledby="transparency-heading">
-        <div className="section-container">
-          <div className="section-number">05 — Total Explainability</div>
-          <h2 id="transparency-heading" className="section-title">
-            Every output explained.<br />
-            <span className="accent">Side-by-side validation.</span>
-          </h2>
-          <p className="section-desc">
-            No hallucinations. No arbitrary numbers. Compare how the Priority and Risk engines
-            turn raw course metrics into clear student decisions.
-          </p>
-
-          {/* Side-by-side balanced cards (fixes empty space bug) */}
-          <div className="transparency-dual-grid">
-            {/* CARD 1: Priority Decision */}
-            <div className="transparency-card priority-side">
-              <div className="transparency-card-label">
-                <Zap size={14} style={{ color: 'var(--danger)' }} />
-                <span>Priority Engine Decision</span>
-              </div>
-              <div className="transparency-card-main">
-                <div>
-                  <h3 className="transparency-task-name">DBMS End-Sem Assignment</h3>
-                  <div className="transparency-task-meta">
-                    CS3001 · 5h Estimated Effort · Critical Weight
-                  </div>
-                </div>
-                <div className="transparency-score-badge" style={{ color: 'var(--danger)' }}>
-                  87
-                  <span className="badge badge-high">HIGH</span>
-                </div>
-              </div>
-
-              <div className="transparency-formula-breakdown">
-                <div className="formula-row">
-                  <span>Urgency (Due in 48h)</span>
-                  <strong>40 / 40</strong>
-                </div>
-                <div className="formula-row">
-                  <span>Effort (~5 Hours)</span>
-                  <strong>16 / 20</strong>
-                </div>
-                <div className="formula-row">
-                  <span>Academic Weight (High)</span>
-                  <strong>20 / 25</strong>
-                </div>
-                <div className="formula-row">
-                  <span>Difficulty (Hard)</span>
-                  <strong>11 / 15</strong>
-                </div>
-              </div>
-
-              <div className="transparency-quote">
-                "Ranked high priority because the deadline lands in 2 days, requires significant effort (5h), and directly impacts your semester grade."
-              </div>
+                );
+              })}
             </div>
 
-            {/* CARD 2: Risk Insight */}
-            <div className="transparency-card risk-side">
-              <div className="transparency-card-label">
-                <AlertTriangle size={14} style={{ color: 'var(--warning)' }} />
-                <span>Academic Risk Insight</span>
-              </div>
-              <div className="transparency-card-main">
-                <div>
-                  <h3 className="transparency-task-name">Analysis of Circuits</h3>
-                  <div className="transparency-task-meta">
-                    EC2003 · Dr. Sunita Nair · 3 Credits
-                  </div>
-                </div>
-                <div className="transparency-score-badge" style={{ color: 'var(--danger)' }}>
-                  71.7%
-                  <span className="badge badge-high">AT RISK</span>
-                </div>
-              </div>
-
-              <div className="transparency-formula-breakdown">
-                <div className="formula-row">
-                  <span>Attended Classes</span>
-                  <strong>33 / 46</strong>
-                </div>
-                <div className="formula-row">
-                  <span>Statutory Threshold</span>
-                  <strong>75.0%</strong>
-                </div>
-                <div className="formula-row">
-                  <span>Deficit Classes</span>
-                  <strong style={{ color: 'var(--danger)' }}>-1.5 Classes</strong>
-                </div>
-                <div className="formula-row">
-                  <span>Exam Proximity</span>
-                  <strong>5 Days Away</strong>
+            {/* Deck Controls & Progress Indicator */}
+            <div className="deck-controls-bar">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span className="deck-counter">
+                  MODULE 0{deckIndex + 1} / 0{DECK_CARDS.length}
+                </span>
+                <div style={{ display: 'flex', gap: 5 }}>
+                  {DECK_CARDS.map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setDeckIndex(i)}
+                      aria-label={`Jump to card ${i + 1}`}
+                      style={{
+                        width: i === deckIndex ? 18 : 6,
+                        height: 6,
+                        borderRadius: 999,
+                        background: i === deckIndex ? 'var(--amber)' : 'rgba(237, 231, 220, 0.2)',
+                        border: 'none',
+                        padding: 0,
+                        cursor: 'pointer',
+                        transition: 'all 0.25s ease',
+                      }}
+                    />
+                  ))}
                 </div>
               </div>
 
-              <div className="transparency-quote">
-                "Risk triggered because attendance (71.7%) is below the 75% cutoff and an internal exam is approaching in 5 days. Must attend next 2 sessions."
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  className="deck-nav-btn"
+                  onClick={() => throwCard(-1)}
+                  aria-label="Previous Module Card"
+                  title="Previous Module (Left Arrow)"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  className="deck-nav-btn"
+                  onClick={() => throwCard(1)}
+                  aria-label="Next Module Card"
+                  title="Next Module (Right Arrow)"
+                >
+                  <ChevronRight size={16} />
+                </button>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── 06 FULL PRODUCT PREVIEW ───────────────────────── */}
-      <section className="landing-section landing-section-dark" id="section-preview" aria-labelledby="preview-heading">
-        <div className="section-container">
-          <div className="section-number">06 — Connected Workspace</div>
-          <h2 id="preview-heading" className="section-title">
-            Nine unified modules.<br />
-            <span className="accent">One coherent dashboard.</span>
+      {/* ── SECTION 4: FUNCTIONAL ROSTER (INTERACTIVE MODULE DIRECTORY) ─── */}
+      <section className="roster-section" id="section-roster" aria-labelledby="roster-heading">
+        <div className="roster-header">
+          <div className="roster-eyebrow">03 / FUNCTIONAL ROSTER</div>
+          <h2 id="roster-heading" className="roster-heading">
+            System Modules & Computational Rules.
           </h2>
-          <p className="section-desc">
-            All data flows seamlessly between attendance tracking, subject markbooks, assignments,
-            and exams.
+          <p className="roster-subtext">
+            Six synchronized deterministic engines engineered to eliminate academic uncertainty,
+            powered by explainable heuristics rather than black-box guesswork.
           </p>
+        </div>
 
-          <div className="module-pill-row" role="list" aria-label="Available Modules">
-            {[
-              'Dashboard', 'Subjects', 'Tasks', 'Examinations', 'Attendance',
-              'Study Planner', 'Analytics', 'Recommendations', 'Student Profile',
-            ].map((m) => (
-              <span key={m} className="module-pill" role="listitem">
-                {m}
-              </span>
-            ))}
+        <div className="roster-directory-grid" role="list">
+          <div
+            className="roster-card"
+            role="listitem"
+            tabIndex={0}
+            onClick={() => (user ? onEnter() : onSignIn())}
+          >
+            <div className="roster-card-top">
+              <div className="roster-card-icon amber">
+                <Zap size={18} />
+              </div>
+              <span className="roster-card-code">MOD_01</span>
+            </div>
+            <h3 className="roster-card-title">Priority Queue Engine</h3>
+            <p className="roster-card-desc">
+              Scores upcoming obligations (0–100) using 4 explainable weights: urgency, syllabus percentage,
+              required effort, and difficulty.
+            </p>
+            <div className="roster-card-footer">
+              <span className="roster-badge amber">4 ACTIVE WEIGHTS</span>
+              <span className="roster-link-text">Launch Module →</span>
+            </div>
           </div>
 
-          <div className="full-preview-box">
-            <div className="preview-bar" aria-hidden="true">
-              <div className="preview-dot preview-dot-red" />
-              <div className="preview-dot preview-dot-yellow" />
-              <div className="preview-dot preview-dot-green" />
-              <div className="preview-bar-title">
-                CampusFlow AI — Executive Intelligence Dashboard
+          <div
+            className="roster-card"
+            role="listitem"
+            tabIndex={0}
+            onClick={() => (user ? onEnter() : onSignIn())}
+          >
+            <div className="roster-card-top">
+              <div className="roster-card-icon teal">
+                <AlertTriangle size={18} />
               </div>
+              <span className="roster-card-code">MOD_02</span>
             </div>
+            <h3 className="roster-card-title">Attendly Health Monitor</h3>
+            <p className="roster-card-desc">
+              Monitors lecture attendance against the statutory 75% cutoff and calculates the exact
+              consecutive recovery sessions needed.
+            </p>
+            <div className="roster-card-footer">
+              <span className="roster-badge teal">75% CUTOFF AUDIT</span>
+              <span className="roster-link-text">Launch Module →</span>
+            </div>
+          </div>
 
-            <div className="preview-layout">
-              <div className="preview-mini-sidebar" aria-hidden="true">
-                <div className="mini-brand">
-                  <div className="mini-logo">CF</div>
-                  <span>CampusFlow</span>
-                </div>
-                {['Dashboard', 'Subjects', 'Tasks', 'Exams', 'Attendance', 'Planner', 'Analytics'].map((name, i) => (
-                  <div key={name} className={`mini-nav-item ${i === 0 ? 'active' : ''}`}>
-                    <div className="mini-nav-square" />
-                    <span>{name}</span>
-                  </div>
-                ))}
+          <div
+            className="roster-card"
+            role="listitem"
+            tabIndex={0}
+            onClick={() => (user ? onEnter() : onSignIn())}
+          >
+            <div className="roster-card-top">
+              <div className="roster-card-icon amber">
+                <Calendar size={18} />
               </div>
+              <span className="roster-card-code">MOD_03</span>
+            </div>
+            <h3 className="roster-card-title">Exam Timetable & Weightage</h3>
+            <p className="roster-card-desc">
+              Structured exam schedule with subject credits, evaluation weightages, and topic prep schedules
+              synchronized into your timeline.
+            </p>
+            <div className="roster-card-footer">
+              <span className="roster-badge amber">TIMETABLE SYNC</span>
+              <span className="roster-link-text">Launch Module →</span>
+            </div>
+          </div>
 
-              <div className="preview-mini-content" aria-hidden="true">
-                <div className="mini-dash-head">
-                  <h3>Good afternoon, Harsh</h3>
-                  <span className="badge badge-high" style={{ background: 'var(--accent)', color: '#080808', fontWeight: 800 }}>
-                    SEMESTER 5 · CSE
-                  </span>
-                </div>
-
-                <div className="mini-stats-grid">
-                  <div className="mini-stat">
-                    <span className="mini-stat-num">5</span>
-                    <span className="mini-stat-lbl">Subjects</span>
-                  </div>
-                  <div className="mini-stat">
-                    <span className="mini-stat-num" style={{ color: 'var(--warning)' }}>7</span>
-                    <span className="mini-stat-lbl">Pending</span>
-                  </div>
-                  <div className="mini-stat">
-                    <span className="mini-stat-num" style={{ color: 'var(--accent)' }}>3</span>
-                    <span className="mini-stat-lbl">Exams</span>
-                  </div>
-                  <div className="mini-stat">
-                    <span className="mini-stat-num" style={{ color: 'var(--danger)' }}>1</span>
-                    <span className="mini-stat-lbl">At Risk</span>
-                  </div>
-                </div>
-
-                <div className="mini-card-row">
-                  <div className="mini-panel">
-                    <div className="mini-panel-title">TOP PRIORITY TASK</div>
-                    <div className="mini-task-item">
-                      <span>DBMS Assignment (ER & Normalization)</span>
-                      <strong style={{ color: 'var(--danger)' }}>87 · HIGH</strong>
-                    </div>
-                    <div className="mini-task-item">
-                      <span>DSA Lab Graph Algorithms Implementation</span>
-                      <strong style={{ color: 'var(--warning)' }}>64 · MED</strong>
-                    </div>
-                  </div>
-
-                  <div className="mini-panel">
-                    <div className="mini-panel-title">ATTENDANCE COMPLIANCE</div>
-                    <div className="mini-risk-item">
-                      <span>AOC Circuits: 71.7% (&lt; 75% cutoff)</span>
-                      <strong style={{ color: 'var(--danger)' }}>CRITICAL</strong>
-                    </div>
-                    <div className="mini-risk-item">
-                      <span>DBMS: 83.3% (Safe · +4 margin)</span>
-                      <strong style={{ color: 'var(--success)' }}>GOOD</strong>
-                    </div>
-                  </div>
-                </div>
+          <div
+            className="roster-card"
+            role="listitem"
+            tabIndex={0}
+            onClick={() => (user ? onEnter() : onSignIn())}
+          >
+            <div className="roster-card-top">
+              <div className="roster-card-icon teal">
+                <Layers size={18} />
               </div>
+              <span className="roster-card-code">MOD_04</span>
+            </div>
+            <h3 className="roster-card-title">Collision Defense Radar</h3>
+            <p className="roster-card-desc">
+              48-hour forward collision scanning preventing overlapping major evaluations and automatically
+              allocating revision buffer days.
+            </p>
+            <div className="roster-card-footer">
+              <span className="roster-badge teal">PROACTIVE BUFFER</span>
+              <span className="roster-link-text">Launch Module →</span>
+            </div>
+          </div>
+
+          <div
+            className="roster-card"
+            role="listitem"
+            tabIndex={0}
+            onClick={() => (user ? onEnter() : onSignIn())}
+          >
+            <div className="roster-card-top">
+              <div className="roster-card-icon amber">
+                <Clock size={18} />
+              </div>
+              <span className="roster-card-code">MOD_05</span>
+            </div>
+            <h3 className="roster-card-title">Adaptive Study Cadence</h3>
+            <p className="roster-card-desc">
+              Generates day-by-day study cadences reserving final days for comprehensive mocks and structured
+              retrieval practice.
+            </p>
+            <div className="roster-card-footer">
+              <span className="roster-badge amber">CADENCE ENGINE</span>
+              <span className="roster-link-text">Launch Module →</span>
+            </div>
+          </div>
+
+          <div
+            className="roster-card"
+            role="listitem"
+            tabIndex={0}
+            onClick={() => (user ? onEnter() : onSignIn())}
+          >
+            <div className="roster-card-top">
+              <div className="roster-card-icon teal">
+                <BarChart2 size={18} />
+              </div>
+              <span className="roster-card-code">MOD_06</span>
+            </div>
+            <h3 className="roster-card-title">Academic Markbook & Ledger</h3>
+            <p className="roster-card-desc">
+              Monitors coursework marks trajectory, target semester percentages, and credit balance across
+              all enrolled subjects.
+            </p>
+            <div className="roster-card-footer">
+              <span className="roster-badge teal">EXPLAINABLE DATA</span>
+              <span className="roster-link-text">Launch Module →</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── 07 FINAL CALL TO ACTION ───────────────────────── */}
-      <section className="cta-section" id="section-cta" aria-labelledby="cta-heading">
-        <div className="section-container">
-          <div className="cta-overline">— Ready to Take Control</div>
-          <h2 id="cta-heading" className="cta-section-title">
-            Your academic life,<br />
-            intelligently organized.
+      {/* ── SECTION 5: STRUCTURED CALENDAR & TIMELINE CADENCE ───────────── */}
+      <section className="dates-section" id="section-dates" aria-labelledby="dates-heading">
+        <div className="dates-header">
+          <div className="statement-eyebrow">04 / STRUCTURED CALENDAR</div>
+          <h2 id="dates-heading" className="roster-heading">
+            Academic Schedule & Submission Cadence.
           </h2>
-          <p className="cta-section-sub">
-            Built specifically for engineering and university students who want clarity,
-            high academic standing, and zero last-minute panic.
+          <p className="dates-subtext">
+            Illustrative curriculum timeline demonstrating how CampusFlow AI maps evaluation milestones,
+            credit weightages, and proactive preparation cadences.
           </p>
+        </div>
 
-          <div className="cta-actions">
-            <button className="btn btn-lg btn-cta-main" onClick={onEnter} id="cta-get-started">
-              {user ? 'Open Dashboard →' : 'Get Started →'}
+        {/* Desktop Table View */}
+        <div className="dates-table-container">
+          <table className="dates-table" role="table">
+            <thead className="dates-thead">
+              <tr>
+                <th className="dates-th" scope="col">Date / Timeline</th>
+                <th className="dates-th" scope="col">Course / Subject</th>
+                <th className="dates-th" scope="col">Evaluation Milestone</th>
+                <th className="dates-th" scope="col">Weight</th>
+                <th className="dates-th" scope="col" style={{ textAlign: 'right' }}>Cadence Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {SCHEDULE_ROWS.map((row, idx) => (
+                <tr key={idx} className="dates-tr">
+                  <td className="dates-td font-mono" style={{ color: 'var(--fg-primary)', fontWeight: 600 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span className="dates-timeline-dot" />
+                      <span>{row.date}</span>
+                    </div>
+                  </td>
+                  <td className="dates-td">
+                    <div className="dates-subject">{row.subject}</div>
+                    <div style={{ fontSize: 11, color: 'var(--fg-muted)' }}>{row.code}</div>
+                  </td>
+                  <td className="dates-td">{row.type}</td>
+                  <td className="dates-td font-mono" style={{ color: 'var(--fg-secondary)' }}>
+                    {row.weight}
+                  </td>
+                  <td className="dates-td" style={{ textAlign: 'right' }}>
+                    <span className={`dates-badge ${row.statusType}`}>
+                      {row.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Stacked Schedule Cards View */}
+        <div className="dates-mobile-cards">
+          {SCHEDULE_ROWS.map((row, idx) => (
+            <div key={idx} className="dates-mobile-card">
+              <div className="dates-mobile-card-header">
+                <span className="dates-mobile-date">{row.date}</span>
+                <span className={`dates-badge ${row.statusType}`}>{row.status}</span>
+              </div>
+              <div className="dates-mobile-subject">{row.subject}</div>
+              <div className="dates-mobile-code">{row.code} · {row.type}</div>
+              <div className="dates-mobile-weight">Weight: <strong>{row.weight}</strong></div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── SECTION 6: EDITORIAL CLOSING SECTION WITH CROPPED WORDMARK ──── */}
+      <section className="closing-section" aria-labelledby="closing-heading">
+        <div className="closing-content">
+          <div className="closing-left">
+            <span className="statement-eyebrow">ACADEMIC COMMAND // GET STARTED</span>
+            <h2 id="closing-heading" className="closing-headline">
+              Bring your academic life into focus.
+            </h2>
+            <p className="closing-sub">
+              Transparent prioritization, automated risk detection, and seamless course organization
+              in one unified workspace.
+            </p>
+          </div>
+
+          <div className="closing-actions">
+            <button className="cinematic-nav-cta filled" onClick={onEnter} id="closing-cta-register">
+              {user ? 'Open Workspace →' : 'Get Started Now →'}
             </button>
             {!user && (
-              <button className="btn btn-lg btn-cta-sub" onClick={onSignIn} id="cta-signin">
-                Sign In
+              <button className="cinematic-nav-cta" onClick={onSignIn} id="closing-cta-signin">
+                Sign In to Account
               </button>
             )}
           </div>
         </div>
-      </section>
 
-      {/* ── FOOTER ────────────────────────────────────────── */}
-      <footer className="landing-footer" role="contentinfo">
-        <div className="landing-footer-inner section-container">
-          <div className="landing-footer-brand-col">
-            <div className="landing-footer-brand">
-              <div className="landing-nav-icon" aria-hidden="true">CF</div>
-              <div>
-                <div className="footer-brand-name">CampusFlow AI</div>
-                <div className="footer-brand-sub">Academic Intelligence Platform</div>
-              </div>
-            </div>
-            <p className="landing-footer-copy">
-              © 2026 CampusFlow AI. MERN Architecture · MongoDB · Express · React · Node.js · Explainable Rule Engines.
-            </p>
-          </div>
-
-          <div className="landing-footer-links-grid">
-            <div>
-              <div className="footer-col-title">Intelligence</div>
-              <ul className="footer-col-list">
-                <li>Priority Engine</li>
-                <li>Academic Risk Detection</li>
-                <li>Conflict Detector</li>
-                <li>Adaptive Study Planner</li>
-                <li>Action Recommendations</li>
-              </ul>
-            </div>
-
-            <div>
-              <div className="footer-col-title">Modules</div>
-              <ul className="footer-col-list">
-                <li>Dashboard & Metrics</li>
-                <li>Subject Markbook</li>
-                <li>Tasks & Assignments</li>
-                <li>Examination Timetable</li>
-                <li>Attendance Tracker</li>
-              </ul>
-            </div>
-          </div>
+        {/* Oversized Wordmark spanning available width, translated into bottom crop without overflow */}
+        <div className="closing-wordmark-container" aria-hidden="true">
+          <span className="closing-huge-wordmark">
+            CAMPUSFLOW AI
+          </span>
         </div>
-      </footer>
+
+        {/* Thin Footer Strip */}
+        <footer className="closing-footer-strip" role="contentinfo">
+          <div>
+            © 2026 CampusFlow AI. MERN Architecture · Explainable Academic Rule Engines.
+          </div>
+          <div className="closing-footer-links">
+            {onGoContact && (
+              <button className="closing-footer-link" onClick={onGoContact} id="footer-contact-link">
+                Contact Us
+              </button>
+            )}
+            <button
+              className="closing-footer-link"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
+              Back to Top ↑
+            </button>
+          </div>
+        </footer>
+      </section>
     </div>
   );
 }
-
-export default LandingPage;

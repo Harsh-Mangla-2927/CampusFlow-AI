@@ -91,7 +91,22 @@ const request = async (endpoint, options = {}) => {
     else if (response.status === 404) defaultMsg = 'Requested resource was not found.';
     else if (response.status >= 500) defaultMsg = 'Unable to connect to the server. Please try again.';
 
-    const message = (data && data.message) ? data.message : defaultMsg;
+    let message = (data && data.message) ? data.message : defaultMsg;
+
+    // Guard against exposing raw OpenSSL, TLS alerts, or internal DB driver stack errors in the UI
+    if (
+      typeof message === 'string' && (
+        message.includes('SSL routines') ||
+        message.includes('tlsv1 alert') ||
+        message.includes('rec_layer_s3') ||
+        message.includes('alert number') ||
+        message.includes('MongoServerSelectionError') ||
+        message.includes('ECONNREFUSED')
+      )
+    ) {
+      message = 'Authentication service is temporarily unavailable. Please try again in a few moments.';
+    }
+
     const err = new Error(message);
     err.errors = (data && data.errors) || {};
     err.status = response.status;
@@ -197,6 +212,13 @@ export const intelligenceAPI = {
   getRecommendations: () => request('/recommendations'),
 };
 
+// ── Contact API ───────────────────────────────────────────────
+
+export const contactAPI = {
+  send: (data) => request('/contact', { method: 'POST', body: JSON.stringify(data) }),
+};
+
 // ── Health Check ──────────────────────────────────────────────
 
 export const healthAPI = { check: () => request('/health') };
+

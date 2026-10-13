@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const emailService = require('../services/emailService');
 const otpService = require('../services/otpService');
@@ -128,9 +129,12 @@ const register = async (req, res, next) => {
 // @route   POST /api/auth/login
 // @access  Public
 const login = async (req, res, next) => {
+  const maskedEmail = req.body?.email ? otpService.maskEmail(String(req.body.email).trim().toLowerCase()) : 'unknown';
   try {
     const { email, password } = req.body;
     const errors = {};
+
+    console.log(`[Auth Diagnostic] Sign-in request received for user: ${maskedEmail}`);
 
     if (!sanitizeString(email))    errors.email    = 'Email is required.';
     if (!sanitizeString(password)) errors.password = 'Password is required.';
@@ -139,17 +143,34 @@ const login = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Email and password are required.', errors });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
+    // Check database connection state before query
+    const dbState = mongoose.connection.readyState;
+    console.log(`[Auth Diagnostic] Database connection state: ${dbState} (1=connected, 0=disconnected)`);
+    if (dbState !== 1) {
+      console.warn(`[Auth Diagnostic] Database is not in connected state (${dbState})`);
+      return res.status(503).json({
+        success: false,
+        message: 'Database service is temporarily unavailable. Please try again shortly.',
+      });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: cleanEmail }).select('+password');
+    console.log(`[Auth Diagnostic] Database query completed for ${maskedEmail} (record found: ${Boolean(user)})`);
 
     if (!user || !(await user.matchPassword(password))) {
+      console.log(`[Auth Diagnostic] Authentication failed: invalid credentials for ${maskedEmail}`);
       return res.status(401).json({
         success: false, message: 'Invalid email or password.',
         errors: { general: 'Invalid email or password.' },
       });
     }
 
+    console.log(`[Auth Diagnostic] Password verified successfully for ${maskedEmail}`);
+
     // Verify SMTP service availability
     if (!emailService.isEmailConfigured()) {
+      console.warn('[Auth Diagnostic] SMTP service is not configured');
       return res.status(503).json({
         success: false,
         message: 'Email delivery service is not configured. Please configure SMTP_USER and SMTP_PASS in server/.env.',
@@ -157,6 +178,7 @@ const login = async (req, res, next) => {
     }
 
     // Credentials valid: Create OTP challenge
+    console.log(`[Auth Diagnostic] Generating OTP challenge for ${maskedEmail}`);
     const { otpRecord, plainOtp } = await otpService.createOtpChallenge({
       email: user.email,
       purpose: 'LOGIN',
@@ -164,7 +186,9 @@ const login = async (req, res, next) => {
     });
 
     // Dispatch real OTP email
+    console.log(`[Auth Diagnostic] Dispatching OTP email via SMTP to ${maskedEmail}`);
     await emailService.sendOtpEmail(user.email, plainOtp, user.name);
+    console.log(`[Auth Diagnostic] OTP email successfully dispatched to ${maskedEmail}`);
 
     // Issue challenge token (temporary, limited to OTP verification, rejected by protect middleware)
     const challengeToken = generateChallengeToken({
@@ -183,6 +207,7 @@ const login = async (req, res, next) => {
       resendCooldownSeconds: 60,
     });
   } catch (error) {
+    console.error(`[Auth Diagnostic] Sign-in failed at stage: ${error.name || 'Error'} - ${error.message?.split('\n')[0]}`);
     if (error.status === 429) {
       return res.status(429).json({
         success: false,

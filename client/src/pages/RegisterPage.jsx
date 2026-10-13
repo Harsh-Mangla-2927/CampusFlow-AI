@@ -34,7 +34,7 @@ function FieldError({ msg }) {
   return <div className="field-error" role="alert">{msg}</div>;
 }
 
-function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
+export default function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
   const { toast } = useToast();
   const [loading, setLoading]       = useState(false);
   const [showPw, setShowPw]         = useState(false);
@@ -145,17 +145,26 @@ function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
 
   return (
     <div className="auth-shell">
-      {/* ── LEFT PANEL ────────────────────────────────────── */}
+      {/* ── LEFT PANEL: REGISTRATION VALUE PROPOSITION ────────── */}
       <div className="auth-left">
+        <div className="auth-left-bg" aria-hidden="true">
+          <img
+            src="/auth-space.jpg"
+            alt=""
+            className="auth-bg-img"
+          />
+          <div className="auth-bg-overlay" />
+        </div>
+
         <div className="auth-left-inner">
           <div className="auth-brand-badge">
             <span className="auth-brand-tag">Student Registration</span>
           </div>
 
           <div className="auth-headline">
-            <span className="auth-headline-lg">Academic</span>
-            <span className="auth-headline-lg">Intelligence</span>
-            <span className="auth-headline-lg auth-headline-accent">Starts Here.</span>
+            <h1 className="auth-headline-title">
+              Academic Intelligence <span className="auth-headline-accent">Starts Here.</span>
+            </h1>
           </div>
 
           <p className="auth-tagline">
@@ -170,18 +179,18 @@ function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
 
             <div className="auth-preview-items">
               <div className="auth-preview-item">
-                <div className="auth-preview-item-icon" style={{ color: 'var(--accent)' }}>
-                  <Layers size={14} />
+                <div className="auth-preview-item-icon" style={{ color: 'var(--amber)' }}>
+                  <Layers size={15} />
                 </div>
                 <div>
-                  <div className="auth-preview-item-title">Five Intelligence Engines</div>
-                  <div className="auth-preview-item-desc">Priority scoring, risk alerts, conflict detector, study plans, action steps</div>
+                  <div className="auth-preview-item-title">Six Autonomous Engines</div>
+                  <div className="auth-preview-item-desc">Priority scoring, risk alerts, collision defense, study plans, action steps</div>
                 </div>
               </div>
 
               <div className="auth-preview-item">
-                <div className="auth-preview-item-icon" style={{ color: 'var(--success)' }}>
-                  <ShieldCheck size={14} />
+                <div className="auth-preview-item-icon" style={{ color: 'var(--teal)' }}>
+                  <ShieldCheck size={15} />
                 </div>
                 <div>
                   <div className="auth-preview-item-title">Educational Email Protection</div>
@@ -190,8 +199,8 @@ function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
               </div>
 
               <div className="auth-preview-item">
-                <div className="auth-preview-item-icon" style={{ color: 'var(--info)' }}>
-                  <BookOpen size={14} />
+                <div className="auth-preview-item-icon" style={{ color: 'var(--amber)' }}>
+                  <BookOpen size={15} />
                 </div>
                 <div>
                   <div className="auth-preview-item-title">Course-Aligned Tracking</div>
@@ -207,7 +216,6 @@ function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
         </div>
       </div>
 
-      {/* ── RIGHT PANEL ───────────────────────────────────── */}
       {/* ── RIGHT PANEL: REGISTRATION FORM OR OTP VERIFICATION ── */}
       <div className="auth-right">
         <div className="auth-form-container">
@@ -240,262 +248,205 @@ function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
 
               <div className="auth-form-header">
                 <div className="auth-logo-mark" aria-hidden="true">CF</div>
-                <h1>Create Account</h1>
-                <p>Enroll with your educational university credentials.</p>
+                <h2 className="auth-form-title">Create Account</h2>
+                <p className="auth-form-sub">Join CampusFlow AI with your university email.</p>
               </div>
 
-          {errors.general && (
-            <div className="alert alert-danger" role="alert" id="register-error-alert">
-              {errors.general}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} noValidate id="form-register" autoComplete="on">
-            {/* Full Name */}
-            <div className={`form-group ${errors.name ? 'has-error' : ''}`}>
-              <label className="form-label" htmlFor="reg-name">
-                Full Name <span className="required" aria-hidden="true">*</span>
-              </label>
-              <input
-                id="reg-name"
-                className={`form-input ${errors.name ? 'input-error' : ''}`}
-                type="text"
-                value={f.name}
-                onChange={e => set('name', e.target.value)}
-                placeholder="Harsh Mangla"
-                autoComplete="name"
-                required
-                disabled={loading}
-              />
-              <FieldError msg={errors.name} />
-            </div>
-
-            {/* Educational Email */}
-            <div className={`form-group ${errors.email ? 'has-error' : ''}`}>
-              <label className="form-label" htmlFor="reg-email">
-                University Email <span className="required" aria-hidden="true">*</span>
-              </label>
-              <input
-                id="reg-email"
-                className={`form-input ${errors.email ? 'input-error' : ''}`}
-                type="email"
-                value={f.email}
-                onChange={e => set('email', e.target.value)}
-                placeholder="you@chitkara.edu.in"
-                autoComplete="email"
-                required
-                inputMode="email"
-                disabled={loading}
-              />
-              <FieldError msg={errors.email} />
-              {!errors.email && (
-                <div className="field-hint">
-                  Accepted domains: {ALLOWED_DOMAINS.join(', ')}
+              {errors.general && (
+                <div className="alert alert-danger" role="alert" id="register-error-alert" style={{ marginBottom: 18 }}>
+                  {errors.general}
                 </div>
               )}
-            </div>
 
-            {/* Password */}
-            <div className={`form-group ${errors.password ? 'has-error' : ''}`}>
-              <label className="form-label" htmlFor="reg-password">
-                Password <span className="required" aria-hidden="true">*</span>
-              </label>
-              <div className="input-with-icon">
-                <input
-                  id="reg-password"
-                  className={`form-input ${errors.password ? 'input-error' : ''}`}
-                  type={showPw ? 'text' : 'password'}
-                  value={f.password}
-                  onChange={e => set('password', e.target.value)}
-                  placeholder="Min. 8 chars (letters, numbers, symbols)"
-                  autoComplete="new-password"
-                  required
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  className="input-icon-btn"
-                  onClick={() => setShowPw(p => !p)}
-                  aria-label={showPw ? 'Hide password' : 'Show password'}
-                  tabIndex={-1}
-                >
-                  {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
-              </div>
-              <FieldError msg={errors.password} />
+              <form onSubmit={handleSubmit} noValidate id="form-register" autoComplete="on">
+                <div className={`form-group ${errors.name ? 'has-error' : ''}`} style={{ marginBottom: 16 }}>
+                  <label className="form-label" htmlFor="reg-name">
+                    Full Name <span className="form-required">*</span>
+                  </label>
+                  <input
+                    id="reg-name"
+                    type="text"
+                    name="name"
+                    autoComplete="name"
+                    className="form-input"
+                    placeholder="Harsh Mangla"
+                    value={f.name}
+                    onChange={(e) => set('name', e.target.value)}
+                    disabled={loading}
+                  />
+                  <FieldError msg={errors.name} />
+                </div>
 
-              {/* Password strength bar */}
-              {pwStrength && (
-                <div className="pw-strength" aria-live="polite">
-                  <div className="pw-strength-bar">
-                    {[1, 2, 3, 4, 5].map(i => (
-                      <div
-                        key={i}
-                        className="pw-strength-seg"
-                        style={{
-                          background: i <= pwStrength.score ? pwStrength.color : 'var(--border-strong)',
-                        }}
-                      />
+                <div className={`form-group ${errors.email ? 'has-error' : ''}`} style={{ marginBottom: 16 }}>
+                  <label className="form-label" htmlFor="reg-email">
+                    University Email <span className="form-required">*</span>
+                  </label>
+                  <input
+                    id="reg-email"
+                    type="email"
+                    name="email"
+                    autoComplete="email"
+                    className="form-input"
+                    placeholder="student@chitkara.edu.in"
+                    value={f.email}
+                    onChange={(e) => set('email', e.target.value)}
+                    disabled={loading}
+                  />
+                  <div style={{ fontSize: 11, color: 'var(--fg-muted)', marginTop: 4 }}>
+                    Must end with: {ALLOWED_DOMAINS.join(', ')}
+                  </div>
+                  <FieldError msg={errors.email} />
+                </div>
+
+                {/* University and Course in a balanced 2-column row */}
+                <div className="auth-form-row" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 14, marginBottom: 16 }}>
+                  <div className={`form-group ${errors.university ? 'has-error' : ''}`} style={{ marginBottom: 0 }}>
+                    <label className="form-label" htmlFor="reg-university">
+                      University <span className="form-required">*</span>
+                    </label>
+                    <input
+                      id="reg-university"
+                      type="text"
+                      className="form-input"
+                      placeholder="Chitkara University"
+                      value={f.university}
+                      onChange={(e) => set('university', e.target.value)}
+                      disabled={loading}
+                    />
+                    <FieldError msg={errors.university} />
+                  </div>
+
+                  <div className={`form-group ${errors.course ? 'has-error' : ''}`} style={{ marginBottom: 0 }}>
+                    <label className="form-label" htmlFor="reg-course">
+                      Course / Major <span className="form-required">*</span>
+                    </label>
+                    <input
+                      id="reg-course"
+                      type="text"
+                      className="form-input"
+                      placeholder="B.Tech CSE"
+                      value={f.course}
+                      onChange={(e) => set('course', e.target.value)}
+                      disabled={loading}
+                    />
+                    <FieldError msg={errors.course} />
+                  </div>
+                </div>
+
+                <div className={`form-group ${errors.semester ? 'has-error' : ''}`} style={{ marginBottom: 16 }}>
+                  <label className="form-label" htmlFor="reg-semester">
+                    Current Semester <span className="form-required">*</span>
+                  </label>
+                  <select
+                    id="reg-semester"
+                    className="form-select"
+                    value={f.semester}
+                    onChange={(e) => set('semester', e.target.value)}
+                    disabled={loading}
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+                      <option key={s} value={String(s)}>Semester {s}</option>
                     ))}
-                  </div>
-                  <div className="pw-strength-label" style={{ color: pwStrength.color }}>
-                    Strength: {pwStrength.label}
-                  </div>
+                  </select>
+                  <FieldError msg={errors.semester} />
                 </div>
-              )}
 
-              {/* Requirements checklist */}
-              {f.password && (
-                <div className="pw-requirements" aria-label="Password requirements">
-                  {[
-                    { key: 'minLength', text: '8+ characters' },
-                    { key: 'uppercase', text: 'Uppercase letter' },
-                    { key: 'lowercase', text: 'Lowercase letter' },
-                    { key: 'number',    text: 'Number' },
-                    { key: 'special',   text: 'Special character' },
-                  ].map(({ key, text }) => {
-                    const met = pwStrength?.reqs?.[key];
-                    return (
-                      <div
-                        key={key}
-                        className={`pw-req ${met ? 'met' : ''}`}
-                        aria-label={`${text}: ${met ? 'met' : 'not met'}`}
-                      >
-                        {met ? (
-                          <CheckCircle size={11} aria-hidden="true" />
-                        ) : (
-                          <XCircle size={11} aria-hidden="true" />
-                        )}
-                        {text}
+                <div className={`form-group ${errors.password ? 'has-error' : ''}`} style={{ marginBottom: 16 }}>
+                  <label className="form-label" htmlFor="reg-password">
+                    Password <span className="form-required">*</span>
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      id="reg-password"
+                      type={showPw ? 'text' : 'password'}
+                      name="new-password"
+                      autoComplete="new-password"
+                      className="form-input"
+                      placeholder="Min. 8 chars, uppercase & numbers"
+                      value={f.password}
+                      onChange={(e) => set('password', e.target.value)}
+                      disabled={loading}
+                      style={{ paddingRight: 40 }}
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() => setShowPw((v) => !v)}
+                      aria-label={showPw ? 'Hide password' : 'Show password'}
+                      tabIndex={-1}
+                    >
+                      {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                  {pwStrength && (
+                    <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{
+                          width: `${(pwStrength.score / 5) * 100}%`,
+                          height: '100%',
+                          background: pwStrength.color,
+                          transition: 'all 0.2s ease',
+                        }} />
                       </div>
-                    );
-                  })}
+                      <span style={{ fontSize: 11, color: pwStrength.color, fontWeight: 600 }}>
+                        {pwStrength.label}
+                      </span>
+                    </div>
+                  )}
+                  <FieldError msg={errors.password} />
                 </div>
-              )}
-            </div>
 
-            {/* Confirm Password */}
-            <div className={`form-group ${errors.confirmPassword ? 'has-error' : ''}`}>
-              <label className="form-label" htmlFor="reg-confirm">
-                Confirm Password <span className="required" aria-hidden="true">*</span>
-              </label>
-              <div className="input-with-icon">
-                <input
-                  id="reg-confirm"
-                  className={`form-input ${errors.confirmPassword ? 'input-error' : ''}`}
-                  type={showCpw ? 'text' : 'password'}
-                  value={f.confirmPassword}
-                  onChange={e => set('confirmPassword', e.target.value)}
-                  placeholder="Repeat your password"
-                  autoComplete="new-password"
-                  required
+                <div className={`form-group ${errors.confirmPassword ? 'has-error' : ''}`} style={{ marginBottom: 20 }}>
+                  <label className="form-label" htmlFor="reg-confirmPassword">
+                    Confirm Password <span className="form-required">*</span>
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      id="reg-confirmPassword"
+                      type={showCpw ? 'text' : 'password'}
+                      name="confirm-password"
+                      autoComplete="new-password"
+                      className="form-input"
+                      placeholder="Re-enter password"
+                      value={f.confirmPassword}
+                      onChange={(e) => set('confirmPassword', e.target.value)}
+                      disabled={loading}
+                      style={{ paddingRight: 40 }}
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() => setShowCpw((v) => !v)}
+                      aria-label={showCpw ? 'Hide password' : 'Show password'}
+                      tabIndex={-1}
+                    >
+                      {showCpw ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                  <FieldError msg={errors.confirmPassword} />
+                </div>
+
+                <button
+                  type="submit"
+                  className="auth-submit-btn"
                   disabled={loading}
-                />
+                  id="btn-register-submit"
+                >
+                  {loading ? 'Creating Account…' : 'Create Account →'}
+                </button>
+              </form>
+
+              <div className="auth-footer-prompt">
+                <span>Already have an account?</span>
                 <button
                   type="button"
-                  className="input-icon-btn"
-                  onClick={() => setShowCpw(p => !p)}
-                  aria-label={showCpw ? 'Hide confirm password' : 'Show confirm password'}
-                  tabIndex={-1}
+                  className="auth-switch-link"
+                  onClick={onGoLogin}
+                  id="btn-switch-login"
                 >
-                  {showCpw ? <EyeOff size={15} /> : <Eye size={15} />}
+                  Sign in here →
                 </button>
               </div>
-              <FieldError msg={errors.confirmPassword} />
-              {f.confirmPassword && f.password === f.confirmPassword && !errors.confirmPassword && (
-                <div className="field-success" role="status">
-                  <CheckCircle size={12} aria-hidden="true" /> Passwords match
-                </div>
-              )}
-            </div>
-
-            {/* University + Course */}
-            <div className="form-row">
-              <div className={`form-group ${errors.university ? 'has-error' : ''}`}>
-                <label className="form-label" htmlFor="reg-uni">
-                  University <span className="required" aria-hidden="true">*</span>
-                </label>
-                <input
-                  id="reg-uni"
-                  className={`form-input ${errors.university ? 'input-error' : ''}`}
-                  type="text"
-                  value={f.university}
-                  onChange={e => set('university', e.target.value)}
-                  placeholder="Chitkara University"
-                  required
-                  disabled={loading}
-                />
-                <FieldError msg={errors.university} />
-              </div>
-
-              <div className={`form-group ${errors.course ? 'has-error' : ''}`}>
-                <label className="form-label" htmlFor="reg-course">
-                  Course / Major <span className="required" aria-hidden="true">*</span>
-                </label>
-                <input
-                  id="reg-course"
-                  className={`form-input ${errors.course ? 'input-error' : ''}`}
-                  type="text"
-                  value={f.course}
-                  onChange={e => set('course', e.target.value)}
-                  placeholder="B.Tech CSE"
-                  required
-                  disabled={loading}
-                />
-                <FieldError msg={errors.course} />
-              </div>
-            </div>
-
-            {/* Semester */}
-            <div className={`form-group ${errors.semester ? 'has-error' : ''}`}>
-              <label className="form-label" htmlFor="reg-semester">
-                Semester <span className="required" aria-hidden="true">*</span>
-              </label>
-              <select
-                id="reg-semester"
-                className={`form-select ${errors.semester ? 'input-error' : ''}`}
-                value={f.semester}
-                onChange={e => set('semester', e.target.value)}
-                required
-                disabled={loading}
-              >
-                {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
-                  <option key={s} value={s}>
-                    Semester {s}
-                  </option>
-                ))}
-              </select>
-              <FieldError msg={errors.semester} />
-            </div>
-
-            <button
-              type="submit"
-              className="btn btn-primary btn-full"
-              disabled={loading}
-              id="btn-register"
-            >
-              {loading ? (
-                <>
-                  <span className="spinner" aria-hidden="true" />
-                  Creating Account…
-                </>
-              ) : (
-                'Create Account'
-              )}
-            </button>
-          </form>
-
-          <div className="auth-switch">
-            Already have an account?{' '}
-            <button
-              className="auth-switch-link"
-              onClick={onGoLogin}
-              id="btn-go-login"
-              type="button"
-            >
-              Sign In
-            </button>
-          </div>
             </>
           )}
         </div>
@@ -503,5 +454,3 @@ function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
     </div>
   );
 }
-
-export default RegisterPage;

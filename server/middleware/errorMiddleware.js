@@ -26,10 +26,44 @@ const errorHandler = (err, req, res, next) => {
     message = `Invalid value for field: ${err.path}.`;
   }
 
+  // Database & TLS connection errors (e.g. Atlas IP whitelist drops, network timeouts)
+  const isDbConnectionError =
+    err.name === 'MongoServerSelectionError' ||
+    err.name === 'MongoNetworkError' ||
+    err.name === 'MongoTimeoutError' ||
+    (typeof err.message === 'string' && (
+      err.message.includes('SSL routines') ||
+      err.message.includes('tlsv1 alert') ||
+      err.message.includes('rec_layer_s3') ||
+      err.message.includes('SSL alert') ||
+      err.message.includes('ECONNREFUSED')
+    ));
+
+  if (isDbConnectionError) {
+    statusCode = 503;
+    message = 'Database service is temporarily unavailable. Please try again in a few moments.';
+    console.error(`[Database Error] ${err.name || 'ConnectionError'}: ${err.message?.split('\n')[0]}`);
+  }
+
+  // JWT errors
+  if (err.name === 'JsonWebTokenError') {
+    statusCode = 401;
+    message = 'Invalid authentication token. Please sign in again.';
+  } else if (err.name === 'TokenExpiredError') {
+    statusCode = 401;
+    message = 'Your session has expired. Please sign in again.';
+  }
+
+  // Email delivery errors
+  if (err.code === 'EMAIL_SEND_FAILED' || err.code === 'EMAIL_NOT_CONFIGURED') {
+    statusCode = err.status || 502;
+    message = err.message || 'Verification email could not be delivered. Please try again.';
+  }
+
   res.status(statusCode).json({
     success: false,
     message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    ...(process.env.NODE_ENV === 'development' && !isDbConnectionError && { stack: err.stack }),
   });
 };
 

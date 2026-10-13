@@ -16,6 +16,8 @@ const StudyPlannerPage     = lazy(() => import('./pages/StudyPlannerPage'));
 const AnalyticsPage        = lazy(() => import('./pages/AnalyticsPage'));
 const RecommendationsPage  = lazy(() => import('./pages/RecommendationsPage'));
 const ProfilePage          = lazy(() => import('./pages/ProfilePage'));
+const ContactPage          = lazy(() => import('./pages/ContactPage'));
+const NotFoundPage         = lazy(() => import('./pages/NotFoundPage'));
 const Sidebar              = lazy(() => import('./components/Sidebar'));
 const Topbar               = lazy(() => import('./components/Topbar'));
 
@@ -91,13 +93,19 @@ function App() {
     const rawPath = normalizePath(window.location.pathname);
     const stored = getStoredUser();
 
-    // Priority routes accessible regardless of auth state (e.g. email reset link clicked while session cached)
+    // Priority routes accessible regardless of auth state
     if (rawPath === '/reset-password' || rawPath === '/resetpassword') {
       const token = new URLSearchParams(window.location.search).get('token') || '';
       return { view: 'reset-password', activePage: 'dashboard', path: window.location.pathname + window.location.search, token, replace: false };
     }
     if (rawPath === '/forgot-password' || rawPath === '/forgotpassword') {
       return { view: 'forgot-password', activePage: 'dashboard', path: '/forgot-password', replace: false };
+    }
+    if (rawPath === '/contact') {
+      return { view: 'contact', activePage: 'dashboard', path: '/contact', replace: false };
+    }
+    if (rawPath === '/404' || rawPath === '/not-found') {
+      return { view: 'not-found', activePage: 'dashboard', path: rawPath, replace: false };
     }
 
     if (stored) {
@@ -110,8 +118,11 @@ function App() {
       if (rawPath === '/') {
         return { view: 'app', activePage: 'dashboard', path: '/dashboard', replace: false };
       }
-      return { view: 'app', activePage: 'dashboard', path: '/dashboard', replace: true };
+      return { view: 'not-found', activePage: 'dashboard', path: rawPath, replace: false };
     } else {
+      if (rawPath === '/') {
+        return { view: 'landing', activePage: 'dashboard', path: '/', replace: false };
+      }
       if (rawPath === '/login' || rawPath === '/signin') {
         return { view: 'login', activePage: 'dashboard', path: '/login', replace: false };
       }
@@ -119,10 +130,9 @@ function App() {
         return { view: 'register', activePage: 'dashboard', path: '/register', replace: false };
       }
       if (PROTECTED_ROUTES[rawPath]) {
-        // Protected route accessed by guest: redirect to login but remember target
         return { view: 'login', activePage: 'dashboard', path: '/login', redirectFrom: rawPath, replace: true };
       }
-      return { view: 'landing', activePage: 'dashboard', path: '/', replace: false };
+      return { view: 'not-found', activePage: 'dashboard', path: rawPath, replace: false };
     }
   });
 
@@ -154,6 +164,14 @@ function App() {
         setRouteState({ view: 'forgot-password', activePage: 'dashboard', path: '/forgot-password' });
         return;
       }
+      if (rawPath === '/contact') {
+        setRouteState({ view: 'contact', activePage: 'dashboard', path: '/contact' });
+        return;
+      }
+      if (rawPath === '/404' || rawPath === '/not-found') {
+        setRouteState({ view: 'not-found', activePage: 'dashboard', path: rawPath });
+        return;
+      }
 
       if (currentUser) {
         if (PROTECTED_ROUTES[rawPath]) {
@@ -161,11 +179,15 @@ function App() {
         } else if (rawPath === '/login' || rawPath === '/register') {
           setRouteState({ view: 'app', activePage: 'dashboard', path: '/dashboard' });
           window.history.replaceState(null, '', '/dashboard');
-        } else {
+        } else if (rawPath === '/') {
           setRouteState({ view: 'app', activePage: 'dashboard', path: '/dashboard' });
+        } else {
+          setRouteState({ view: 'not-found', activePage: 'dashboard', path: rawPath });
         }
       } else {
-        if (rawPath === '/login' || rawPath === '/signin') {
+        if (rawPath === '/') {
+          setRouteState({ view: 'landing', activePage: 'dashboard', path: '/' });
+        } else if (rawPath === '/login' || rawPath === '/signin') {
           setRouteState({ view: 'login', activePage: 'dashboard', path: '/login' });
         } else if (rawPath === '/register' || rawPath === '/signup') {
           setRouteState({ view: 'register', activePage: 'dashboard', path: '/register' });
@@ -174,7 +196,7 @@ function App() {
           setRouteState({ view: 'login', activePage: 'dashboard', path: '/login' });
           window.history.replaceState(null, '', '/login');
         } else {
-          setRouteState({ view: 'landing', activePage: 'dashboard', path: '/' });
+          setRouteState({ view: 'not-found', activePage: 'dashboard', path: rawPath });
         }
       }
     };
@@ -253,6 +275,10 @@ function App() {
     updateStoredUser(updatedUser);
   }, []);
 
+  const handleGoContact = useCallback(() => {
+    navigateTo('contact', 'dashboard', '/contact');
+  }, [navigateTo]);
+
   // ── PUBLIC VIEWS ──────────────────────────────────────────────
   if (view === 'landing') {
     return (
@@ -261,6 +287,32 @@ function App() {
           user={user}
           onEnter={user ? () => handleNavigate('dashboard') : handleGoRegister}
           onSignIn={user ? () => handleNavigate('dashboard') : handleGoLogin}
+          onGoContact={handleGoContact}
+        />
+      </Suspense>
+    );
+  }
+
+  if (view === 'contact') {
+    return (
+      <Suspense fallback={<Spinner />}>
+        <ContactPage
+          onGoLanding={handleGoLanding}
+          onGoDashboard={() => handleNavigate('dashboard')}
+          user={user}
+        />
+      </Suspense>
+    );
+  }
+
+  if (view === 'not-found') {
+    return (
+      <Suspense fallback={<Spinner />}>
+        <NotFoundPage
+          onGoLanding={handleGoLanding}
+          onGoDashboard={user ? () => handleNavigate('dashboard') : null}
+          onNavigate={handleNavigate}
+          user={user}
         />
       </Suspense>
     );
