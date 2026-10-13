@@ -3669,6 +3669,31 @@ main[role="main"] {
   outline-offset: 2px;
 }
 
+/* Accessible Auth Micro-Interactions & Reduced-Motion Rules */
+.auth-input-focus-ring {
+  transition: border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-bg-img,
+  .auth-left-inner,
+  .auth-form-container {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .auth-preview-card-dot {
+    animation: none !important;
+  }
+  .auth-submit-btn,
+  .auth-back-link {
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
 /* ═══════════════════════════════════════════════════════
    RESPONSIVE OVERRIDES
 ═══════════════════════════════════════════════════════ */
