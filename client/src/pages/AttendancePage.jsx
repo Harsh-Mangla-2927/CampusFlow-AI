@@ -152,7 +152,12 @@ export default function AttendancePage() {
         return;
       }
 
-      toast.success(res.message || 'Connected to Code Brigade successfully!');
+      if (res.syncSuccess) {
+        toast.success(res.message || `Connected! ${res.syncedSubjects || 0} university courses synchronized.`);
+      } else {
+        toast.warning(res.message || 'Connected, but university attendance synchronization is pending.');
+      }
+
       if (res.data) setDashboardData(res.data);
       setConnectModalOpen(false);
       setCbPassword('');
@@ -174,7 +179,13 @@ export default function AttendancePage() {
         otpText: cbOtpText,
         deviceUUID,
       });
-      toast.success(res.message || 'OTP verified! Connected to Code Brigade.');
+
+      if (res.syncSuccess) {
+        toast.success(res.message || `Connected! ${res.syncedSubjects || 0} university courses synchronized.`);
+      } else {
+        toast.warning(res.message || 'OTP verified, but live attendance sync is pending.');
+      }
+
       if (res.data) setDashboardData(res.data);
       setConnectModalOpen(false);
       setOtpRequired(false);
@@ -466,6 +477,10 @@ export default function AttendancePage() {
                   ? 'Live University Data'
                   : dataSource.isStale
                   ? 'University Stale'
+                  : dataSource.provider === 'CODE_BRIGADE_SYNC_PENDING'
+                  ? 'University Sync Pending'
+                  : dataSource.provider === 'CODE_BRIGADE_EXPIRED'
+                  ? 'Session Expired'
                   : dataSource.isSample
                   ? 'Sample Demo Mode'
                   : dataSource.provider === 'CAMPUSFLOW_LOCAL'
@@ -558,6 +573,40 @@ export default function AttendancePage() {
                 disabled={togglingSample}
               >
                 Load Demo Set
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── SYNC PENDING CALLOUT (When student is connected but 0 classes imported) ── */}
+        {dataSource.isConnected && !dataSource.isSample && overall.totalClasses === 0 && (
+          <div style={{
+            padding: '16px 20px',
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border)',
+            borderLeft: '4px solid var(--warning)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 16,
+          }}>
+            <div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700, color: 'var(--fg-primary)' }}>
+                University Account Connected · Attendance Sync Pending
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--fg-muted)', marginTop: 2 }}>
+                {dataSource.notice || `Connected as ${dataSource.studentName || 'Student'}. Official attendance records have not yet been synchronized from the university register.`}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={handleSyncAttendance}
+                disabled={syncing}
+              >
+                <RefreshCw size={13} className={syncing ? 'animate-spin' : ''} aria-hidden="true" />
+                {syncing ? 'Synchronizing…' : 'Sync University Register'}
               </button>
             </div>
           </div>

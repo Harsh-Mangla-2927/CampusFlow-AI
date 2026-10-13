@@ -123,36 +123,46 @@ async function getDashboardSummary(userId, targetThreshold = 75) {
     notice: 'Connect your Code Brigade account or load the demo dataset to view attendance.',
   };
 
-  if (cbSession && cbSession.status === 'CONNECTED' && cbSession.lastSyncStatus === 'SUCCESS') {
+  if (cbSession && cbSession.status === 'CONNECTED' && totalConducted > 0) {
+    const isRecentlySynced = cbSession.lastSyncedAt && (Date.now() - new Date(cbSession.lastSyncedAt).getTime() < 2 * 60 * 60 * 1000);
+    const isStale = cbSession.lastSyncStatus === 'STALE' || !isRecentlySynced;
+
     dataSource = {
-      provider: 'CODE_BRIGADE_LIVE',
-      providerLabel: 'Live University Data (Code Brigade)',
+      provider: isStale ? 'CODE_BRIGADE_STALE' : 'CODE_BRIGADE_LIVE',
+      providerLabel: isStale ? 'University Data (Stale — Cached Records)' : 'Live University Data (Code Brigade)',
       isConnected: true,
-      isLive: true,
+      isLive: !isStale,
+      isStale: isStale,
+      isSample: false,
+      lastSyncedAt: cbSession.lastSyncedAt,
+      studentName: cbSession.studentName,
+      rollNumber: cbSession.rollNumber,
+      className: cbSession.className || '',
+      notice: isStale
+        ? (cbSession.lastSyncError ? `Upstream refresh notice: ${cbSession.lastSyncError}. Retaining verified records.` : 'Displaying cached university attendance records.')
+        : `Connected to Chitkara University portal as ${cbSession.studentName || cbSession.username}. Real-time synchronization active.`,
+    };
+  } else if (cbSession && cbSession.status === 'CONNECTED' && totalConducted === 0) {
+    const syncFailed = cbSession.lastSyncStatus === 'FAILED' || cbSession.lastSyncStatus === 'STALE' || cbSession.lastSyncStatus === 'NEVER';
+    dataSource = {
+      provider: syncFailed ? 'CODE_BRIGADE_SYNC_PENDING' : 'CODE_BRIGADE_EMPTY',
+      providerLabel: syncFailed ? 'University Connected (Sync Pending)' : 'University Connected (0 Records Found)',
+      isConnected: true,
+      isLive: false,
       isStale: false,
       isSample: false,
       lastSyncedAt: cbSession.lastSyncedAt,
       studentName: cbSession.studentName,
       rollNumber: cbSession.rollNumber,
-      notice: `Connected to Chitkara University portal as ${cbSession.studentName || cbSession.username}. Real-time synchronization active.`,
-    };
-  } else if (cbSession && (cbSession.lastSyncStatus === 'STALE' || cbSession.status === 'CONNECTED')) {
-    dataSource = {
-      provider: 'CODE_BRIGADE_STALE',
-      providerLabel: 'University Data (Stale — Upstream Timeout)',
-      isConnected: true,
-      isLive: false,
-      isStale: true,
-      isSample: false,
-      lastSyncedAt: cbSession.lastSyncedAt,
-      studentName: cbSession.studentName,
-      rollNumber: cbSession.rollNumber,
-      notice: 'University portal is temporarily slow or unreachable. Retaining your last verified attendance records.',
+      className: cbSession.className || '',
+      notice: cbSession.lastSyncError
+        ? `Connected as ${cbSession.studentName}. University sync notice: ${cbSession.lastSyncError}`
+        : `Connected as ${cbSession.studentName}. No attendance records found on university register for the current semester.`,
     };
   } else if (cbSession && cbSession.status === 'EXPIRED') {
     dataSource = {
       provider: 'CODE_BRIGADE_EXPIRED',
-      providerLabel: 'Authentication Required (Session Expired)',
+      providerLabel: 'University Session Expired',
       isConnected: false,
       isLive: false,
       isStale: true,
@@ -160,7 +170,8 @@ async function getDashboardSummary(userId, targetThreshold = 75) {
       lastSyncedAt: cbSession.lastSyncedAt,
       studentName: cbSession.studentName,
       rollNumber: cbSession.rollNumber,
-      notice: 'Your university login session has expired. Please re-enter your credentials to synchronize.',
+      className: cbSession.className || '',
+      notice: 'Your university login session has expired. Please re-authenticate to synchronize live records.',
     };
   } else if (isSampleDataset) {
     dataSource = {
@@ -250,7 +261,7 @@ async function connectCodeBrigade(userId, credentials) {
     throw error;
   }
 
-  const { userData, deviceUUID, securityToken } = authResult;
+  const { userData, deviceUUID, securityToken, classId = '', className = '' } = authResult;
 
   // Save session securely in MongoDB bound to this student's userId
   let sessionDoc = await CodeBrigadeSession.findOne({ user: userId });
@@ -269,6 +280,8 @@ async function connectCodeBrigade(userId, credentials) {
   sessionDoc.studentId = userData.studentId;
   sessionDoc.studentName = userData.name;
   sessionDoc.rollNumber = userData.rollNumber;
+  sessionDoc.classId = classId || userData.classId || '';
+  sessionDoc.className = className || userData.className || '';
   sessionDoc.status = 'CONNECTED';
   sessionDoc.lastSyncStatus = 'SUCCESS';
   sessionDoc.lastSyncError = '';
@@ -276,19 +289,33 @@ async function connectCodeBrigade(userId, credentials) {
   await sessionDoc.save();
 
   // Run initial synchronization to fetch official subjects and attendance
+  let syncResult = null;
+  let syncError = null;
   try {
-    await syncCodeBrigade(userId);
+    syncResult = await syncCodeBrigade(userId);
   } catch (syncErr) {
-    console.warn('Initial sync warning after successful connection:', syncErr.message);
+    syncError = syncErr;
+    console.warn('[Attendance Service] Initial sync warning:', syncErr.message);
   }
 
   return {
     success: true,
-    message: `Connected successfully as ${userData.name || username}.`,
+    authSuccess: true,
+    syncSuccess: !syncError && (syncResult?.syncedSubjects > 0),
+    syncedSubjects: syncResult?.syncedSubjects || 0,
+    syncedSessions: syncResult?.syncedSessions || 0,
+    syncMessage: syncError
+      ? `Connected, but initial sync encountered: ${syncError.message}`
+      : `Synchronized ${syncResult?.syncedSubjects || 0} university courses.`,
+    message: syncError
+      ? `Connected as ${userData.name || username}. Attendance sync notice: ${syncError.message}`
+      : `Connected successfully as ${userData.name || username}.`,
     userData: {
       name: userData.name,
       rollNumber: userData.rollNumber,
       username: username.trim(),
+      classId: sessionDoc.classId,
+      className: sessionDoc.className,
     },
   };
 }
@@ -309,21 +336,24 @@ async function verifyCodeBrigadeOtp(userId, otpPayload) {
     throw error;
   }
 
-  const verifyResult = await codeBrigadeConnector.verifyOtp(authUserId, otpText, deviceUUID);
+  let sessionDoc = await CodeBrigadeSession.findOne({ user: userId });
+  const schoolCode = sessionDoc?.schoolCode || '800002';
+
+  const verifyResult = await codeBrigadeConnector.verifyOtp(authUserId, otpText, deviceUUID, schoolCode);
   if (!verifyResult.success) {
     const error = new Error(verifyResult.error || 'Invalid OTP code.');
     error.statusCode = 400;
     throw error;
   }
 
-  const { userData } = verifyResult;
+  const { userData, securityToken, classId = '', className = '' } = verifyResult;
 
-  let sessionDoc = await CodeBrigadeSession.findOne({ user: userId });
   if (!sessionDoc) {
     sessionDoc = new CodeBrigadeSession({ user: userId });
   }
 
   sessionDoc.apiKey = userData.apiKey;
+  sessionDoc.securityToken = securityToken || '';
   sessionDoc.deviceUUID = deviceUUID;
   sessionDoc.userId = userData.userId;
   sessionDoc.sessionId = userData.sessionId;
@@ -331,24 +361,41 @@ async function verifyCodeBrigadeOtp(userId, otpPayload) {
   sessionDoc.studentId = userData.studentId;
   sessionDoc.studentName = userData.name;
   sessionDoc.rollNumber = userData.rollNumber;
+  sessionDoc.classId = classId || userData.classId || '';
+  sessionDoc.className = className || userData.className || '';
   sessionDoc.status = 'CONNECTED';
   sessionDoc.lastSyncStatus = 'SUCCESS';
   sessionDoc.lastSyncError = '';
 
   await sessionDoc.save();
 
+  // Run synchronization after successful OTP verification
+  let syncResult = null;
+  let syncError = null;
   try {
-    await syncCodeBrigade(userId);
+    syncResult = await syncCodeBrigade(userId);
   } catch (syncErr) {
-    console.warn('Sync warning after OTP verification:', syncErr.message);
+    syncError = syncErr;
+    console.warn('[Attendance Service] Post-OTP sync issue:', syncErr.message);
   }
 
   return {
     success: true,
-    message: `OTP verified. Connected as ${userData.name}.`,
+    authSuccess: true,
+    syncSuccess: !syncError && (syncResult?.syncedSubjects > 0),
+    syncedSubjects: syncResult?.syncedSubjects || 0,
+    syncedSessions: syncResult?.syncedSessions || 0,
+    syncMessage: syncError
+      ? syncError.message
+      : `Synchronized ${syncResult?.syncedSubjects || 0} university courses.`,
+    message: syncError
+      ? `OTP verified for ${userData.name}. Attendance sync pending: ${syncError.message}`
+      : `Connected as ${userData.name}. ${syncResult?.syncedSubjects || 0} courses synchronized.`,
     userData: {
       name: userData.name,
       rollNumber: userData.rollNumber,
+      classId: sessionDoc.classId,
+      className: sessionDoc.className,
     },
   };
 }

@@ -80,6 +80,10 @@ const connectCodeBrigade = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
+      authSuccess: result.authSuccess ?? true,
+      syncSuccess: result.syncSuccess ?? false,
+      syncedSubjects: result.syncedSubjects ?? 0,
+      syncMessage: result.syncMessage ?? '',
       message: result.message,
       data: summary,
     });
@@ -104,6 +108,10 @@ const verifyCodeBrigadeOtp = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
+      authSuccess: result.authSuccess ?? true,
+      syncSuccess: result.syncSuccess ?? false,
+      syncedSubjects: result.syncedSubjects ?? 0,
+      syncMessage: result.syncMessage ?? '',
       message: result.message,
       data: summary,
     });

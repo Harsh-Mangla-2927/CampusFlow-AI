@@ -137,11 +137,44 @@ class CodeBrigadeConnector {
         console.warn('Notice: Could not retrieve secondary security token:', tokenErr.message);
       }
 
+      // Query student details for classId and full student profile
+      let classId = '';
+      let className = '';
+      try {
+        const userRes = await timedFetch(`${this.baseUrl}/mobilev2/getUserDetails`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            userId: String(userData.userId),
+            sessionId: String(userData.sessionId),
+            roleId: String(userData.roleId),
+            apiKey: String(userData.apiKey),
+            deviceIdUUID: deviceUUID,
+            securityToken,
+            token: securityToken,
+          }).toString(),
+        });
+        if (userRes.ok) {
+          const userJson = await userRes.json();
+          const uInfo = Array.isArray(userJson) && userJson.length > 0 ? userJson[0] : userJson;
+          if (uInfo) {
+            classId = String(uInfo.classId || '');
+            className = String(uInfo.stuClassName || uInfo.className || '');
+            if (uInfo.firstName && !userData.name) userData.name = uInfo.firstName;
+            if (uInfo.rollNo && !userData.rollNumber) userData.rollNumber = uInfo.rollNo;
+          }
+        }
+      } catch (userErr) {
+        console.warn('Notice: Could not retrieve extended student details:', userErr.message);
+      }
+
       return {
         success: true,
         requiresOTP: false,
         deviceUUID,
         securityToken,
+        classId,
+        className,
         userData: {
           apiKey: userData.apiKey,
           userId: String(userData.userId),
@@ -150,6 +183,8 @@ class CodeBrigadeConnector {
           studentId: String(userData.studentId || userData.userId),
           name: userData.name || userData.studentName || username,
           rollNumber: userData.rollNo || userData.rollNumber || '',
+          classId,
+          className,
         },
       };
     }
@@ -197,10 +232,13 @@ class CodeBrigadeConnector {
    * @param {string} authUserId
    * @param {string} otpText
    * @param {string} [deviceUUID]
+   * @param {string} [schoolCode]
    * @returns {Promise<Object>}
    */
-  async verifyOtp(authUserId, otpText, deviceUUID = generateDeviceUUID()) {
+  async verifyOtp(authUserId, otpText, deviceUUID = generateDeviceUUID(), schoolCode = DEFAULT_SCHOOL_CODE) {
     const url = `${this.baseUrl}/mobilev2/verifyOtp`;
+    console.log(`[CodeBrigade Connector] Submitting OTP verification for authUserId: ${authUserId}`);
+
     const response = await timedFetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -215,11 +253,72 @@ class CodeBrigadeConnector {
     }
 
     const json = await response.json();
+    console.log(`[CodeBrigade Connector] OTP verification response status: ${json.status}`);
+
     if (String(json.status) === '1') {
       const dataPayload = json.data;
       const userData = Array.isArray(dataPayload) && dataPayload.length > 0 ? dataPayload[0] : dataPayload;
+
+      // Crucial Step: Save token to establish authenticated university session
+      let securityToken = '';
+      try {
+        console.log(`[CodeBrigade Connector] Calling savetoken for userId: ${userData.userId}`);
+        const tokenRes = await timedFetch(`${this.baseUrl}/mobilev2/savetoken`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            user_id: String(userData.userId),
+            roleId: String(userData.roleId),
+            clientId: schoolCode,
+            deviceIdUUID: deviceUUID,
+          }).toString(),
+        });
+        if (tokenRes.ok) {
+          const tokenJson = await tokenRes.json();
+          securityToken = tokenJson.token || '';
+          console.log(`[CodeBrigade Connector] Security token acquired: ${!!securityToken}`);
+        }
+      } catch (tokenErr) {
+        console.warn('[CodeBrigade Connector] Warning: Could not retrieve secondary security token after OTP:', tokenErr.message);
+      }
+
+      // Query student profile details for classId and className
+      let classId = '';
+      let className = '';
+      try {
+        const userRes = await timedFetch(`${this.baseUrl}/mobilev2/getUserDetails`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            userId: String(userData.userId),
+            sessionId: String(userData.sessionId),
+            roleId: String(userData.roleId),
+            apiKey: String(userData.apiKey),
+            deviceIdUUID: deviceUUID,
+            securityToken,
+            token: securityToken,
+          }).toString(),
+        });
+        if (userRes.ok) {
+          const userJson = await userRes.json();
+          const uInfo = Array.isArray(userJson) && userJson.length > 0 ? userJson[0] : userJson;
+          if (uInfo) {
+            classId = String(uInfo.classId || '');
+            className = String(uInfo.stuClassName || uInfo.className || '');
+            if (uInfo.firstName && !userData.name) userData.name = uInfo.firstName;
+            if (uInfo.rollNo && !userData.rollNumber) userData.rollNumber = uInfo.rollNo;
+            console.log(`[CodeBrigade Connector] Profile retrieved for ${userData.name} (Class: ${className || classId})`);
+          }
+        }
+      } catch (userErr) {
+        console.warn('[CodeBrigade Connector] Warning: Could not retrieve student details after OTP:', userErr.message);
+      }
+
       return {
         success: true,
+        securityToken,
+        classId,
+        className,
         userData: {
           apiKey: userData.apiKey,
           userId: String(userData.userId),
@@ -227,7 +326,9 @@ class CodeBrigadeConnector {
           roleId: String(userData.roleId),
           studentId: String(userData.studentId || userData.userId),
           name: userData.name || '',
-          rollNumber: userData.rollNo || '',
+          rollNumber: userData.rollNo || userData.rollNumber || '',
+          classId,
+          className,
         },
         deviceUUID,
       };
@@ -243,7 +344,7 @@ class CodeBrigadeConnector {
    * Fetch and parse live attendance records from Code Brigade.
    *
    * @param {Object} session - Stored CodeBrigadeSession document
-   * @returns {Promise<Object>} { subjects: Array, rawRegister: Array }
+   * @returns {Promise<Object>} { subjects: Array, registers: Array }
    */
   async fetchAttendance(session) {
     if (!session || !session.apiKey || !session.userId) {
@@ -261,68 +362,114 @@ class CodeBrigadeConnector {
       studentId = userId,
       securityToken = '',
       deviceUUID = generateDeviceUUID(),
+      classId = '',
     } = session;
 
-    const authSuffix = `&securityToken=${encodeURIComponent(securityToken)}&deviceIdUUID=${encodeURIComponent(deviceUUID)}`;
+    console.log(`[CodeBrigade Connector] Fetching live attendance for Student ID: ${studentId}, Session: ${sessionId}`);
 
-    // 1. Fetch Subject-wise summary via mobilev2/commonPage (commonPageId: 28)
-    const summaryUrl = `${baseUrl}/mobilev2/commonPage`;
-    const summaryBody = `commonObj=&commonPageId=28&device=android&userId=${userId}&sessionId=${sessionId}&roleId=${roleId}&apiKey=${apiKey}${authSuffix}`;
+    // Build common parameters supported by Code Brigade mobile endpoints
+    const baseParams = {
+      userId: String(userId),
+      sessionId: String(sessionId),
+      roleId: String(roleId),
+      apiKey: String(apiKey),
+      deviceIdUUID: String(deviceUUID),
+      securityToken: String(securityToken),
+      token: String(securityToken),
+      studentId: String(studentId),
+    };
+    if (classId) baseParams.classId = String(classId);
 
-    // 2. Fetch Detailed Register via chalkpadpro/studentDetails/getAttendanceRegister
-    const registerUrl = `${baseUrl}/chalkpadpro/studentDetails/getAttendanceRegister`;
-    const warmupUrl = `${baseUrl}/mobilev2/showAttendance`;
-    const warmupBody = `prevNext=0&userId=${userId}&sessionId=${sessionId}&apiKey=${apiKey}&roleId=${roleId}&month=${authSuffix}`;
-    const registerBody = `studentId=${studentId}&sessionId=${sessionId}&userId=${userId}&apiKey=${apiKey}&roleId=${roleId}${authSuffix}`;
+    // Helper to test an endpoint safely
+    const fetchEndpoint = async (path, extraParams = {}) => {
+      const fullUrl = `${baseUrl}/${path.replace(/^\//, '')}`;
+      const body = new URLSearchParams({ ...baseParams, ...extraParams }).toString();
+      try {
+        const res = await timedFetch(fullUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body,
+        });
+        const text = await res.text();
+        return { ok: res.ok, status: res.status, text };
+      } catch (err) {
+        return { ok: false, status: 0, error: err.message };
+      }
+    };
 
-    const [summaryRes, registerRes] = await Promise.allSettled([
-      timedFetch(summaryUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: summaryBody,
-      }),
-      timedFetch(registerUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'X-Warmup-Url': encodeURIComponent(warmupUrl),
-          'X-Warmup-Body': encodeURIComponent(warmupBody),
-        },
-        body: registerBody,
-      }),
+    // 1. Check for active session using mobilev2/getUserDetails or mobilev2/showAttendance
+    const probeRes = await fetchEndpoint('mobilev2/getUserDetails');
+    if (probeRes.text) {
+      try {
+        const probeJson = JSON.parse(probeRes.text);
+        if (
+          probeJson?.code === '403' ||
+          probeJson?.status === 'error' ||
+          (probeJson?.message && probeJson.message.toLowerCase().includes('session has expired'))
+        ) {
+          console.warn('[CodeBrigade Connector] Upstream reported session expired');
+          const err = new Error('University authentication session expired. Please re-authenticate.');
+          err.code = 'SESSION_EXPIRED';
+          throw err;
+        }
+      } catch (parseErr) {
+        if (parseErr.code === 'SESSION_EXPIRED') throw parseErr;
+      }
+    }
+
+    // 2. Query Subject Summary (commonPageId 28, commonPageId 1, or mobilev2/getAttendanceRegister)
+    const [summaryRes, registerRes, mobileRegRes] = await Promise.allSettled([
+      fetchEndpoint('mobilev2/commonPage', { commonPageId: '28', device: 'android', commonObj: '' }),
+      fetchEndpoint('chalkpadpro/studentDetails/getAttendanceRegister'),
+      fetchEndpoint('mobilev2/getAttendanceRegister'),
     ]);
 
     let parsedSubjects = [];
     let parsedRegister = [];
 
-    // Process summary response
+    // Process summary responses
     if (summaryRes.status === 'fulfilled' && summaryRes.value.ok) {
+      const text = summaryRes.value.text;
       try {
-        const summaryJson = await summaryRes.value.json();
-        const htmlContent = summaryJson.content || '';
-        if (htmlContent) {
-          parsedSubjects = parseAttendanceSubjectwise(htmlContent);
+        const json = JSON.parse(text);
+        if (
+          json?.code === '403' ||
+          json?.status === 'error' ||
+          (json?.message && json.message.toLowerCase().includes('session has expired'))
+        ) {
+          const err = new Error('University authentication session expired. Please re-authenticate.');
+          err.code = 'SESSION_EXPIRED';
+          throw err;
+        }
+        if (json.content) {
+          parsedSubjects = parseAttendanceSubjectwise(json.content);
         }
       } catch (err) {
-        console.warn('Warning: Could not parse subjectwise JSON response:', err.message);
+        if (err.code === 'SESSION_EXPIRED') throw err;
       }
     }
 
-    // Process register response
-    if (registerRes.status === 'fulfilled' && registerRes.value.ok) {
-      try {
-        const registerHtml = await registerRes.value.text();
-        if (registerHtml && registerHtml.length > 50) {
-          parsedRegister = parseAttendanceRegister(registerHtml);
+    // Process detailed register responses
+    const candidateRegisters = [registerRes, mobileRegRes];
+    for (const regPromise of candidateRegisters) {
+      if (regPromise.status === 'fulfilled' && regPromise.value.ok) {
+        const text = regPromise.value.text;
+        if (text && text.length > 50 && !text.includes('"status":"error"')) {
+          const extracted = parseAttendanceRegister(text);
+          if (extracted.length > 0) {
+            parsedRegister = extracted;
+            break;
+          }
         }
-      } catch (err) {
-        console.warn('Warning: Could not parse register HTML response:', err.message);
       }
     }
 
-    // If both failed or returned empty content, verify whether session expired
+    console.log(
+      `[CodeBrigade Connector] Attendance synchronization parsed: ${parsedSubjects.length} subjects, ${parsedRegister.length} session registers.`
+    );
+
+    // If both failed or returned empty content, verify session validity
     if (parsedSubjects.length === 0 && parsedRegister.length === 0) {
-      // If server responded with 401/403 or empty responses, session likely expired
       if (
         (summaryRes.status === 'fulfilled' && summaryRes.value.status === 401) ||
         (registerRes.status === 'fulfilled' && registerRes.value.status === 401)
@@ -341,3 +488,4 @@ class CodeBrigadeConnector {
 }
 
 module.exports = new CodeBrigadeConnector();
+

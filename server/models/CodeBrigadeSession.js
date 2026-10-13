@@ -72,6 +72,14 @@ const codeBrigadeSessionSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    classId: {
+      type: String,
+      default: '',
+    },
+    className: {
+      type: String,
+      default: '',
+    },
     status: {
       type: String,
       enum: ['CONNECTED', 'DISCONNECTED', 'EXPIRED'],
