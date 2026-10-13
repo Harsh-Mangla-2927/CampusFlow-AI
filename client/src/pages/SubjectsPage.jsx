@@ -173,7 +173,7 @@ function SubjectsPage() {
   const toggleExpand = (id) => setExpanded(p => ({ ...p, [id]: !p[id] }));
 
   if (loading) return <LoadingState message="Loading subjects…" />;
-  if (error) return <ErrorState message={error} onRetry={() => { setLoaded(false); setError(''); }} />;
+  if (error) return <ErrorState message={error} onRetry={load} />;
 
   return (
     <div className="page-container">

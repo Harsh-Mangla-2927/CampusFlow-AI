@@ -86,7 +86,7 @@ function RecommendationsPage() {
           <h1>Recommendations</h1>
           <p>Personalized action items — derived from your actual data, not generic tips.</p>
         </div>
-        <button className="btn btn-secondary btn-sm" onClick={() => { setLoaded(false); setRecs([]); }} id="btn-refresh-recs">
+        <button className="btn btn-secondary btn-sm" onClick={load} id="btn-refresh-recs">
           <RefreshCw size={12} strokeWidth={2} aria-hidden="true" />
           Refresh
         </button>

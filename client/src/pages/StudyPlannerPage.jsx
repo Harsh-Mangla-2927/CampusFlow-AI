@@ -122,7 +122,7 @@ function StudyPlannerPage() {
   };
 
   if (loading) return <LoadingState message="Loading study plans…" />;
-  if (error) return <ErrorState message={error} onRetry={() => { setLoaded(false); setError(''); }} />;
+  if (error) return <ErrorState message={error} onRetry={load} />;
 
   return (
     <div className="page-container">

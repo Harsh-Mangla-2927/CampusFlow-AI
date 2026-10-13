@@ -155,7 +155,7 @@ function TasksPage() {
   };
 
   if (loading) return <LoadingState message="Loading tasks…" />;
-  if (error)   return <ErrorState message={error} onRetry={() => { setLoaded(false); setError(''); }} />;
+  if (error)   return <ErrorState message={error} onRetry={load} />;
 
   const filtered = filter === 'All' ? tasks : tasks.filter(t => t.status === filter);
   const now = new Date();

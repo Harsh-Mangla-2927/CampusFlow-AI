@@ -199,7 +199,7 @@ function ExamsPage() {
   };
 
   if (loading) return <LoadingState message="Loading exams…" />;
-  if (error)   return <ErrorState message={error} onRetry={() => { setLoaded(false); setError(''); }} />;
+  if (error)   return <ErrorState message={error} onRetry={load} />;
 
   const now       = new Date();
   const upcoming  = exams.filter(e => e.status === 'Upcoming' && new Date(e.date) >= now);

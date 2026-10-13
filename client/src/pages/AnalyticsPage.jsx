@@ -50,7 +50,7 @@ function AnalyticsPage() {
           <h1>Analytics</h1>
           <p>Your academic performance at a glance — derived from real data.</p>
         </div>
-        <button className="btn btn-secondary btn-sm" onClick={() => { setLoaded(false); setAnalytics(null); }} id="btn-refresh-analytics">
+        <button className="btn btn-secondary btn-sm" onClick={load} id="btn-refresh-analytics">
           <RefreshCw size={12} strokeWidth={2} aria-hidden="true" />
           Refresh
         </button>

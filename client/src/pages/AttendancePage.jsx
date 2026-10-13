@@ -92,7 +92,7 @@ function AttendancePage() {
   };
 
   if (loading) return <LoadingState message="Loading attendance…" />;
-  if (error)   return <ErrorState message={error} onRetry={() => { setLoaded(false); setError(''); }} />;
+  if (error)   return <ErrorState message={error} onRetry={load} />;
 
   const safeSubjects = subjects.filter(Boolean);
   const criticalCount = safeSubjects.filter(s => {
@@ -109,7 +109,7 @@ function AttendancePage() {
           <h1>Attendance</h1>
           <p>Cumulative per-session tracking — every class counts.</p>
         </div>
-        <button className="btn btn-secondary btn-sm" onClick={() => { setLoaded(false); setSubjects([]); }} id="btn-refresh-attendance">
+        <button className="btn btn-secondary btn-sm" onClick={load} id="btn-refresh-attendance">
           <RefreshCw size={12} aria-hidden="true" />
           Refresh
         </button>
@@ -118,8 +118,8 @@ function AttendancePage() {
       {/* Today's date + summary */}
       <div style={{ display: 'flex', gap: 'var(--s6)', marginBottom: 'var(--s8)', flexWrap: 'wrap', alignItems: 'flex-end' }}>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg-faint)', marginBottom: 2 }}>Today</div>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 900, color: 'var(--fg-primary)', letterSpacing: '0.02em' }}>{todayStr}</div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg-faint)', marginBottom: 2, fontFamily: 'var(--font-mono)' }}>Today</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, color: 'var(--fg-primary)', letterSpacing: '-0.01em' }}>{todayStr}</div>
         </div>
         {criticalCount > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', border: '1px solid var(--danger)', background: 'rgba(239,68,68,0.06)' }}>
