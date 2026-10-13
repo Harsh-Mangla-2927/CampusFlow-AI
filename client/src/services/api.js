@@ -145,9 +145,60 @@ export const subjectsAPI = {
 
 export const attendanceAPI = {
   /**
+   * Get Attendly dashboard summary and insights.
+   * GET /api/attendance/summary?threshold=75
+   */
+  getSummary: (threshold = 75) =>
+    request(`/attendance/summary${threshold ? `?threshold=${threshold}` : ''}`),
+
+  /**
+   * Get detailed attendance register for a subject.
+   * GET /api/attendance/subjects/:id/register
+   */
+  getSubjectRegister: (subjectId, params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return request(`/attendance/subjects/${subjectId}/register${query ? `?${query}` : ''}`);
+  },
+
+  /**
+   * Calculate attendance target and allowable misses.
+   * POST /api/attendance/calculator
+   */
+  calculate: (data) =>
+    request('/attendance/calculator', { method: 'POST', body: JSON.stringify(data) }),
+
+  /**
+   * Get verified data source status.
+   * GET /api/attendance/source-status
+   */
+  getSourceStatus: () =>
+    request('/attendance/source-status'),
+
+  /**
+   * Toggle sample dataset (seed or clear) for demo / evaluation.
+   * POST /api/attendance/sample-data
+   */
+  toggleSampleData: (action = 'seed') =>
+    request('/attendance/sample-data', { method: 'POST', body: JSON.stringify({ action }) }),
+
+  /**
+   * Quick mark attendance session.
+   * POST /api/attendance/mark
+   */
+  quickMark: (data) =>
+    request('/attendance/mark', { method: 'POST', body: JSON.stringify(data) }),
+
+  /**
+   * Correct attendance session directly.
+   * PUT /api/attendance/sessions/:sessionId
+   */
+  correctSession: (sessionId, data) =>
+    request(`/attendance/sessions/${sessionId}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  /**
    * Mark a class session as PRESENT or ABSENT.
    * POST /api/subjects/:id/attendance
-   * { status: 'PRESENT'|'ABSENT', date?: string, topic?: string }
+   * { status: 'PRESENT'|'ABSENT', date?: string, topic?: string, period?: string }
    */
   mark: (subjectId, data) =>
     request(`/subjects/${subjectId}/attendance`, { method: 'POST', body: JSON.stringify(data) }),

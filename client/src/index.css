@@ -6896,4 +6896,530 @@ main[role="main"] {
   background: var(--bg-elevated);
 }
 
+/* ============================================================
+   ATTENDLY — ATTENDANCE INTELLIGENCE DASHBOARD STYLES
+   ============================================================ */
+
+.attendly-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s8);
+  width: 100%;
+}
+
+.attendly-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--s4);
+  padding-bottom: var(--s6);
+  border-bottom: 1px solid var(--border);
+}
+
+.attendly-kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: var(--s1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.attendly-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-weight: 800;
+  color: var(--fg-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: var(--s2);
+}
+
+.attendly-subtitle {
+  font-size: 13px;
+  color: var(--fg-muted);
+  max-width: 620px;
+  line-height: 1.6;
+}
+
+.attendly-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  flex-wrap: wrap;
+}
+
+/* Overall Attendance Hero Card */
+.attendly-hero-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: var(--s6);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: var(--s6);
+  position: relative;
+}
+
+@media (max-width: 960px) {
+  .attendly-hero-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.attendly-circle-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s4);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  text-align: center;
+  position: relative;
+}
+
+.attendly-circle-svg-wrapper {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--s3);
+}
+
+.attendly-circle-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.attendly-circle-pct {
+  font-family: var(--font-display);
+  font-size: 38px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.attendly-circle-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--fg-faint);
+  margin-top: 4px;
+}
+
+.attendly-hero-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--s6);
+}
+
+.attendly-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: var(--s4);
+}
+
+.attendly-stat-box {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  padding: var(--s4) var(--s5);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.attendly-stat-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.attendly-stat-value {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--fg-primary);
+  line-height: 1.1;
+}
+
+.attendly-stat-hint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-faint);
+}
+
+/* Threshold selector */
+.attendly-threshold-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--s4);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  padding: var(--s4) var(--s5);
+}
+
+.attendly-threshold-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.attendly-pill-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 5px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--fg-secondary);
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+
+.attendly-pill-btn:hover {
+  border-color: var(--fg-primary);
+  color: var(--fg-primary);
+}
+
+.attendly-pill-btn.active {
+  background: var(--accent);
+  color: #0A0A0A;
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+/* Subject Cards Grid */
+.attendly-subjects-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--s6);
+  margin-bottom: var(--s4);
+}
+
+.attendly-subjects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--s5);
+}
+
+@media (max-width: 640px) {
+  .attendly-subjects-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.attendly-subject-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: var(--s5);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--s4);
+  transition: border-color var(--t-fast), transform var(--t-fast);
+  position: relative;
+}
+
+.attendly-subject-card:hover {
+  border-color: var(--fg-muted);
+}
+
+.attendly-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--s3);
+}
+
+.attendly-subject-name {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--fg-primary);
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+
+.attendly-subject-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.attendly-subject-pct-badge {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 900;
+  text-align: right;
+  line-height: 1;
+}
+
+.attendly-subject-standing-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+/* Progress bar with threshold marker */
+.attendly-progress-wrapper {
+  position: relative;
+  width: 100%;
+  margin: var(--s2) 0;
+}
+
+.attendly-progress-track {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-muted);
+  position: relative;
+  overflow: hidden;
+}
+
+.attendly-progress-fill {
+  height: 100%;
+  transition: width 0.4s ease-out;
+}
+
+.attendly-threshold-indicator {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 14px;
+  background: #FAFAFA;
+  box-shadow: 0 0 4px rgba(0,0,0,0.8);
+  z-index: 2;
+}
+
+.attendly-metrics-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-secondary);
+  padding: var(--s2) 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.attendly-metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.attendly-metric-item span:first-child {
+  color: var(--fg-faint);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.attendly-metric-item span:last-child {
+  font-weight: 700;
+  color: var(--fg-primary);
+}
+
+.attendly-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s3);
+  margin-top: auto;
+}
+
+.attendly-card-advice {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--fg-muted);
+}
+
+/* Attendance Register Modal */
+.attendly-register-header-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: var(--s3);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  padding: var(--s4);
+  margin-bottom: var(--s5);
+}
+
+.attendly-filter-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--s4);
+}
+
+.attendly-filter-tab {
+  padding: 8px 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--t-fast);
+}
+
+.attendly-filter-tab:hover {
+  color: var(--fg-primary);
+}
+
+.attendly-filter-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 700;
+}
+
+.attendly-register-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 440px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.attendly-register-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  gap: var(--s3);
+  transition: border-color var(--t-fast);
+}
+
+.attendly-register-item:hover {
+  border-color: var(--fg-faint);
+}
+
+.attendly-register-date {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--fg-primary);
+}
+
+.attendly-register-topic {
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+.attendly-register-period {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-faint);
+}
+
+/* Attendance Calculator Widget */
+.attendly-calculator-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: var(--s6);
+}
+
+.attendly-calc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s6);
+}
+
+@media (max-width: 800px) {
+  .attendly-calc-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.attendly-calc-result-box {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  padding: var(--s5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+/* Explainable Insights */
+.attendly-insights-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: var(--s6);
+}
+
+.attendly-insights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--s5);
+}
+
+.attendly-insight-item {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  padding: var(--s4) var(--s5);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attendly-insight-kicker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+
+.attendly-insight-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--fg-primary);
+}
+
+.attendly-insight-desc {
+  font-size: 12px;
+  color: var(--fg-muted);
+  line-height: 1.5;
+}
+
+/* Data source card */
+.attendly-source-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: var(--s5);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s4);
+}
+
+
 

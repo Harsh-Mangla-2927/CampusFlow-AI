@@ -46,6 +46,12 @@ const attendanceSessionSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    // Optional: lecture slot or period details (e.g. 'Period 2', '09:00 AM - 10:00 AM')
+    period: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     // Track corrections for audit trail
     correctedAt: {
       type: Date,

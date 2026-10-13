@@ -7,6 +7,7 @@ const { errorHandler, notFound } = require('./middleware/errorMiddleware');
 // Import Routes
 const authRoutes = require('./routes/authRoutes');
 const subjectRoutes = require('./routes/subjectRoutes');
+const attendanceRoutes = require('./routes/attendanceRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const examRoutes = require('./routes/examRoutes');
 const studyPlanRoutes = require('./routes/studyPlanRoutes');
@@ -53,6 +54,7 @@ app.get('/api/health', (req, res) => {
 // --- API Routes ---
 app.use('/api/auth', authRoutes);
 app.use('/api/subjects', subjectRoutes);
+app.use('/api/attendance', attendanceRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/exams', examRoutes);
 app.use('/api/study-plans', studyPlanRoutes);
