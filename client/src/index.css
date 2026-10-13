@@ -4211,6 +4211,106 @@ main[role="main"] {
   50% { transform: scale(1.6); opacity: 1; }
 }
 
+/* ── Section: Tilted Academic Image Gallery ── */
+.academic-gallery-section {
+  position: relative;
+  padding: 100px 48px;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.gallery-container {
+  max-width: 1320px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.gallery-header-block {
+  max-width: 780px;
+  margin-bottom: 56px;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 28px;
+  align-items: center;
+}
+
+.gallery-card {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg-base);
+  border: 1px solid rgba(237, 231, 220, 0.12);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+  will-change: transform;
+}
+
+.gallery-card:hover {
+  transform: translateY(-8px) rotate(0deg) scale(1.02) !important;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.75);
+  border-color: rgba(232, 145, 60, 0.35);
+  z-index: 5;
+}
+
+.gallery-card-tilt-1 { transform: rotate(-2.4deg); }
+.gallery-card-tilt-2 { transform: rotate(1.8deg) translateY(12px); }
+.gallery-card-tilt-3 { transform: rotate(-1.4deg) translateY(-8px); }
+.gallery-card-tilt-4 { transform: rotate(2.2deg) translateY(16px); }
+
+.gallery-img-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+}
+
+.gallery-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
+  filter: saturate(0.85) contrast(1.05);
+}
+
+.gallery-card:hover .gallery-img {
+  transform: scale(1.06);
+  filter: saturate(1) contrast(1.1);
+}
+
+.gallery-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(10, 12, 14, 0.92) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 20px 18px;
+  pointer-events: none;
+}
+
+.gallery-card-tag {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--amber);
+  margin-bottom: 6px;
+}
+
+.gallery-card-caption {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--fg-primary);
+}
+
 /* ── Section 2: Platform Thesis Editorial Showcase ── */
 .cinematic-statement-section {
   position: relative;

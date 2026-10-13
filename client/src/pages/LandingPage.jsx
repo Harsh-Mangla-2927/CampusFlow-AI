@@ -609,6 +609,88 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
         </div>
       </section>
 
+      {/* ── SECTION: INTERACTIVE TILTED ACADEMIC IMAGE GALLERY ─────────── */}
+      <section
+        className="academic-gallery-section"
+        id="section-gallery"
+        aria-labelledby="gallery-heading"
+      >
+        <div className="gallery-container">
+          <div className="gallery-header-block">
+            <span className="statement-eyebrow">02 // ACADEMIC IMAGERY · FOCUS CADENCE</span>
+            <h2 id="gallery-heading" className="statement-large-text">
+              Atmospheres of deep academic <span style={{ color: 'var(--amber)' }}>focus</span>.
+            </h2>
+            <p className="statement-subtext" style={{ marginTop: 16 }}>
+              Engineered around how university students actually work — from intense quiet periods in
+              brutalist reading rooms to late-night syllabus synthesis and collaborative project milestones.
+            </p>
+          </div>
+
+          <div className="gallery-grid" role="region" aria-label="Academic environment image gallery">
+            <div className="gallery-card gallery-card-tilt-1">
+              <div className="gallery-img-wrapper">
+                <img
+                  src="/thesis-library.jpg"
+                  alt="Students focused on study in university reading hall"
+                  className="gallery-img"
+                  loading="lazy"
+                />
+                <div className="gallery-overlay">
+                  <span className="gallery-card-tag">01 // CONCENTRATION</span>
+                  <div className="gallery-card-caption">Brutalist Reading Rooms</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="gallery-card gallery-card-tilt-2">
+              <div className="gallery-img-wrapper">
+                <img
+                  src="/thesis-workspace.jpg"
+                  alt="Structured coursework notebook, pens, and laptop"
+                  className="gallery-img"
+                  loading="lazy"
+                />
+                <div className="gallery-overlay">
+                  <span className="gallery-card-tag">02 // MAPPING</span>
+                  <div className="gallery-card-caption">Syllabus Topic Cadences</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="gallery-card gallery-card-tilt-3">
+              <div className="gallery-img-wrapper">
+                <img
+                  src="/thesis-collab.jpg"
+                  alt="Engineering students discussing complex coursework tasks"
+                  className="gallery-img"
+                  loading="lazy"
+                />
+                <div className="gallery-overlay">
+                  <span className="gallery-card-tag">03 // SYNTHESIS</span>
+                  <div className="gallery-card-caption">Collaborative Problem Solving</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="gallery-card gallery-card-tilt-4">
+              <div className="gallery-img-wrapper">
+                <img
+                  src="/auth-space.jpg"
+                  alt="Minimalist desk setup with academic terminal"
+                  className="gallery-img"
+                  loading="lazy"
+                />
+                <div className="gallery-overlay">
+                  <span className="gallery-card-tag">04 // PREPARATION</span>
+                  <div className="gallery-card-caption">Exam Revision Buffer</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── SECTION 2: FULL-HEIGHT STATEMENT / PLATFORM THESIS ─────────── */}
       <section
         className="cinematic-statement-section"
@@ -619,10 +701,10 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
         <div className="thesis-container">
           {/* Section Header & Thesis Narrative */}
           <div className="thesis-header-block">
-            <div className="statement-eyebrow">01 / PLATFORM THESIS</div>
+            <div className="statement-eyebrow">03 / PLATFORM THESIS</div>
             <h2 id="statement-heading" className="statement-large-text">
-              Make room for the{' '}
-              <span className="statement-highlight">work that matters</span>.
+              An academic life that{' '}
+              <span className="statement-highlight">works in sync</span>.
             </h2>
             <div className="thesis-paragraphs">
               <p className="statement-subtext">
