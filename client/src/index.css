@@ -89,6 +89,26 @@ a { color: inherit; text-decoration: none; }
   --font-sans:      'Inter', system-ui, -apple-system, sans-serif;
   --font-mono:      'JetBrains Mono', monospace;
 
+  /* EDITORIAL TYPOGRAPHY TOKENS (UNIFIED SYSTEM) */
+  --text-hero-headline:      clamp(2.5rem, 5.2vw, 4.2rem);
+  --text-section-heading:    clamp(2.1rem, 3.8vw, 3.3rem);
+  --text-subsection-heading: clamp(1.25rem, 1.8vw, 1.6rem);
+  --text-card-heading:       clamp(1.1rem, 1.4vw, 1.35rem);
+  --text-body-editorial:     clamp(15px, 1.05vw, 16px);
+  --text-body-subtext:       15.5px;
+  --text-section-label:      11px;
+  --text-metadata-label:     10px;
+
+  /* EDITORIAL TRACKING & LEADING */
+  --tracking-hero:     -0.035em;
+  --tracking-heading:  -0.035em;
+  --tracking-sub:      -0.02em;
+  --tracking-label:    0.14em;
+  --tracking-meta:     0.18em;
+  --leading-hero:      1.08;
+  --leading-heading:   1.1;
+  --leading-body:      1.7;
+
   /* SPACING */
   --s1: 4px;   --s2: 8px;   --s3: 12px; --s4: 16px;
   --s5: 20px;  --s6: 24px;  --s8: 32px; --s10: 40px;
@@ -4146,20 +4166,20 @@ main[role="main"] {
 
 .portal-editorial-title {
   font-family: var(--font-display);
-  font-size: clamp(30px, 5.2vw, 58px);
-  font-weight: 800;
-  line-height: 1.1;
+  font-size: var(--text-hero-headline);
+  font-weight: 900;
+  line-height: var(--leading-hero);
   color: var(--fg-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: var(--tracking-hero);
   margin: 0;
 }
 
 .portal-editorial-subtitle {
   font-family: var(--font-body);
-  font-size: clamp(14px, 1.8vw, 16px);
-  line-height: 1.65;
+  font-size: var(--text-body-subtext);
+  line-height: var(--leading-body);
   color: var(--fg-secondary);
-  max-width: 640px;
+  max-width: 620px;
   margin: 0;
 }
 
@@ -4254,33 +4274,36 @@ main[role="main"] {
 .deck-heading,
 .roster-heading,
 .dates-heading,
-.closing-headline {
+.closing-headline,
+.editorial-headline {
   font-family: var(--font-display);
-  font-size: clamp(2.2rem, 3.8vw, 3.4rem);
+  font-size: var(--text-section-heading);
   font-weight: 900;
-  line-height: 1.08;
-  letter-spacing: -0.035em;
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-heading);
   color: var(--fg-primary);
   margin: 0 0 16px;
 }
 
-/* Consistent Emphasized Words in Vermilion Accent Token */
+/* Explicit Vermilion Accent Emphasis (Restrained — strictly .accent or .text-accent) */
 .section-heading .accent,
-.section-heading span,
+.section-heading .text-accent,
 .statement-large-text .accent,
-.statement-large-text span,
+.statement-large-text .text-accent,
 .thesis-editorial-headline .accent,
-.thesis-editorial-headline span,
+.thesis-editorial-headline .text-accent,
 .deck-heading .accent,
-.deck-heading span,
+.deck-heading .text-accent,
 .roster-heading .accent,
-.roster-heading span,
+.roster-heading .text-accent,
 .dates-heading .accent,
-.dates-heading span,
+.dates-heading .text-accent,
 .closing-headline .accent,
-.closing-headline span,
+.closing-headline .text-accent,
 .portal-editorial-title .accent,
-.portal-editorial-title span,
+.portal-editorial-title .text-accent,
+.editorial-headline .accent,
+.editorial-headline .text-accent,
 .statement-highlight {
   color: var(--accent);
 }
@@ -4292,11 +4315,12 @@ main[role="main"] {
 .deck-desc,
 .roster-subtext,
 .dates-subtext,
-.closing-sub {
+.closing-sub,
+.editorial-subtext {
   font-family: var(--font-body);
-  font-size: 15.5px;
+  font-size: var(--text-body-subtext);
   color: var(--fg-secondary);
-  line-height: 1.7;
+  line-height: var(--leading-body);
   max-width: 620px;
 }
 
@@ -4307,11 +4331,33 @@ main[role="main"] {
 .roster-card-title,
 .deck-card-title {
   font-family: var(--font-display);
-  font-size: clamp(1.2rem, 1.8vw, 1.55rem);
+  font-size: var(--text-subsection-heading);
   font-weight: 800;
   color: var(--fg-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: var(--tracking-sub);
   line-height: 1.25;
+}
+
+/* 5. Feature & Card Headings */
+.feature-heading,
+.card-heading {
+  font-family: var(--font-display);
+  font-size: var(--text-card-heading);
+  font-weight: 700;
+  color: var(--fg-primary);
+  letter-spacing: var(--tracking-sub);
+  line-height: 1.3;
+}
+
+/* 6. Technical / Metadata Small Label */
+.metadata-label,
+.mono-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-metadata-label);
+  font-weight: 600;
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+  color: var(--fg-muted);
 }
 
 /* ── Section 02: Cinematic Curved Horizontal Film Reel Gallery ── */
