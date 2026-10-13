@@ -35,6 +35,13 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
   const heroRef = useRef(null);
   const statementRef = useRef(null);
   const deckRef = useRef(null);
+  const galleryReelRef = useRef(null);
+  const [reelPaused, setReelPaused] = useState(false);
+
+  const nudgeGallery = (direction = 1) => {
+    if (!galleryReelRef.current) return;
+    galleryReelRef.current.scrollBy({ left: direction * 400, behavior: 'smooth' });
+  };
 
   // Close mobile drawer on Escape key
   useEffect(() => {
@@ -243,6 +250,82 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
       throwCard(-1);
     }
   };
+
+  // ── ACADEMIC PHOTOGRAPHY REEL (9 DISTINCT ACADEMIC ENVIRONMENTS) ─────────
+  const GALLERY_ITEMS = [
+    {
+      id: '01',
+      code: '01 // CONCENTRATION',
+      title: 'Brutalist Reading Rooms',
+      sub: 'Silent study archives & deep work',
+      img: '/thesis-library.jpg',
+      alt: 'Students focused on study in university reading hall',
+    },
+    {
+      id: '02',
+      code: '02 // COMPUTATION',
+      title: 'Systems & Code Architecture',
+      sub: 'Laboratory debugging & project builds',
+      img: '/gallery-coding.jpg',
+      alt: 'University computer science students coding in modern terminal lab',
+    },
+    {
+      id: '03',
+      code: '03 // MAPPING',
+      title: 'Syllabus Topic Cadences',
+      sub: 'Structured coursework mapping & notes',
+      img: '/thesis-workspace.jpg',
+      alt: 'Structured coursework notebook, pens, and laptop',
+    },
+    {
+      id: '04',
+      code: '04 // ARCHITECTURE',
+      title: 'Modern Campus Quad',
+      sub: 'Transition between lecture complexes',
+      img: '/gallery-campus.jpg',
+      alt: 'Modern minimalist university campus architecture and walking students',
+    },
+    {
+      id: '05',
+      code: '05 // SYNTHESIS',
+      title: 'Collaborative Problem Solving',
+      sub: 'Engineering milestone synchronization',
+      img: '/thesis-collab.jpg',
+      alt: 'Engineering students discussing complex coursework tasks',
+    },
+    {
+      id: '06',
+      code: '06 // EVALUATION',
+      title: 'Deep Examination Revision',
+      sub: 'Multi-textbook reference & theory buffer',
+      img: '/gallery-exam.jpg',
+      alt: 'University student focused on exam preparation at library wooden desk',
+    },
+    {
+      id: '07',
+      code: '07 // DISCOURSE',
+      title: 'Interactive Academic Seminars',
+      sub: 'Coursework debates & architecture reviews',
+      img: '/gallery-seminar.jpg',
+      alt: 'University students in seminar discussion with system architecture whiteboard',
+    },
+    {
+      id: '08',
+      code: '08 // PREPARATION',
+      title: 'Terminal Revision Buffer',
+      sub: 'Dedicated individual focus workstation',
+      img: '/auth-space.jpg',
+      alt: 'Minimalist desk setup with academic terminal',
+    },
+    {
+      id: '09',
+      code: '09 // ATMOSPHERE',
+      title: 'Scholarly Communal Spaces',
+      sub: 'Continuous focus & academic momentum',
+      img: '/statement-circle.jpg',
+      alt: 'Students studying together in warm university hall',
+    },
+  ];
 
   // ── ACADEMIC DATES TABLE (REAL COURSEWORK ENTRIES) ───────────────────────
   const SCHEDULE_ROWS = [
@@ -609,7 +692,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
         </div>
       </section>
 
-      {/* ── SECTION 02: ATMOSPHERIC ACADEMIC PHOTOGRAPHY GALLERY ───────── */}
+      {/* ── SECTION 02: CINEMATIC CURVED HORIZONTAL FILM REEL GALLERY ─── */}
       <section
         className="academic-gallery-section"
         id="section-gallery"
@@ -617,75 +700,95 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
       >
         <div className="gallery-container">
           <div className="gallery-header-block">
-            <span className="statement-eyebrow">02 // ACADEMIC IMAGERY · FOCUS CADENCE</span>
-            <h2 id="gallery-heading" className="statement-large-text">
-              Atmospheres of deep academic <span style={{ color: 'var(--accent)' }}>focus</span>.
-            </h2>
-            <p className="statement-subtext" style={{ marginTop: 12 }}>
-              Visualized across genuine university environments — reading halls, syllabus mapping, collaboration, and revision buffers.
-            </p>
+            <div className="gallery-header-row">
+              <div>
+                <span className="statement-eyebrow">02 // ACADEMIC IMAGERY · FOCUS CADENCE</span>
+                <h2 id="gallery-heading" className="statement-large-text">
+                  Atmospheres of deep academic <span style={{ color: 'var(--accent)' }}>focus</span>.
+                </h2>
+                <p className="statement-subtext" style={{ marginTop: 12 }}>
+                  A curated visual reel across genuine university environments — reading archives, software laboratories, collaborative studios, and examination buffers.
+                </p>
+              </div>
+              <div className="gallery-reel-controls" aria-label="Gallery reel navigation controls">
+                <button
+                  type="button"
+                  className="gallery-nav-btn"
+                  onClick={() => nudgeGallery(-1)}
+                  aria-label="Previous gallery images"
+                  title="Previous image"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  type="button"
+                  className="gallery-nav-btn"
+                  onClick={() => nudgeGallery(1)}
+                  aria-label="Next gallery images"
+                  title="Next image"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <div className="gallery-grid" role="region" aria-label="Academic environment image gallery">
-            <div className="gallery-card gallery-card-stagger-1">
-              <div className="gallery-img-wrapper">
-                <img
-                  src="/thesis-library.jpg"
-                  alt="Students focused on study in university reading hall"
-                  className="gallery-img"
-                  loading="lazy"
-                />
-                <div className="gallery-overlay">
-                  <span className="gallery-card-tag">01 // CONCENTRATION</span>
-                  <div className="gallery-card-caption">Brutalist Reading Rooms</div>
+        {/* Full-width curved horizontal film reel viewport */}
+        <div
+          className="gallery-reel-viewport"
+          ref={galleryReelRef}
+          onMouseEnter={() => setReelPaused(true)}
+          onMouseLeave={() => setReelPaused(false)}
+          role="region"
+          aria-label="Continuous academic photography reel"
+          tabIndex={0}
+        >
+          <div className={`gallery-reel-track ${reelPaused ? 'is-paused' : ''}`}>
+            {/* Primary set of 9 distinct photographs */}
+            {GALLERY_ITEMS.map((item, idx) => (
+              <div
+                key={`reel-item-${item.id}`}
+                className={`gallery-reel-card gallery-arc-step-${idx % 5}`}
+              >
+                <div className="gallery-reel-img-wrapper">
+                  <img
+                    src={item.img}
+                    alt={item.alt}
+                    className="gallery-reel-img"
+                    loading="lazy"
+                  />
+                  <div className="gallery-reel-overlay">
+                    <span className="gallery-reel-tag">{item.code}</span>
+                    <div className="gallery-reel-caption">{item.title}</div>
+                    <div className="gallery-reel-sub">{item.sub}</div>
+                  </div>
                 </div>
               </div>
-            </div>
+            ))}
 
-            <div className="gallery-card gallery-card-stagger-2">
-              <div className="gallery-img-wrapper">
-                <img
-                  src="/thesis-workspace.jpg"
-                  alt="Structured coursework notebook, pens, and laptop"
-                  className="gallery-img"
-                  loading="lazy"
-                />
-                <div className="gallery-overlay">
-                  <span className="gallery-card-tag">02 // MAPPING</span>
-                  <div className="gallery-card-caption">Syllabus Topic Cadences</div>
+            {/* Seamless looping duplicate with aria-hidden to prevent duplicate screen reader noise */}
+            {GALLERY_ITEMS.map((item, idx) => (
+              <div
+                key={`reel-dup-${item.id}`}
+                className={`gallery-reel-card gallery-arc-step-${idx % 5}`}
+                aria-hidden="true"
+              >
+                <div className="gallery-reel-img-wrapper">
+                  <img
+                    src={item.img}
+                    alt=""
+                    className="gallery-reel-img"
+                    loading="lazy"
+                  />
+                  <div className="gallery-reel-overlay">
+                    <span className="gallery-reel-tag">{item.code}</span>
+                    <div className="gallery-reel-caption">{item.title}</div>
+                    <div className="gallery-reel-sub">{item.sub}</div>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div className="gallery-card gallery-card-stagger-3">
-              <div className="gallery-img-wrapper">
-                <img
-                  src="/thesis-collab.jpg"
-                  alt="Engineering students discussing complex coursework tasks"
-                  className="gallery-img"
-                  loading="lazy"
-                />
-                <div className="gallery-overlay">
-                  <span className="gallery-card-tag">03 // SYNTHESIS</span>
-                  <div className="gallery-card-caption">Collaborative Problem Solving</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="gallery-card gallery-card-stagger-4">
-              <div className="gallery-img-wrapper">
-                <img
-                  src="/auth-space.jpg"
-                  alt="Minimalist desk setup with academic terminal"
-                  className="gallery-img"
-                  loading="lazy"
-                />
-                <div className="gallery-overlay">
-                  <span className="gallery-card-tag">04 // PREPARATION</span>
-                  <div className="gallery-card-caption">Exam Revision Buffer</div>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
