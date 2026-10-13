@@ -76,6 +76,22 @@ const subjectSchema = new mongoose.Schema(
       enum: ['LOCAL', 'CODE_BRIGADE', 'SAMPLE'],
       default: 'LOCAL',
     },
+    fromDate: {
+      type: String,
+      default: '',
+    },
+    toDate: {
+      type: String,
+      default: '',
+    },
+    dutyLeave: {
+      type: Number,
+      default: 0,
+    },
+    medicalLeave: {
+      type: Number,
+      default: 0,
+    },
     isActive: {
       type: Boolean,
       default: true,

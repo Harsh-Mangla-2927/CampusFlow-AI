@@ -95,6 +95,10 @@ async function getDashboardSummary(userId, targetThreshold = 75) {
       isTargetMet: recovery.isMet,
       isTargetImpossible: recovery.impossible,
       source: subj.source || 'LOCAL',
+      fromDate: subj.fromDate || '',
+      toDate: subj.toDate || '',
+      dutyLeave: subj.dutyLeave || 0,
+      medicalLeave: subj.medicalLeave || 0,
     };
   });
 
@@ -446,6 +450,10 @@ async function syncCodeBrigade(userId) {
         subjDoc.attendedClasses = rawSubj.attendedClasses;
         if (rawSubj.teacher && !subjDoc.teacher) subjDoc.teacher = rawSubj.teacher;
         subjDoc.source = 'CODE_BRIGADE';
+        if (rawSubj.fromDate) subjDoc.fromDate = rawSubj.fromDate;
+        if (rawSubj.toDate) subjDoc.toDate = rawSubj.toDate;
+        if (rawSubj.dutyLeave !== undefined) subjDoc.dutyLeave = rawSubj.dutyLeave;
+        if (rawSubj.medicalLeave !== undefined) subjDoc.medicalLeave = rawSubj.medicalLeave;
         await subjDoc.save();
       } else {
         // Create new subject document
@@ -460,6 +468,10 @@ async function syncCodeBrigade(userId) {
           attendanceThreshold: 75,
           color: '#FF3D00',
           source: 'CODE_BRIGADE',
+          fromDate: rawSubj.fromDate || '',
+          toDate: rawSubj.toDate || '',
+          dutyLeave: rawSubj.dutyLeave || 0,
+          medicalLeave: rawSubj.medicalLeave || 0,
           isActive: true,
         });
       }
@@ -593,6 +605,19 @@ async function getSubjectRegister(userId, subjectId, queryParams = {}) {
   const standing = determineStanding(percentage, threshold, conducted);
   const recovery = calculateClassesToAttend(attended, conducted, threshold);
   const canMiss = calculateClassesCanMiss(attended, conducted, threshold);
+  const isCodeBrigade = subject.source === 'CODE_BRIGADE';
+  const hasDetailedSessions = total > 0;
+  const isPartial = total > 0 && total < conducted;
+  const isSummaryOnly = isCodeBrigade && total === 0;
+
+  let sessionStatusMessage = '';
+  if (isSummaryOnly) {
+    sessionStatusMessage = `Official university semester aggregate totals (${attended}/${conducted} attended, ${percentage}%). Individual lecture timestamps are not published by Code Brigade's mobile API.`;
+  } else if (isPartial) {
+    sessionStatusMessage = `Partial session log: ${total} of ${conducted} conducted classes recorded individually.`;
+  } else if (total > 0) {
+    sessionStatusMessage = `All ${total} class sessions recorded.`;
+  }
 
   return {
     subject: {
@@ -611,6 +636,19 @@ async function getSubjectRegister(userId, subjectId, queryParams = {}) {
       classesNeededForThreshold: recovery.required ?? 0,
       classesCanMiss: canMiss.canMiss ?? 0,
       source: subject.source || 'LOCAL',
+      fromDate: subject.fromDate || '',
+      toDate: subject.toDate || '',
+      dutyLeave: subject.dutyLeave || 0,
+      medicalLeave: subject.medicalLeave || 0,
+    },
+    meta: {
+      totalStoredSessions: total,
+      totalConductedClasses: conducted,
+      totalAttendedClasses: attended,
+      hasDetailedSessions,
+      isSummaryOnly,
+      isPartial,
+      statusMessage: sessionStatusMessage,
     },
     sessions: sessions.map((s) => ({
       _id: s._id,

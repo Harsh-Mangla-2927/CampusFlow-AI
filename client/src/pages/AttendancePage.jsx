@@ -278,6 +278,9 @@ export default function AttendancePage() {
       setMarkModalOpen(false);
       setMarkTopic('');
       fetchSummary(threshold, true);
+      if (selectedSubject && selectedSubject._id === markSubjectId) {
+        openSubjectRegister(selectedSubject);
+      }
     } catch (err) {
       if (err.status === 409) {
         toast.warning('Attendance already recorded for this subject on the selected date.');
@@ -1389,6 +1392,83 @@ export default function AttendancePage() {
               </div>
             </div>
 
+            {/* University Metadata Strip for Code Brigade Courses */}
+            {(selectedSubject.source === 'CODE_BRIGADE' || selectedSubject.teacher || selectedSubject.fromDate) && (
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '8px 12px',
+                  background: 'rgba(255, 61, 0, 0.05)',
+                  border: '1px solid rgba(255, 61, 0, 0.18)',
+                  borderRadius: 'var(--radius-sm)',
+                  marginBottom: 14,
+                  fontSize: 11,
+                  fontFamily: 'var(--font-mono)',
+                }}
+              >
+                <div>
+                  <span style={{ color: 'var(--fg-faint)', textTransform: 'uppercase' }}>Faculty: </span>
+                  <strong style={{ color: 'var(--fg-primary)' }}>{selectedSubject.teacher || 'Assigned Faculty'}</strong>
+                  {selectedSubject.fromDate && selectedSubject.toDate && (
+                    <span style={{ color: 'var(--fg-muted)', marginLeft: 8 }}>
+                      • {selectedSubject.fromDate} → {selectedSubject.toDate}
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ color: 'var(--fg-muted)' }}>
+                    DL: <strong style={{ color: 'var(--fg-primary)' }}>{selectedSubject.dutyLeave || 0}</strong>
+                  </span>
+                  <span style={{ color: 'var(--fg-muted)' }}>
+                    ML: <strong style={{ color: 'var(--fg-primary)' }}>{selectedSubject.medicalLeave || 0}</strong>
+                  </span>
+                  <span
+                    style={{
+                      color: 'var(--accent)',
+                      fontWeight: 700,
+                      background: 'rgba(255, 61, 0, 0.1)',
+                      padding: '2px 6px',
+                      borderRadius: 3,
+                    }}
+                  >
+                    [UNIVERSITY DATA]
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Partial Sessions Indicator Banner */}
+            {registerData?.sessions?.length > 0 && registerData.sessions.length < selectedSubject.totalClasses && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '8px 12px',
+                  background: 'rgba(59, 130, 246, 0.08)',
+                  border: '1px solid rgba(59, 130, 246, 0.22)',
+                  borderRadius: 'var(--radius-sm)',
+                  marginBottom: 12,
+                  fontSize: 11,
+                }}
+              >
+                <span style={{ color: 'var(--fg-secondary)' }}>
+                  <strong>Partial Session Log:</strong> Showing {registerData.sessions.length} individual session(s) recorded. Official semester total is {selectedSubject.attendedClasses} attended out of {selectedSubject.totalClasses} conducted.
+                </span>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  style={{ fontSize: 10, padding: '3px 8px' }}
+                  onClick={() => { setMarkSubjectId(selectedSubject._id); setMarkModalOpen(true); }}
+                >
+                  + Log Class
+                </button>
+              </div>
+            )}
+
             {/* Filter Tabs */}
             <div className="attendly-filter-tabs">
               {[
@@ -1410,11 +1490,78 @@ export default function AttendancePage() {
             {loadingRegister ? (
               <LoadingState message="Loading subject register sessions…" />
             ) : filteredSessions.length === 0 ? (
-              <EmptyState
-                icon={<Calendar size={22} />}
-                title="No Sessions Recorded"
-                description="No matching lecture records exist for this filter."
-              />
+              (!registerData?.sessions || registerData.sessions.length === 0) ? (
+                selectedSubject.source === 'CODE_BRIGADE' ? (
+                  <div
+                    style={{
+                      padding: '28px 20px',
+                      textAlign: 'center',
+                      background: 'rgba(255, 255, 255, 0.02)',
+                      border: '1px dashed rgba(255, 61, 0, 0.25)',
+                      borderRadius: 'var(--radius-md)',
+                      margin: '12px 0',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        padding: 10,
+                        borderRadius: '50%',
+                        background: 'rgba(255, 61, 0, 0.1)',
+                        color: 'var(--accent)',
+                        marginBottom: 12,
+                      }}
+                    >
+                      <ShieldCheck size={26} />
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700, color: 'var(--fg-primary)', marginBottom: 6 }}>
+                      Official University Aggregate Register Active
+                    </div>
+                    <p style={{ fontSize: 12, color: 'var(--fg-muted)', maxWidth: 520, margin: '0 auto 16px', lineHeight: 1.5 }}>
+                      Code Brigade delivers verified semester totals ({selectedSubject.attendedClasses} attended / {selectedSubject.totalClasses} conducted, {selectedSubject.attendancePercentage}%) from {selectedSubject.fromDate || 'start of term'} to {selectedSubject.toDate || 'present'}. Individual per-lecture timestamps are not published by the university mobile API.
+                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16, fontFamily: 'var(--font-mono)', fontSize: 11 }}>
+                      <span style={{ padding: '4px 10px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', color: 'var(--success)', borderRadius: 4 }}>
+                        Attended: {selectedSubject.attendedClasses}
+                      </span>
+                      <span style={{ padding: '4px 10px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: 'var(--danger)', borderRadius: 4 }}>
+                        Missed: {selectedSubject.missedClasses}
+                      </span>
+                      <span style={{ padding: '4px 10px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-subtle)', color: 'var(--fg-secondary)', borderRadius: 4 }}>
+                        Total Conducted: {selectedSubject.totalClasses}
+                      </span>
+                    </div>
+                    <button
+                      className="btn btn-outline btn-sm"
+                      onClick={() => { setMarkSubjectId(selectedSubject._id); setMarkModalOpen(true); }}
+                      style={{ gap: 6 }}
+                    >
+                      <PlusCircle size={13} /> Log Class Session
+                    </button>
+                  </div>
+                ) : (
+                  <EmptyState
+                    icon={<Calendar size={22} />}
+                    title="No Sessions Recorded"
+                    description="No class sessions have been logged for this subject yet."
+                    action={
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => { setMarkSubjectId(selectedSubject._id); setMarkModalOpen(true); }}
+                        style={{ gap: 6, marginTop: 8 }}
+                      >
+                        <PlusCircle size={13} /> Record First Class
+                      </button>
+                    }
+                  />
+                )
+              ) : (
+                <EmptyState
+                  icon={<Calendar size={22} />}
+                  title={`No ${registerFilter.toLowerCase()} sessions`}
+                  description={`No stored lecture sessions are marked as ${registerFilter} for this subject.`}
+                />
+              )
             ) : (
               <div className="attendly-register-list">
                 {filteredSessions.map(session => (

@@ -503,6 +503,46 @@ async function runHttpTests() {
       failedTests++;
     }
 
+    // J. Authenticated GET /api/attendance/subjects/:id/register returns register with consistency meta
+    let testSubjectId = authSummary.data?.data?.subjects?.[0]?._id;
+    if (!testSubjectId) {
+      const seedRes = await httpRequest({
+        hostname: 'localhost',
+        port: 8000,
+        path: '/api/attendance/sample-data',
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      }, { action: 'seed' });
+      testSubjectId = seedRes.data?.data?.subjects?.[0]?._id;
+    }
+
+    if (testSubjectId) {
+      const authRegister = await httpRequest({
+        hostname: 'localhost',
+        port: 8000,
+        path: `/api/attendance/subjects/${testSubjectId}/register`,
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      if (
+        authRegister.status === 200 &&
+        authRegister.data?.data?.subject &&
+        authRegister.data?.data?.meta &&
+        Array.isArray(authRegister.data?.data?.sessions)
+      ) {
+        console.log('  ✓ Authenticated GET /api/attendance/subjects/:id/register returns register with consistency meta');
+        passedTests++;
+      } else {
+        console.error('  ✗ Authenticated GET /api/attendance/subjects/:id/register failed:', authRegister);
+        failedTests++;
+      }
+    }
+
   } catch (err) {
     console.error('  ✗ HTTP tests threw unexpected error:', err.message);
     failedTests++;
