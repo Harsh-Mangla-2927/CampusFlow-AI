@@ -66,6 +66,15 @@ export default function ForgotPasswordPage({ onGoLogin, onGoLanding }) {
     <div className="auth-shell">
       {/* ── LEFT PANEL: BRANDING ─────────────────────────────── */}
       <div className="auth-left">
+        <div className="auth-left-bg" aria-hidden="true">
+          <img
+            src="/auth-space.jpg"
+            alt=""
+            className="auth-bg-img"
+          />
+          <div className="auth-bg-overlay" />
+        </div>
+
         <div className="auth-left-inner">
           <div className="auth-brand-badge">
             <span className="auth-brand-tag">Academic Security Protocol</span>
