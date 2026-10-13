@@ -1073,7 +1073,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
               title="SYSTEM ARCHITECTURE"
               subtitle="COMPUTATIONAL ENGINES"
             />
-            <h2 id="deck-heading" className="section-heading">
+            <h2 id="deck-heading" className="section-heading deck-heading">
               Tactile control over your academic <span className="accent">trajectory</span>.
             </h2>
             <p className="section-subtext deck-desc">
@@ -1254,10 +1254,10 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
             title="FUNCTIONAL ROSTER"
             subtitle="MODULE DIRECTORY"
           />
-          <h2 id="roster-heading" className="section-heading">
+          <h2 id="roster-heading" className="section-heading roster-heading">
             System modules & computational <span className="accent">rules</span>.
           </h2>
-          <p className="section-subtext">
+          <p className="section-subtext roster-subtext">
             Six synchronized deterministic engines engineered to eliminate academic uncertainty,
             powered by explainable heuristics rather than black-box guesswork.
           </p>

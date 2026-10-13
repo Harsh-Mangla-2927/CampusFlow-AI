@@ -5114,6 +5114,28 @@ main[role="main"] {
   gap: 20px;
 }
 
+.deck-heading {
+  font-family: var(--font-display);
+  font-size: var(--text-section-heading);
+  font-weight: 900;
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-heading);
+  color: var(--fg-primary);
+  margin: 0 0 16px;
+  max-width: 580px;
+  text-wrap: balance;
+}
+
+.deck-desc {
+  font-family: var(--font-body);
+  font-size: var(--text-body-subtext);
+  line-height: var(--leading-body);
+  color: var(--fg-secondary);
+  max-width: 540px;
+  margin: 0;
+  text-wrap: pretty;
+}
+
 
 
 .deck-checklist {
@@ -5288,7 +5310,27 @@ main[role="main"] {
   max-width: 760px;
 }
 
+.roster-heading {
+  font-family: var(--font-display);
+  font-size: var(--text-section-heading);
+  font-weight: 900;
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-heading);
+  color: var(--fg-primary);
+  margin: 0 0 16px;
+  max-width: 720px;
+  text-wrap: balance;
+}
 
+.roster-subtext {
+  font-family: var(--font-body);
+  font-size: var(--text-body-subtext);
+  line-height: var(--leading-body);
+  color: var(--fg-secondary);
+  max-width: 620px;
+  margin: 0;
+  text-wrap: pretty;
+}
 
 .roster-directory-grid {
   display: grid;
@@ -5309,7 +5351,7 @@ main[role="main"] {
 
 .roster-card:hover {
   transform: translateY(-3px);
-  border-color: rgba(232, 145, 60, 0.4);
+  border-color: rgba(255, 61, 0, 0.4);
   background: var(--bg-elevated);
 }
 
