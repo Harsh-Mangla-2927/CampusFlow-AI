@@ -50,6 +50,18 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
     }
   };
 
+  // Section 06: Structured Calendar Progression Timeline state
+  const [selectedMilestoneIndex, setSelectedMilestoneIndex] = useState(0);
+
+  const stepTimeline = (direction = 1) => {
+    setSelectedMilestoneIndex((prev) => {
+      const next = prev + direction;
+      if (next < 0) return SCHEDULE_ROWS.length - 1;
+      if (next >= SCHEDULE_ROWS.length) return 0;
+      return next;
+    });
+  };
+
   const nudgeGallery = (direction = 1) => {
     if (!galleryReelRef.current) return;
     galleryReelRef.current.scrollBy({ left: direction * 400, behavior: 'smooth' });
@@ -394,52 +406,82 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
     },
   ];
 
-  // ── ACADEMIC DATES TABLE (REAL COURSEWORK ENTRIES) ───────────────────────
+  // ── ACADEMIC PROGRESSION MILESTONES (ILLUSTRATIVE CURRICULUM CADENCE) ────
   const SCHEDULE_ROWS = [
     {
+      id: 'm1',
       date: 'OCT 18 · 09:30 AM',
+      dayLabel: 'SATURDAY',
       code: 'CSE-301',
       subject: 'Data Structures & Algorithms',
       type: 'MIDTERM EVALUATION',
       weight: '25% SEMESTER',
       status: 'HIGH COLLISION WINDOW',
       statusType: 'amber',
+      isNext: true,
+      cadenceRule: '48h Collision Defense active — mandatory study block allocated 2 days prior to prevent midterm overlap.',
+      bufferDays: '48H BUFFER',
+      prepStage: 'MOCK EXAM PHASE',
     },
     {
+      id: 'm2',
       date: 'OCT 19 · 11:59 PM',
+      dayLabel: 'SUNDAY',
       code: 'CSE-304',
       subject: 'Database Systems (DBMS)',
       type: 'NORMALIZATION TERM PROJECT',
       weight: '15% COURSEWORK',
       status: 'PRIORITY QUEUE #1',
       statusType: 'amber',
+      isNext: false,
+      cadenceRule: 'Top ranked in Dynamic Priority Matrix due to 15% course weight & 24h deadline proximity.',
+      bufferDays: 'DEADLINE WINDOW',
+      prepStage: 'FINAL VERIFICATION',
     },
     {
+      id: 'm3',
       date: 'OCT 22 · 02:00 PM',
+      dayLabel: 'WEDNESDAY',
       code: 'CSE-308',
       subject: 'Computer Networks',
       type: 'LAB BENCHMARK VIVA',
       weight: '10% PRACTICAL',
       status: 'PREPARATION CADENCE ACTIVE',
       statusType: 'teal',
+      isNext: false,
+      cadenceRule: 'Lab evaluation viva slotted with 3-day spaced repetition retrieval review.',
+      bufferDays: '72H HORIZON',
+      prepStage: 'RETRIEVAL PRACTICE',
     },
     {
+      id: 'm4',
       date: 'OCT 26 · 10:00 AM',
+      dayLabel: 'SUNDAY',
       code: 'CSE-312',
       subject: 'Operating Systems & Concurrency',
       type: 'THEORY QUIZ II',
       weight: '10% INTERNAL',
       status: 'SAFE ATTENDANCE (83%)',
       statusType: 'teal',
+      isNext: false,
+      cadenceRule: 'Attendance verified at 83% (+4 session margin above statutory 75% cutoff threshold).',
+      bufferDays: 'SCHEDULED CADENCE',
+      prepStage: 'CONCEPT REVIEW',
     },
     {
+      id: 'm5',
       date: 'NOV 04 · 01:30 PM',
+      dayLabel: 'TUESDAY',
       code: 'CSE-316',
       subject: 'Theory of Computation',
       type: 'END-SEM COMPREHENSIVE',
       weight: '40% FINAL EXAM',
       status: 'REVISION BUFFER RESERVED',
       statusType: 'teal',
+      isNext: false,
+      cadenceRule: 'Final exam buffer locked: 5 mandatory uninterrupted revision days with zero pending submissions.',
+      bufferDays: '5-DAY BUFFER',
+      prepStage: 'SYLLABUS RETENTION',
     },
   ];
 
@@ -1333,72 +1375,195 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
         </div>
       </section>
 
-      {/* ── SECTION 5: STRUCTURED CALENDAR & TIMELINE CADENCE ───────────── */}
+      {/* ── SECTION 06: STRUCTURED CALENDAR & PROGRESSION TIMELINE ───────────── */}
       <section className="dates-section" id="section-dates" aria-labelledby="dates-heading">
-        <div className="dates-header">
-          <div className="section-eyebrow">06 // STRUCTURED CALENDAR</div>
-          <h2 id="dates-heading" className="section-heading">
-            Academic schedule & submission <span className="accent">cadence</span>.
-          </h2>
-          <p className="section-subtext dates-subtext">
-            Illustrative curriculum timeline demonstrating how CampusFlow AI maps evaluation milestones,
-            credit weightages, and proactive preparation cadences.
-          </p>
-        </div>
+        {/* Header Row: Eyebrow, Heading, Subtext & Navigation Toolbar */}
+        <div className="dates-header-row">
+          <div className="dates-header-col">
+            <span className="section-eyebrow">06 // STRUCTURED CALENDAR</span>
+            <h2 id="dates-heading" className="section-heading">
+              Academic schedule & submission <span className="accent">cadence</span>.
+            </h2>
+            <p className="section-subtext dates-subtext">
+              Illustrative curriculum timeline demonstrating how CampusFlow AI maps evaluation milestones,
+              credit weightages, and proactive preparation cadences.
+            </p>
+          </div>
 
-        {/* Desktop Table View */}
-        <div className="dates-table-container">
-          <table className="dates-table" role="table">
-            <thead className="dates-thead">
-              <tr>
-                <th className="dates-th" scope="col">Date / Timeline</th>
-                <th className="dates-th" scope="col">Course / Subject</th>
-                <th className="dates-th" scope="col">Evaluation Milestone</th>
-                <th className="dates-th" scope="col">Weight</th>
-                <th className="dates-th" scope="col" style={{ textAlign: 'right' }}>Cadence Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {SCHEDULE_ROWS.map((row, idx) => (
-                <tr key={idx} className="dates-tr">
-                  <td className="dates-td font-mono" style={{ color: 'var(--fg-primary)', fontWeight: 600 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span className="dates-timeline-dot" />
-                      <span>{row.date}</span>
-                    </div>
-                  </td>
-                  <td className="dates-td">
-                    <div className="dates-subject">{row.subject}</div>
-                    <div style={{ fontSize: 11, color: 'var(--fg-muted)' }}>{row.code}</div>
-                  </td>
-                  <td className="dates-td">{row.type}</td>
-                  <td className="dates-td font-mono" style={{ color: 'var(--fg-secondary)' }}>
-                    {row.weight}
-                  </td>
-                  <td className="dates-td" style={{ textAlign: 'right' }}>
-                    <span className={`dates-badge ${row.statusType}`}>
-                      {row.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile Stacked Schedule Cards View */}
-        <div className="dates-mobile-cards">
-          {SCHEDULE_ROWS.map((row, idx) => (
-            <div key={idx} className="dates-mobile-card">
-              <div className="dates-mobile-card-header">
-                <span className="dates-mobile-date">{row.date}</span>
-                <span className={`dates-badge ${row.statusType}`}>{row.status}</span>
-              </div>
-              <div className="dates-mobile-subject">{row.subject}</div>
-              <div className="dates-mobile-code">{row.code} · {row.type}</div>
-              <div className="dates-mobile-weight">Weight: <strong>{row.weight}</strong></div>
+          <div className="dates-controls" aria-label="Timeline navigation controls">
+            <div className="dates-step-indicator">
+              <span className="dates-step-dot" />
+              <span>
+                MILESTONE 0{selectedMilestoneIndex + 1} / 0{SCHEDULE_ROWS.length} · {SCHEDULE_ROWS[selectedMilestoneIndex]?.code}
+              </span>
             </div>
-          ))}
+            <button
+              type="button"
+              className="dates-nav-btn"
+              onClick={() => stepTimeline(-1)}
+              aria-label="Previous academic milestone"
+              title="Previous milestone"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              type="button"
+              className="dates-nav-btn"
+              onClick={() => stepTimeline(1)}
+              aria-label="Next academic milestone"
+              title="Next milestone"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop Horizontal Progression Timeline Track */}
+        <div className="timeline-track-wrapper" role="region" aria-label="Interactive academic progression track">
+          {/* Continuous Rail Line with dynamic progression fill */}
+          <div className="timeline-rail-container" aria-hidden="true">
+            <div
+              className="timeline-rail-fill"
+              style={{
+                width: `${((selectedMilestoneIndex + 1) / SCHEDULE_ROWS.length) * 100}%`,
+              }}
+            />
+          </div>
+
+          {/* 5-Column Milestone Grid */}
+          <div className="timeline-milestones-grid" role="tablist" aria-label="Academic milestones">
+            {SCHEDULE_ROWS.map((row, idx) => {
+              const isSelected = selectedMilestoneIndex === idx;
+              const isNext = row.isNext;
+
+              return (
+                <div
+                  key={row.id}
+                  role="tab"
+                  tabIndex={0}
+                  aria-selected={isSelected}
+                  aria-label={`${row.code}: ${row.subject} on ${row.date}`}
+                  className={`timeline-milestone-item ${isSelected ? 'is-selected' : ''} ${isNext ? 'is-next' : ''}`}
+                  onClick={() => setSelectedMilestoneIndex(idx)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedMilestoneIndex(idx);
+                    }
+                  }}
+                >
+                  {/* Milestone Node on Progression Line */}
+                  <div className="timeline-node-wrapper">
+                    <div className="timeline-node-box">
+                      <div className="timeline-node-inner" />
+                    </div>
+                    <span className="timeline-node-label">
+                      {isNext ? 'NEXT EVALUATION' : `STAGE 0${idx + 1}`}
+                    </span>
+                  </div>
+
+                  {/* Connected Editorial Card */}
+                  <div className="timeline-milestone-card">
+                    <div className="timeline-card-header">
+                      <span className="timeline-date-stamp">{row.date}</span>
+                      {isNext && <span className="timeline-next-badge">NEXT</span>}
+                    </div>
+
+                    <div className="timeline-code-row">
+                      <span className="timeline-course-code">{row.code}</span>
+                      <span className="timeline-weight-pill">{row.weight}</span>
+                    </div>
+
+                    <h3 className="timeline-subject-title">{row.subject}</h3>
+                    <div className="timeline-milestone-type">{row.type}</div>
+
+                    <div className={`timeline-status-badge ${row.statusType}`}>
+                      <span className="dates-timeline-dot" style={{ width: 5, height: 5 }} />
+                      <span>{row.status}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Detailed Active Milestone Cadence Inspector Panel */}
+        <div className="timeline-inspector-panel" aria-live="polite">
+          <div className="inspector-left">
+            <span className="inspector-eyebrow">
+              {SCHEDULE_ROWS[selectedMilestoneIndex]?.isNext ? 'NEXT CRITICAL MILESTONE INSPECTION' : 'CADENCE STAGE INSPECTION'}
+            </span>
+            <h3 className="inspector-title">
+              {SCHEDULE_ROWS[selectedMilestoneIndex]?.code} · {SCHEDULE_ROWS[selectedMilestoneIndex]?.subject}
+            </h3>
+            <div className="inspector-meta">
+              <span>{SCHEDULE_ROWS[selectedMilestoneIndex]?.date}</span>
+              <span>·</span>
+              <span>{SCHEDULE_ROWS[selectedMilestoneIndex]?.type}</span>
+              <span>·</span>
+              <span style={{ color: 'var(--accent)', fontWeight: 700 }}>{SCHEDULE_ROWS[selectedMilestoneIndex]?.weight}</span>
+            </div>
+          </div>
+
+          <div className="inspector-right">
+            <span className="inspector-rule-title">ENGINE CADENCE PROTOCOL</span>
+            <p className="inspector-rule-text">
+              {SCHEDULE_ROWS[selectedMilestoneIndex]?.cadenceRule}
+            </p>
+            <div className="inspector-tags">
+              <span className={`inspector-tag ${SCHEDULE_ROWS[selectedMilestoneIndex]?.statusType}`} style={{ color: 'var(--accent)' }}>
+                {SCHEDULE_ROWS[selectedMilestoneIndex]?.status}
+              </span>
+              <span className="inspector-tag">
+                {SCHEDULE_ROWS[selectedMilestoneIndex]?.bufferDays}
+              </span>
+              <span className="inspector-tag">
+                {SCHEDULE_ROWS[selectedMilestoneIndex]?.prepStage}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Vertical Progression Stream */}
+        <div className="timeline-vertical-stream" role="region" aria-label="Mobile academic progression timeline">
+          <div className="timeline-vertical-line" aria-hidden="true" />
+          {SCHEDULE_ROWS.map((row, idx) => {
+            const isSelected = selectedMilestoneIndex === idx;
+            const isNext = row.isNext;
+
+            return (
+              <div
+                key={`mob-${row.id}`}
+                className="timeline-vertical-item"
+                onClick={() => setSelectedMilestoneIndex(idx)}
+              >
+                <div className={`timeline-vertical-node ${isNext ? 'is-next' : ''} ${isSelected ? 'is-selected' : ''}`}>
+                  <div className="timeline-vertical-dot" />
+                </div>
+
+                <div className={`timeline-vertical-card ${isNext ? 'is-next' : ''}`}>
+                  <div className="timeline-card-header">
+                    <span className="timeline-date-stamp">{row.date}</span>
+                    {isNext && <span className="timeline-next-badge">NEXT</span>}
+                  </div>
+
+                  <div className="timeline-code-row">
+                    <span className="timeline-course-code">{row.code}</span>
+                    <span className="timeline-weight-pill">{row.weight}</span>
+                  </div>
+
+                  <h3 className="timeline-subject-title" style={{ minHeight: 'auto' }}>{row.subject}</h3>
+                  <div className="timeline-milestone-type">{row.type}</div>
+
+                  <div className={`timeline-status-badge ${row.statusType}`}>
+                    <span className="dates-timeline-dot" style={{ width: 5, height: 5 }} />
+                    <span>{row.status}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
 

@@ -5273,7 +5273,7 @@ main[role="main"] {
   color: var(--accent);
 }
 
-/* ── Section 5: Structured Calendar & Submission Cadence ── */
+/* ── SECTION 06: STRUCTURED CALENDAR & PROGRESSION TIMELINE ── */
 .dates-section {
   padding: 120px 48px;
   max-width: 1280px;
@@ -5283,138 +5283,488 @@ main[role="main"] {
   border-top: 1px solid var(--border);
 }
 
-.dates-header {
-  margin-bottom: 40px;
-  max-width: 760px;
+.dates-header-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 36px;
 }
 
-.dates-subtext {
-  font-family: var(--font-body);
-  font-size: 15px;
-  color: var(--fg-secondary);
-  line-height: 1.65;
-  margin-top: 8px;
+.dates-header-col {
+  max-width: 720px;
 }
 
-.dates-table-container {
-  width: 100%;
-  overflow-x: auto;
+.dates-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.dates-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.dates-th {
+.dates-step-indicator {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--fg-muted);
-  text-align: left;
-  padding: 16px 14px 16px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.dates-td {
-  padding: 20px 14px 20px 0;
-  border-bottom: 1px solid var(--border);
-  font-family: var(--font-body);
-  font-size: 13.5px;
   color: var(--fg-secondary);
-  vertical-align: middle;
+  background: #111111;
+  border: 1px solid var(--border);
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 0;
 }
 
-.dates-timeline-dot {
+.dates-step-dot {
   width: 6px;
   height: 6px;
-  border-radius: var(--r-none, 0px);
   background: var(--accent);
-  display: inline-block;
-  flex-shrink: 0;
+  box-shadow: 0 0 6px var(--accent);
 }
 
-.dates-subject {
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--fg-primary);
-}
-
-.dates-badge {
-  display: inline-flex;
+.dates-nav-btn {
+  width: 38px;
+  height: 38px;
+  background: #141414;
+  border: 1px solid var(--border);
+  color: var(--fg-secondary);
+  display: flex;
   align-items: center;
-  padding: 4px 10px;
-  border-radius: var(--r-none, 0px);
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 0;
+  transition: all var(--t-fast);
+}
+
+.dates-nav-btn:hover {
+  background: #1C1C1C;
+  color: var(--fg-primary);
+  border-color: var(--border-hover);
+}
+
+/* Horizontal Timeline Track Area */
+.timeline-track-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 28px;
+  background: #0D0D0D;
+  border: 1px solid var(--border);
+  padding: 36px 32px 32px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+/* Progression Connecting Rail */
+.timeline-rail-container {
+  position: relative;
+  width: 100%;
+  height: 2px;
+  background: #202020;
+  margin-bottom: 32px;
+}
+
+.timeline-rail-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), rgba(255, 61, 0, 0.4));
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 5-Column Horizontal Milestones Grid */
+.timeline-milestones-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(200px, 1fr));
+  gap: 18px;
+  min-width: 1000px;
+}
+
+/* Individual Milestone Column Item */
+.timeline-milestone-item {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.25s ease;
+  user-select: none;
+}
+
+/* Marker Node on the Rail */
+.timeline-node-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.timeline-node-box {
+  width: 18px;
+  height: 18px;
+  background: #121212;
+  border: 2px solid #333333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  transition: all var(--t-fast);
+  z-index: 2;
+}
+
+.timeline-node-inner {
+  width: 6px;
+  height: 6px;
+  background: var(--fg-muted);
+  transition: all var(--t-fast);
+}
+
+.timeline-milestone-item.is-selected .timeline-node-box,
+.timeline-milestone-item.is-next .timeline-node-box {
+  border-color: var(--accent);
+  background: #1A0D08;
+  box-shadow: 0 0 10px rgba(255, 61, 0, 0.35);
+}
+
+.timeline-milestone-item.is-selected .timeline-node-inner,
+.timeline-milestone-item.is-next .timeline-node-inner {
+  background: var(--accent);
+}
+
+.timeline-node-label {
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  color: var(--fg-muted);
+  margin-left: 10px;
 }
 
-.dates-badge.amber {
-  background: var(--accent-dim);
+.timeline-milestone-item.is-selected .timeline-node-label {
   color: var(--accent);
-  border: 1px solid var(--accent-border);
 }
 
-.dates-badge.teal {
+/* Editorial Card beneath the node */
+.timeline-milestone-card {
+  background: #131313;
+  border: 1px solid var(--border);
+  padding: 22px 18px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  transition: all var(--t-fast);
+  border-radius: 0;
+}
+
+.timeline-milestone-item:hover .timeline-milestone-card {
+  background: #171717;
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+}
+
+.timeline-milestone-item.is-selected .timeline-milestone-card {
+  background: #181818;
+  border-color: var(--accent);
+  border-top: 3px solid var(--accent);
+}
+
+.timeline-milestone-item.is-next .timeline-milestone-card {
+  border-color: rgba(255, 61, 0, 0.5);
+}
+
+/* Card Header: Date & Next Badge */
+.timeline-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
+.timeline-date-stamp {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--fg-primary);
+}
+
+.timeline-next-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(255, 61, 0, 0.12);
+  border: 1px solid var(--accent);
+  padding: 2px 6px;
+}
+
+/* Card Subject & Code */
+.timeline-code-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.timeline-course-code {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--fg-secondary);
+}
+
+.timeline-weight-pill {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--fg-muted);
+}
+
+.timeline-subject-title {
+  font-family: var(--font-display);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--fg-primary);
+  line-height: 1.35;
+  margin-bottom: 8px;
+  min-height: 38px;
+}
+
+.timeline-milestone-type {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-secondary);
+  margin-bottom: 14px;
+}
+
+/* Card Footer: Status Badge */
+.timeline-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  margin-top: auto;
+  border-radius: 0;
+}
+
+.timeline-status-badge.amber {
+  background: rgba(255, 61, 0, 0.1);
+  color: var(--accent);
+  border: 1px solid rgba(255, 61, 0, 0.3);
+}
+
+.timeline-status-badge.teal {
   background: var(--teal-dim);
   color: var(--teal);
   border: 1px solid rgba(20, 184, 166, 0.3);
 }
 
-.dates-mobile-cards {
-  display: none;
-  flex-direction: column;
-  gap: 14px;
+/* Detailed Active Milestone Cadence Inspector Panel */
+.timeline-inspector-panel {
+  background: #111111;
+  border: 1px solid var(--border);
+  padding: 24px 28px;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 32px;
+  align-items: center;
 }
 
-.dates-mobile-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-none, 0px);
-  padding: 18px 16px;
+.inspector-left {
   display: flex;
   flex-direction: column;
-  gap: 6px;
 }
 
-.dates-mobile-card-header {
+.inspector-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.inspector-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--fg-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+
+.inspector-meta {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--fg-secondary);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 4px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.dates-mobile-date {
+.inspector-right {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #0B0B0B;
+  border: 1px solid var(--border);
+  padding: 16px 20px;
+}
+
+.inspector-rule-title {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 700;
-  color: var(--fg-primary);
-}
-
-.dates-mobile-subject {
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--fg-primary);
-}
-
-.dates-mobile-code {
-  font-family: var(--font-body);
-  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--fg-muted);
 }
 
-.dates-mobile-weight {
+.inspector-rule-text {
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 13.5px;
   color: var(--fg-secondary);
-  margin-top: 4px;
+  line-height: 1.55;
+}
+
+.inspector-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.inspector-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  background: #161616;
+  border: 1px solid var(--border);
+  color: var(--fg-secondary);
+  text-transform: uppercase;
+}
+
+/* Mobile Vertical Layout */
+.timeline-vertical-stream {
+  display: none;
+  flex-direction: column;
+  position: relative;
+  padding-left: 28px;
+  margin-top: 24px;
+}
+
+.timeline-vertical-line {
+  position: absolute;
+  top: 12px;
+  bottom: 24px;
+  left: 8px;
+  width: 2px;
+  background: #222222;
+}
+
+.timeline-vertical-item {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.timeline-vertical-node {
+  position: absolute;
+  top: 16px;
+  left: -28px;
+  width: 18px;
+  height: 18px;
+  background: #121212;
+  border: 2px solid #333333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.timeline-vertical-node.is-next,
+.timeline-vertical-node.is-selected {
+  border-color: var(--accent);
+  background: #1A0D08;
+}
+
+.timeline-vertical-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--fg-muted);
+}
+
+.timeline-vertical-node.is-next .timeline-vertical-dot,
+.timeline-vertical-node.is-selected .timeline-vertical-dot {
+  background: var(--accent);
+}
+
+.timeline-vertical-card {
+  background: #131313;
+  border: 1px solid var(--border);
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.timeline-vertical-card.is-next {
+  border-color: rgba(255, 61, 0, 0.5);
+  background: #161616;
+}
+
+@media (max-width: 1024px) {
+  .dates-section {
+    padding: 80px 32px;
+  }
+  .timeline-inspector-panel {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dates-section {
+    padding: 60px 20px;
+  }
+  .timeline-track-wrapper {
+    display: none;
+  }
+  .timeline-inspector-panel {
+    display: none;
+  }
+  .timeline-vertical-stream {
+    display: flex;
+  }
+  .dates-controls {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timeline-milestone-item,
+  .timeline-rail-fill,
+  .timeline-milestone-card {
+    transition: none !important;
+    transform: none !important;
+  }
 }
 
 /* ── Section 6: Editorial Closing Section with Cropped Wordmark ── */
@@ -5913,12 +6263,7 @@ main[role="main"] {
   .thesis-capabilities-grid {
     grid-template-columns: 1fr;
   }
-  .dates-table-container {
-    display: none;
-  }
-  .dates-mobile-cards {
-    display: flex;
-  }
+
   .closing-content {
     flex-direction: column;
     align-items: flex-start;
