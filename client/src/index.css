@@ -4349,6 +4349,9 @@ main[role="main"] {
 .has-editorial-reveal .editorial-reveal-item[data-reveal-order="3"] {
   transition-delay: 0.20s;
 }
+.has-editorial-reveal .editorial-reveal-item[data-reveal-order="4"] {
+  transition-delay: 0.28s;
+}
 
 /* Accessible Reduced-Motion Bypass */
 @media (prefers-reduced-motion: reduce) {
@@ -5335,9 +5338,9 @@ main[role="main"] {
   background: var(--accent-dim);
 }
 
-/* ── Section 4: Functional Roster Directory ── */
+/* ── SECTION 05: FUNCTIONAL ROSTER DIRECTORY ── */
 .roster-section {
-  padding: 120px 48px;
+  padding: 88px 48px;
   max-width: 1280px;
   margin: 0 auto;
   width: 100%;
@@ -5346,7 +5349,7 @@ main[role="main"] {
 }
 
 .roster-header {
-  margin-bottom: 48px;
+  margin-bottom: 36px;
   max-width: 760px;
 }
 
@@ -5357,7 +5360,7 @@ main[role="main"] {
   line-height: var(--leading-heading);
   letter-spacing: var(--tracking-heading);
   color: var(--fg-primary);
-  margin: 0 0 16px;
+  margin: 0 0 12px;
   max-width: 720px;
   text-wrap: balance;
 }
@@ -5381,31 +5384,40 @@ main[role="main"] {
 .roster-card {
   background: var(--bg-surface);
   border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 28px 26px;
+  border-radius: var(--r-none, 0px);
+  padding: 24px 24px;
   display: flex;
   flex-direction: column;
   cursor: pointer;
-  transition: transform 0.2s var(--ease), border-color 0.2s var(--ease), background 0.2s var(--ease);
+  position: relative;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .roster-card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(255, 61, 0, 0.4);
+  transform: translateY(-2px);
+  border-color: rgba(255, 61, 0, 0.45);
   background: var(--bg-elevated);
+}
+
+.roster-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-color: var(--accent);
 }
 
 .roster-card-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .roster-card-icon {
   width: 36px;
   height: 36px;
-  border-radius: var(--r-sm);
+  border-radius: var(--r-none, 0px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5433,11 +5445,11 @@ main[role="main"] {
 
 .roster-card-title {
   font-family: var(--font-display);
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--fg-primary);
   letter-spacing: -0.01em;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .roster-card-desc {
@@ -5446,7 +5458,7 @@ main[role="main"] {
   color: var(--fg-secondary);
   line-height: 1.55;
   flex: 1;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .roster-card-footer {
@@ -5484,11 +5496,33 @@ main[role="main"] {
   font-size: 12px;
   font-weight: 600;
   color: var(--fg-muted);
+  display: inline-flex;
+  align-items: center;
   transition: color 0.2s ease;
+}
+
+.roster-arrow {
+  display: inline-block;
+  margin-left: 5px;
+  transition: transform 0.2s var(--ease), color 0.2s var(--ease);
 }
 
 .roster-card:hover .roster-link-text {
   color: var(--accent);
+}
+
+.roster-card:hover .roster-arrow {
+  transform: translateX(4px);
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roster-card:hover {
+    transform: none;
+  }
+  .roster-card:hover .roster-arrow {
+    transform: none;
+  }
 }
 
 /* ── SECTION 06: STRUCTURED CALENDAR & PROGRESSION TIMELINE ── */

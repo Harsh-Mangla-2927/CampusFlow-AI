@@ -1292,7 +1292,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
         </div>
       </section>
 
-      {/* ── SECTION 4: FUNCTIONAL ROSTER (INTERACTIVE MODULE DIRECTORY) ─── */}
+      {/* ── SECTION 05: FUNCTIONAL ROSTER (INTERACTIVE MODULE DIRECTORY) ─── */}
       <section className="roster-section" id="section-roster" aria-labelledby="roster-heading">
         <div className="roster-header editorial-reveal-group">
           <div className="editorial-reveal-item" data-reveal-order="1">
@@ -1305,17 +1305,24 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
             System modules & computational <span className="accent">rules</span>.
           </h2>
           <p className="section-subtext roster-subtext editorial-reveal-item" data-reveal-order="3">
-            Six synchronized deterministic engines engineered to eliminate academic uncertainty,
+            Four core deterministic engines engineered to eliminate academic uncertainty,
             powered by explainable heuristics rather than black-box guesswork.
           </p>
         </div>
 
-        <div className="roster-directory-grid" role="list">
+        <div className="roster-directory-grid editorial-reveal-group" role="list">
           <div
-            className="roster-card"
+            className="roster-card editorial-reveal-item"
+            data-reveal-order="1"
             role="listitem"
             tabIndex={0}
             onClick={() => (user ? onEnter() : onSignIn())}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                user ? onEnter() : onSignIn();
+              }
+            }}
           >
             <div className="roster-card-top">
               <div className="roster-card-icon amber">
@@ -1330,15 +1337,24 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
             </p>
             <div className="roster-card-footer">
               <span className="roster-badge amber">4 ACTIVE WEIGHTS</span>
-              <span className="roster-link-text">Launch Module →</span>
+              <span className="roster-link-text">
+                Launch Module <span className="roster-arrow">→</span>
+              </span>
             </div>
           </div>
 
           <div
-            className="roster-card"
+            className="roster-card editorial-reveal-item"
+            data-reveal-order="2"
             role="listitem"
             tabIndex={0}
             onClick={() => (user ? onEnter() : onSignIn())}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                user ? onEnter() : onSignIn();
+              }
+            }}
           >
             <div className="roster-card-top">
               <div className="roster-card-icon teal">
@@ -1353,15 +1369,24 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
             </p>
             <div className="roster-card-footer">
               <span className="roster-badge teal">75% CUTOFF AUDIT</span>
-              <span className="roster-link-text">Launch Module →</span>
+              <span className="roster-link-text">
+                Launch Module <span className="roster-arrow">→</span>
+              </span>
             </div>
           </div>
 
           <div
-            className="roster-card"
+            className="roster-card editorial-reveal-item"
+            data-reveal-order="3"
             role="listitem"
             tabIndex={0}
             onClick={() => (user ? onEnter() : onSignIn())}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                user ? onEnter() : onSignIn();
+              }
+            }}
           >
             <div className="roster-card-top">
               <div className="roster-card-icon amber">
@@ -1376,15 +1401,24 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
             </p>
             <div className="roster-card-footer">
               <span className="roster-badge amber">TIMETABLE SYNC</span>
-              <span className="roster-link-text">Launch Module →</span>
+              <span className="roster-link-text">
+                Launch Module <span className="roster-arrow">→</span>
+              </span>
             </div>
           </div>
 
           <div
-            className="roster-card"
+            className="roster-card editorial-reveal-item"
+            data-reveal-order="4"
             role="listitem"
             tabIndex={0}
             onClick={() => (user ? onEnter() : onSignIn())}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                user ? onEnter() : onSignIn();
+              }
+            }}
           >
             <div className="roster-card-top">
               <div className="roster-card-icon teal">
@@ -1399,53 +1433,9 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
             </p>
             <div className="roster-card-footer">
               <span className="roster-badge teal">PROACTIVE BUFFER</span>
-              <span className="roster-link-text">Launch Module →</span>
-            </div>
-          </div>
-
-          <div
-            className="roster-card"
-            role="listitem"
-            tabIndex={0}
-            onClick={() => (user ? onEnter() : onSignIn())}
-          >
-            <div className="roster-card-top">
-              <div className="roster-card-icon amber">
-                <Clock size={18} />
-              </div>
-              <span className="roster-card-code">MOD_05</span>
-            </div>
-            <h3 className="roster-card-title">Adaptive Study Cadence</h3>
-            <p className="roster-card-desc">
-              Generates day-by-day study cadences reserving final days for comprehensive mocks and structured
-              retrieval practice.
-            </p>
-            <div className="roster-card-footer">
-              <span className="roster-badge amber">CADENCE ENGINE</span>
-              <span className="roster-link-text">Launch Module →</span>
-            </div>
-          </div>
-
-          <div
-            className="roster-card"
-            role="listitem"
-            tabIndex={0}
-            onClick={() => (user ? onEnter() : onSignIn())}
-          >
-            <div className="roster-card-top">
-              <div className="roster-card-icon teal">
-                <BarChart2 size={18} />
-              </div>
-              <span className="roster-card-code">MOD_06</span>
-            </div>
-            <h3 className="roster-card-title">Academic Markbook & Ledger</h3>
-            <p className="roster-card-desc">
-              Monitors coursework marks trajectory, target semester percentages, and credit balance across
-              all enrolled subjects.
-            </p>
-            <div className="roster-card-footer">
-              <span className="roster-badge teal">EXPLAINABLE DATA</span>
-              <span className="roster-link-text">Launch Module →</span>
+              <span className="roster-link-text">
+                Launch Module <span className="roster-arrow">→</span>
+              </span>
             </div>
           </div>
         </div>
