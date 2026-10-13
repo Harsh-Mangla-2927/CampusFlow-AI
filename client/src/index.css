@@ -4172,6 +4172,18 @@ main[role="main"] {
   color: var(--fg-primary);
   letter-spacing: var(--tracking-hero);
   margin: 0;
+  max-width: 760px;
+  text-wrap: balance;
+}
+
+.portal-editorial-title .headline-block {
+  display: block;
+}
+
+@media (max-width: 640px) {
+  .portal-editorial-title .headline-block {
+    display: inline;
+  }
 }
 
 .portal-editorial-subtitle {
@@ -4179,8 +4191,9 @@ main[role="main"] {
   font-size: var(--text-body-subtext);
   line-height: var(--leading-body);
   color: var(--fg-secondary);
-  max-width: 620px;
+  max-width: 600px;
   margin: 0;
+  text-wrap: pretty;
 }
 
 .portal-editorial-actions {

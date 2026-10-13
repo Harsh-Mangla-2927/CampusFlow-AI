@@ -764,7 +764,8 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
             />
 
             <h1 className="portal-editorial-title">
-              Make room for the <span className="accent">work that matters</span>.
+              <span className="headline-block">Make room for the</span>{' '}
+              <span className="accent">work that matters</span>.
             </h1>
 
             <p className="portal-editorial-subtitle">
