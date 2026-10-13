@@ -52,11 +52,11 @@ const PAGE_TO_PATH = {
 // Branded loading spinner — zero external deps
 function Spinner() {
   return (
-    <div style={{ minHeight: '100vh', background: '#080808', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
-      <div style={{ width: 36, height: 36, background: '#E8FF00', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif', fontWeight: 900, fontSize: 13, color: '#080808' }}>CF</div>
+    <div style={{ minHeight: '100vh', background: 'var(--background, #0A0A0A)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
+      <div style={{ width: 36, height: 36, background: 'var(--accent, #FF3D00)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display, sans-serif)', fontWeight: 900, fontSize: 13, color: 'var(--accent-foreground, #0A0A0A)' }}>CF</div>
       <div style={{ display: 'flex', gap: 6 }}>
         {[0, 1, 2].map(i => (
-          <div key={i} style={{ width: 6, height: 6, background: '#E8FF00', animation: `pulse 1.2s ${i * 0.15}s ease-in-out infinite`, opacity: 1 - i * 0.3 }} />
+          <div key={i} style={{ width: 6, height: 6, background: 'var(--accent, #FF3D00)', animation: `pulse 1.2s ${i * 0.15}s ease-in-out infinite`, opacity: 1 - i * 0.3 }} />
         ))}
       </div>
       <style>{`@keyframes pulse { 0%,60%,100%{transform:scale(1)} 30%{transform:scale(1.5)} }`}</style>
@@ -69,7 +69,7 @@ function PageSpinner() {
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
       <div style={{ display: 'flex', gap: 6 }}>
         {[0, 1, 2].map(i => (
-          <div key={i} style={{ width: 6, height: 6, background: '#E8FF00', animation: `pulse 1.2s ${i * 0.15}s ease-in-out infinite` }} />
+          <div key={i} style={{ width: 6, height: 6, background: 'var(--accent, #FF3D00)', animation: `pulse 1.2s ${i * 0.15}s ease-in-out infinite` }} />
         ))}
       </div>
     </div>
