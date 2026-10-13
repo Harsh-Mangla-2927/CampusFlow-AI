@@ -468,12 +468,9 @@ class CodeBrigadeConnector {
       `[CodeBrigade Connector] Attendance synchronization parsed: ${parsedSubjects.length} subjects, ${parsedRegister.length} session registers.`
     );
 
-    // If both failed or returned empty content, verify session validity
+    // If no subjects were parsed, verify whether the session actually expired on the mobile portal
     if (parsedSubjects.length === 0 && parsedRegister.length === 0) {
-      if (
-        (summaryRes.status === 'fulfilled' && summaryRes.value.status === 401) ||
-        (registerRes.status === 'fulfilled' && registerRes.value.status === 401)
-      ) {
+      if (summaryRes.status === 'fulfilled' && (summaryRes.value.status === 401 || summaryRes.value.status === 403)) {
         const err = new Error('University authentication session expired. Please re-authenticate.');
         err.code = 'SESSION_EXPIRED';
         throw err;

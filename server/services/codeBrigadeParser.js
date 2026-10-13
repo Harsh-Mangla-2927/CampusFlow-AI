@@ -20,7 +20,7 @@ function cleanHtmlText(html) {
     .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
     .replace(/<br\s*[\/]?>/gi, '\n')
     .replace(/<[^>]*>/g, ' ')
-    .replace(/&nbsp;/gi, ' ')
+    .replace(/&nbsp;?/gi, ' ')
     .replace(/&amp;/gi, '&')
     .replace(/&lt;/gi, '<')
     .replace(/&gt;/gi, '>')
@@ -31,6 +31,7 @@ function cleanHtmlText(html) {
 
 /**
  * Parse subject-wise summary from commonPage HTML content.
+ * Supports both Chalkpad Pro .tt-box-new card markup and table fallbacks.
  *
  * @param {string} htmlContent
  * @returns {Array<Object>} Extracted subjects with official delivered/attended counts
@@ -39,9 +40,56 @@ function parseAttendanceSubjectwise(htmlContent) {
   if (!htmlContent) return [];
   const subjects = [];
 
+  // 1. Direct Parsing of Chalkpad Pro Subject Cards (.tt-box-new)
+  if (htmlContent.includes('tt-box-new') || htmlContent.includes('tt-details')) {
+    const cardRegex = /<div class=['\"]tt-box-new['\"]>[\s\S]*?<div class=['\"]tt-details['\"]>([\s\S]*?)<\/div><\/div>/gi;
+    let cardMatch;
+
+    while ((cardMatch = cardRegex.exec(htmlContent)) !== null) {
+      const cardHtml = cardMatch[1];
+      const spans = [...cardHtml.matchAll(/<span>([\s\S]*?)<\/span>/gi)].map(m => m[1].replace(/<[^>]*>/g, '').trim());
+      const name = spans[0] || 'Course';
+      const code = (spans[1] || '').toUpperCase();
+
+      const extractField = (labelRegex) => {
+        const match = cardHtml.match(labelRegex);
+        return match ? match[1].replace(/&nbsp;?/gi, ' ').replace(/<[^>]*>/g, '').trim() : '';
+      };
+
+      const teacher = extractField(/Teacher\s*:&nbsp;?<\/b>\s*([^<]+)/i);
+      const fromDate = extractField(/From\s*:&nbsp;?<\/b>\s*([^<]+)/i);
+      const toDate = extractField(/TO\s*:&nbsp;?<\/b>\s*([^<]+)/i);
+      const delivered = parseInt(extractField(/Delivered\s*:&nbsp;?<\/b>\s*(\d+)/i), 10) || 0;
+      const attended = parseInt(extractField(/Attended\s*:&nbsp;?<\/b>\s*(\d+)/i), 10) || 0;
+      const absent = parseInt(extractField(/Absent\s*:&nbsp;?<\/b>\s*(\d+)/i), 10) || 0;
+      const dl = parseInt(extractField(/DL\s*:&nbsp;?<\/b>\s*(\d+)/i), 10) || 0;
+      const ml = parseInt(extractField(/ML\s*:&nbsp;?<\/b>\s*(\d+)/i), 10) || 0;
+      const pctStr = extractField(/Total Percentage\s*:&nbsp;?<\/b>\s*([\d.]+)%/i);
+      const pct = parseFloat(pctStr) || (delivered > 0 ? Math.round((attended / delivered) * 1000) / 10 : 0);
+
+      if (delivered > 0 || attended > 0 || name !== 'Course') {
+        subjects.push({
+          name,
+          code: code || `SUBJ-${subjects.length + 1}`,
+          teacher,
+          fromDate,
+          toDate,
+          totalClasses: delivered,
+          attendedClasses: attended,
+          missedClasses: absent,
+          dutyLeave: dl,
+          medicalLeave: ml,
+          attendancePercentage: pct,
+          source: 'CODE_BRIGADE',
+        });
+      }
+    }
+    if (subjects.length > 0) return subjects;
+  }
+
   const rawClean = cleanHtmlText(htmlContent).replace(/\s+/g, ' ').trim();
 
-  // Standard Chalkpad Pro Subject Summary Regex Pattern
+  // 2. Standard Chalkpad Pro Subject Summary Regex Pattern
   const regex = /([^0-9]+?)\s+([0-9]{2}[A-Z]{2,5}[0-9]{2,5}|[A-Z]{2,4}[0-9]{3,5})\s+Teacher\s*:\s*(.+?)From\s*:\s*(\d{1,2}\s+\w+\s+\d{4})\s+TO\s*:\s*(\d{1,2}\s+\w+\s+\d{4})\s*Delivered\s*:\s*(\d+)\s*Attended\s*:\s*(\d+)\s*Absent\s*:\s*(\d+)\s*DL\s*:\s*(\d+)\s*ML\s*:\s*(\d+)\s*Total Percentage\s*:\s*([\d.]+)%/gi;
 
   let match;
@@ -84,14 +132,13 @@ function parseAttendanceSubjectwise(htmlContent) {
     });
   }
 
-  // Fallback: If regex didn't match (due to customized table markup), try table cell parsing
+  // 3. Fallback: Table row parsing
   if (subjects.length === 0 && (htmlContent.includes('<table') || htmlContent.includes('<tr'))) {
     const rowMatches = htmlContent.match(/<tr[^>]*>([\s\S]*?)<\/tr>/gi) || [];
     for (const row of rowMatches) {
       const cells = (row.match(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi) || [])
         .map(c => cleanHtmlText(c).trim());
 
-      // Check if row has Delivered and Attended numbers
       if (cells.length >= 4) {
         const potentialDelivered = parseInt(cells[cells.length - 3], 10);
         const potentialAttended = parseInt(cells[cells.length - 2], 10);
