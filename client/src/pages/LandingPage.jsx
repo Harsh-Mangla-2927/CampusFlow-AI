@@ -1414,7 +1414,7 @@ export default function LandingPage({ user, onEnter, onSignIn, onGoContact }) {
               title="STRUCTURED CALENDAR"
               subtitle="PROGRESSION TIMELINE"
             />
-            <h2 id="dates-heading" className="section-heading">
+            <h2 id="dates-heading" className="section-heading dates-heading">
               Academic schedule & submission <span className="accent">cadence</span>.
             </h2>
             <p className="section-subtext dates-subtext">
