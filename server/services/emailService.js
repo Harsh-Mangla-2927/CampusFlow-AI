@@ -92,42 +92,51 @@ CampusFlow AI Team`;
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Your CampusFlow AI verification code</title>
     </head>
-    <body style="margin:0;padding:0;background-color:#080808;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#ffffff;">
-      <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#080808;padding:40px 16px;">
+    <body style="margin:0;padding:0;background-color:#0A0A0A;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#FFFFFF;-webkit-font-smoothing:antialiased;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0A0A0A;padding:48px 16px;">
         <tr>
           <td align="center">
-            <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#111111;border:1px solid #222222;border-radius:4px;padding:36px 32px;text-align:left;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#141414;border:1px solid #262626;border-radius:12px;padding:36px 32px;text-align:left;">
               <tr>
                 <td style="padding-bottom:24px;">
-                  <div style="background-color:#E8FF00;width:38px;height:38px;line-height:38px;text-align:center;font-weight:900;font-size:15px;color:#080808;display:inline-block;border-radius:2px;">CF</div>
+                  <table cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="vertical-align:middle;padding-right:12px;">
+                        <div style="background-color:#FF3D00;width:36px;height:36px;line-height:36px;text-align:center;font-weight:900;font-size:14px;color:#FFFFFF;display:inline-block;border-radius:8px;">CF</div>
+                      </td>
+                      <td style="vertical-align:middle;">
+                        <span style="font-size:16px;font-weight:900;letter-spacing:0.04em;color:#FFFFFF;text-transform:uppercase;">CAMPUSFLOW <span style="color:#FF3D00;">AI</span></span>
+                      </td>
+                    </tr>
+                  </table>
                 </td>
               </tr>
               <tr>
                 <td style="padding-bottom:12px;">
-                  <h1 style="color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-0.02em;margin:0;text-transform:uppercase;">Verify Your Email</h1>
+                  <h1 style="color:#FFFFFF;font-size:22px;font-weight:800;letter-spacing:-0.02em;margin:0;">Verify Your Email</h1>
                 </td>
               </tr>
               <tr>
-                <td style="padding-bottom:24px;color:#a0a0a0;font-size:14px;line-height:1.6;">
+                <td style="padding-bottom:24px;color:#A3A3A3;font-size:14px;line-height:1.6;">
                   Hello ${userName || 'Student'},<br/><br/>
                   Your CampusFlow AI verification code is:
                 </td>
               </tr>
               <tr>
                 <td style="padding-bottom:24px;">
-                  <div style="background-color:#181818;border:1px solid #333333;border-radius:4px;padding:24px;text-align:center;">
-                    <span style="font-size:40px;font-weight:900;letter-spacing:0.25em;color:#E8FF00;font-family:Consolas,monaco,monospace;display:inline-block;">${otp}</span>
-                    <div style="color:#888888;font-size:12px;margin-top:12px;text-transform:uppercase;letter-spacing:0.08em;">This code expires in 5 minutes.</div>
+                  <div style="background-color:#0A0A0A;border:1px solid #262626;border-radius:8px;padding:24px;text-align:center;">
+                    <span style="font-size:38px;font-weight:900;letter-spacing:0.25em;color:#FF3D00;font-family:Consolas,monaco,monospace;display:inline-block;padding-left:0.25em;">${otp}</span>
+                    <div style="color:#737373;font-size:12px;margin-top:12px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;">This code expires in 5 minutes</div>
                   </div>
                 </td>
               </tr>
               <tr>
-                <td style="padding-bottom:28px;color:#777777;font-size:13px;line-height:1.6;">
-                  If you did not attempt to sign in, you can ignore this email. Do not share this code with anyone.
+                <td style="padding-bottom:28px;color:#737373;font-size:13px;line-height:1.6;">
+                  If you did not attempt to sign in, you can safely ignore this email. Never share this code with anyone.
                 </td>
               </tr>
               <tr>
-                <td style="border-top:1px solid #222222;padding-top:20px;color:#555555;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">
+                <td style="border-top:1px solid #262626;padding-top:20px;color:#525252;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">
                   CampusFlow AI Team · Academic Intelligence Platform
                 </td>
               </tr>
@@ -172,14 +181,50 @@ async function sendWelcomeEmail(toEmail, userName) {
   const from = process.env.EMAIL_FROM || `CampusFlow AI <noreply@campusflow.ai>`;
   const html = `
     <!DOCTYPE html>
-    <html>
-    <body style="background:#080808;font-family:system-ui,sans-serif;padding:40px 0;color:#fff;">
-      <div style="max-width:480px;margin:auto;background:#111;border:1px solid #222;padding:40px;">
-        <div style="background:#E8FF00;width:40px;height:40px;font-weight:900;font-size:16px;color:#080808;display:flex;align-items:center;justify-content:center;margin-bottom:24px;">CF</div>
-        <h1 style="color:#fff;font-size:24px;font-weight:900;text-transform:uppercase;margin:0 0 12px;">Welcome, ${userName}.</h1>
-        <p style="color:#999;font-size:14px;line-height:1.7;margin:0 0 24px;">Your CampusFlow AI account is ready. Start by adding your subjects, tasks, and exam schedule.</p>
-        <p style="color:#666;font-size:12px;margin:0;">Your academic life, intelligently organized.</p>
-      </div>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Welcome to CampusFlow AI</title>
+    </head>
+    <body style="margin:0;padding:0;background-color:#0A0A0A;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#FFFFFF;-webkit-font-smoothing:antialiased;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0A0A0A;padding:48px 16px;">
+        <tr>
+          <td align="center">
+            <table width="100%" cellpadding="0" cellspacing="0" style="max-width:500px;background-color:#141414;border:1px solid #262626;border-radius:12px;padding:40px 36px;text-align:left;box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+              <tr>
+                <td style="padding-bottom:24px;">
+                  <table cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="vertical-align:middle;padding-right:12px;">
+                        <div style="background-color:#FF3D00;width:36px;height:36px;line-height:36px;text-align:center;font-weight:900;font-size:14px;color:#FFFFFF;display:inline-block;border-radius:8px;">CF</div>
+                      </td>
+                      <td style="vertical-align:middle;">
+                        <span style="font-size:16px;font-weight:900;letter-spacing:0.04em;color:#FFFFFF;text-transform:uppercase;">CAMPUSFLOW <span style="color:#FF3D00;">AI</span></span>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding-bottom:12px;">
+                  <h1 style="color:#FFFFFF;font-size:22px;font-weight:800;letter-spacing:-0.02em;margin:0;">Welcome, ${userName}.</h1>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding-bottom:24px;color:#A3A3A3;font-size:14px;line-height:1.7;">
+                  Your CampusFlow AI workspace is ready. You can now track your live university attendance, prioritize pending coursework, manage exams, and analyze your academic performance in one unified platform.
+                </td>
+              </tr>
+              <tr>
+                <td style="border-top:1px solid #262626;padding-top:20px;color:#525252;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">
+                  CampusFlow AI · Academic Management &amp; Intelligence Platform
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
     </body>
     </html>
   `;
@@ -238,47 +283,56 @@ CampusFlow AI Team`;
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Reset Your CampusFlow AI Password</title>
     </head>
-    <body style="margin:0;padding:0;background-color:#080808;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#ffffff;">
-      <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#080808;padding:40px 16px;">
+    <body style="margin:0;padding:0;background-color:#0A0A0A;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#FFFFFF;-webkit-font-smoothing:antialiased;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0A0A0A;padding:48px 16px;">
         <tr>
           <td align="center">
-            <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#111111;border:1px solid #222222;border-radius:4px;padding:36px 32px;text-align:left;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="max-width:500px;background-color:#141414;border:1px solid #262626;border-radius:12px;padding:40px 36px;text-align:left;box-shadow:0 10px 30px rgba(0,0,0,0.5);">
               <tr>
                 <td style="padding-bottom:24px;">
-                  <div style="background-color:#E8FF00;width:38px;height:38px;line-height:38px;text-align:center;font-weight:900;font-size:15px;color:#080808;display:inline-block;border-radius:2px;">CF</div>
+                  <table cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="vertical-align:middle;padding-right:12px;">
+                        <div style="background-color:#FF3D00;width:36px;height:36px;line-height:36px;text-align:center;font-weight:900;font-size:14px;color:#FFFFFF;display:inline-block;border-radius:8px;">CF</div>
+                      </td>
+                      <td style="vertical-align:middle;">
+                        <span style="font-size:16px;font-weight:900;letter-spacing:0.04em;color:#FFFFFF;text-transform:uppercase;">CAMPUSFLOW <span style="color:#FF3D00;">AI</span></span>
+                      </td>
+                    </tr>
+                  </table>
                 </td>
               </tr>
               <tr>
                 <td style="padding-bottom:12px;">
-                  <h1 style="color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-0.02em;margin:0;text-transform:uppercase;">Reset Your Password</h1>
+                  <h1 style="color:#FFFFFF;font-size:22px;font-weight:800;letter-spacing:-0.02em;margin:0;">Reset Your Password</h1>
                 </td>
               </tr>
               <tr>
-                <td style="padding-bottom:20px;color:#a0a0a0;font-size:14px;line-height:1.6;">
+                <td style="padding-bottom:20px;color:#A3A3A3;font-size:14px;line-height:1.6;">
                   Hello ${userName || 'Student'},<br/><br/>
                   We received a request to reset the password for your CampusFlow AI account.<br/>
                   Click the secure link below to choose a new password:
                 </td>
               </tr>
               <tr>
-                <td style="padding-bottom:20px;text-align:center;">
-                  <a href="${resetUrl}" target="_blank" rel="noopener noreferrer" style="background-color:#E8FF00;color:#080808;font-weight:800;font-size:14px;letter-spacing:0.04em;text-decoration:none;padding:14px 28px;display:inline-block;border-radius:3px;text-transform:uppercase;">Reset Password</a>
+                <td style="padding-bottom:24px;text-align:center;">
+                  <a href="${resetUrl}" target="_blank" rel="noopener noreferrer" style="background-color:#FF3D00;color:#FFFFFF;font-weight:800;font-size:14px;letter-spacing:0.04em;text-decoration:none;padding:14px 32px;display:inline-block;border-radius:8px;text-transform:uppercase;box-shadow:0 4px 12px rgba(255,61,0,0.3);">Reset Password</a>
                 </td>
               </tr>
               <tr>
-                <td style="padding-bottom:20px;color:#888888;font-size:12px;line-height:1.6;word-break:break-all;">
+                <td style="padding-bottom:20px;color:#737373;font-size:12px;line-height:1.6;word-break:break-all;">
                   Button not opening? Copy and paste this URL directly into your browser:<br/>
-                  <a href="${resetUrl}" target="_blank" rel="noopener noreferrer" style="color:#E8FF00;text-decoration:underline;word-break:break-all;">${resetUrl}</a>
+                  <a href="${resetUrl}" target="_blank" rel="noopener noreferrer" style="color:#FF5722;text-decoration:underline;word-break:break-all;">${resetUrl}</a>
                 </td>
               </tr>
               <tr>
-                <td style="padding-bottom:20px;color:#777777;font-size:12px;line-height:1.6;">
+                <td style="padding-bottom:20px;color:#737373;font-size:12px;line-height:1.6;">
                   This link expires in 15 minutes.<br/>
                   If you did not request this password reset, you can safely ignore this email.
                 </td>
               </tr>
               <tr>
-                <td style="border-top:1px solid #222222;padding-top:20px;color:#555555;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">
+                <td style="border-top:1px solid #262626;padding-top:20px;color:#525252;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">
                   CampusFlow AI Team · Academic Intelligence Platform
                 </td>
               </tr>
@@ -338,27 +392,27 @@ async function sendContactUsEmail({ name, email, subject, message }) {
 
   const htmlContent = `
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head><meta charset="utf-8"/></head>
-    <body style="margin:0;padding:24px;background:#0B0D11;font-family:'Inter',sans-serif;color:#F8FAFC;">
-      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;margin:0 auto;background:#13161F;border:1px solid #252A3B;border-radius:16px;padding:32px;">
+    <body style="margin:0;padding:24px;background:#0A0A0A;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#FFFFFF;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;margin:0 auto;background:#141414;border:1px solid #262626;border-radius:12px;padding:32px;">
         <tr>
-          <td style="padding-bottom:20px;border-bottom:1px solid #252A3B;">
-            <div style="font-size:18px;font-weight:800;color:#FFFFFF;letter-spacing:0.02em;">
-              CAMPUSFLOW <span style="color:#C8F135;">AI</span>
+          <td style="padding-bottom:20px;border-bottom:1px solid #262626;">
+            <div style="font-size:18px;font-weight:900;color:#FFFFFF;letter-spacing:0.02em;">
+              CAMPUSFLOW <span style="color:#FF3D00;">AI</span>
             </div>
-            <div style="font-size:12px;color:#94A3B8;margin-top:4px;">New Contact Inquiry Received</div>
+            <div style="font-size:12px;color:#A3A3A3;margin-top:4px;">New Contact Inquiry Received</div>
           </td>
         </tr>
         <tr>
           <td style="padding:24px 0;">
-            <p style="margin:0 0 12px;font-size:14px;color:#CBD5E1;"><strong>Sender:</strong> ${name} &lt;${email}&gt;</p>
-            <p style="margin:0 0 16px;font-size:14px;color:#CBD5E1;"><strong>Subject:</strong> ${subject}</p>
-            <div style="background:#0B0D11;border:1px solid #252A3B;border-radius:12px;padding:18px;font-size:14px;line-height:1.6;color:#F8FAFC;white-space:pre-wrap;">${message}</div>
+            <p style="margin:0 0 12px;font-size:14px;color:#A3A3A3;"><strong>Sender:</strong> ${name} &lt;${email}&gt;</p>
+            <p style="margin:0 0 16px;font-size:14px;color:#A3A3A3;"><strong>Subject:</strong> ${subject}</p>
+            <div style="background:#0A0A0A;border:1px solid #262626;border-radius:8px;padding:18px;font-size:14px;line-height:1.6;color:#FFFFFF;white-space:pre-wrap;">${message}</div>
           </td>
         </tr>
         <tr>
-          <td style="border-top:1px solid #252A3B;padding-top:18px;font-size:12px;color:#64748B;">
+          <td style="border-top:1px solid #262626;padding-top:18px;font-size:12px;color:#525252;">
             Sent securely via CampusFlow AI Contact Service.
           </td>
         </tr>
