@@ -144,12 +144,12 @@ export default function DashboardPage({ onNavigate }) {
           <button
             type="button"
             className="btn btn-secondary btn-sm"
-            onClick={() => onNavigate('attendance')}
+            onClick={() => onNavigate('records')}
             id="dash-quick-attendance"
-            title="Review attendance and sync university records"
+            title="Review attendance and official university examination records"
           >
             <Activity size={13} strokeWidth={2} aria-hidden="true" />
-            <span>Attendance</span>
+            <span>Academic Records</span>
           </button>
           <button
             type="button"
@@ -268,7 +268,7 @@ export default function DashboardPage({ onNavigate }) {
 
         <div
           className="stat-card"
-          onClick={() => onNavigate('attendance')}
+          onClick={() => onNavigate('records')}
           style={{ cursor: 'pointer' }}
           role="button"
           tabIndex={0}

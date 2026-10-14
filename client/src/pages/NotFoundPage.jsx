@@ -52,8 +52,8 @@ export default function NotFoundPage({ onGoLanding, onGoDashboard, onNavigate, u
               <button onClick={() => onNavigate('tasks')} className="quicklink-btn">
                 <Layers size={13} style={{ marginRight: 4 }} /> Tasks
               </button>
-              <button onClick={() => onNavigate('attendance')} className="quicklink-btn">
-                <BookOpen size={13} style={{ marginRight: 4 }} /> Attendance
+              <button onClick={() => onNavigate('records')} className="quicklink-btn">
+                <BookOpen size={13} style={{ marginRight: 4 }} /> Academic Records
               </button>
               <button onClick={() => onNavigate('exams')} className="quicklink-btn">
                 <Compass size={13} style={{ marginRight: 4 }} /> Exams

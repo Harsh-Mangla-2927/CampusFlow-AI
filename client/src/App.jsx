@@ -11,6 +11,7 @@ const DashboardPage        = lazy(() => import('./pages/DashboardPage'));
 const SubjectsPage         = lazy(() => import('./pages/SubjectsPage'));
 const TasksPage            = lazy(() => import('./pages/TasksPage'));
 const ExamsPage            = lazy(() => import('./pages/ExamsPage'));
+const AcademicRecordsPage  = lazy(() => import('./pages/AcademicRecordsPage'));
 const AttendancePage       = lazy(() => import('./pages/AttendancePage'));
 const StudyPlannerPage     = lazy(() => import('./pages/StudyPlannerPage'));
 const AnalyticsPage        = lazy(() => import('./pages/AnalyticsPage'));
@@ -27,9 +28,11 @@ const PROTECTED_ROUTES = {
   '/subjects':             'subjects',
   '/tasks':                'tasks',
   '/exams':                'exams',
-  '/attendance':           'attendance',
-  '/attendly':             'attendance',
-  '/attendly/attendance':  'attendance',
+  '/records':              'records',
+  '/academic-records':     'records',
+  '/attendance':           'records',
+  '/attendly':             'records',
+  '/attendly/attendance':  'records',
   '/planner':              'planner',
   '/study-planner':        'planner',
   '/analytics':            'analytics',
@@ -42,7 +45,8 @@ const PAGE_TO_PATH = {
   subjects:        '/subjects',
   tasks:           '/tasks',
   exams:           '/exams',
-  attendance:      '/attendance',
+  records:         '/academic-records',
+  attendance:      '/academic-records',
   planner:         '/planner',
   analytics:       '/analytics',
   recommendations: '/recommendations',
@@ -372,7 +376,8 @@ function App() {
     subjects:        <SubjectsPage />,
     tasks:           <TasksPage />,
     exams:           <ExamsPage />,
-    attendance:      <AttendancePage />,
+    records:         <AcademicRecordsPage />,
+    attendance:      <AcademicRecordsPage />,
     planner:         <StudyPlannerPage />,
     analytics:       <AnalyticsPage />,
     recommendations: <RecommendationsPage />,

@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import {
   LayoutDashboard, BookOpen, CheckSquare, FileText,
   ClipboardList, Calendar, BarChart2, Zap, User, LogOut,
+  GraduationCap,
 } from 'lucide-react';
 import LogoutModal from './LogoutModal';
 
@@ -16,7 +17,7 @@ const NAV_SECTIONS = [
       { id: 'subjects',   label: 'Subjects',   icon: BookOpen },
       { id: 'tasks',      label: 'Tasks',       icon: CheckSquare },
       { id: 'exams',      label: 'Exams',       icon: FileText },
-      { id: 'attendance', label: 'Attendance',  icon: ClipboardList },
+      { id: 'records',    label: 'Academic Records', icon: GraduationCap },
     ],
   },
   {
@@ -79,19 +80,22 @@ function Sidebar({ activePage, onNavigate, user, onLogout, mobileOpen, onMobileC
           {NAV_SECTIONS.map((section) => (
             <div key={section.label}>
               <div className="sidebar-section-label">{section.label}</div>
-              {section.items.map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  className={`sidebar-item${activePage === id ? ' active' : ''}`}
-                  onClick={() => { onNavigate(id); onMobileClose?.(); }}
-                  id={`nav-${id}`}
-                  aria-current={activePage === id ? 'page' : undefined}
-                  aria-label={label}
-                >
-                  <Icon size={14} strokeWidth={1.8} aria-hidden="true" />
-                  {label}
-                </button>
-              ))}
+              {section.items.map(({ id, label, icon: Icon }) => {
+                const isItemActive = activePage === id || (id === 'records' && activePage === 'attendance');
+                return (
+                  <button
+                    key={id}
+                    className={`sidebar-item${isItemActive ? ' active' : ''}`}
+                    onClick={() => { onNavigate(id); onMobileClose?.(); }}
+                    id={`nav-${id}`}
+                    aria-current={isItemActive ? 'page' : undefined}
+                    aria-label={label}
+                  >
+                    <Icon size={14} strokeWidth={1.8} aria-hidden="true" />
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           ))}
         </nav>
