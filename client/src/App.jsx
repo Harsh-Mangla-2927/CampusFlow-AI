@@ -98,6 +98,9 @@ function App() {
     const stored = getStoredUser();
 
     // Priority routes accessible regardless of auth state
+    if (rawPath === '/') {
+      return { view: 'landing', activePage: 'dashboard', path: '/', replace: false };
+    }
     if (rawPath === '/reset-password' || rawPath === '/resetpassword') {
       const token = new URLSearchParams(window.location.search).get('token') || '';
       return { view: 'reset-password', activePage: 'dashboard', path: window.location.pathname + window.location.search, token, replace: false };
@@ -119,14 +122,8 @@ function App() {
       if (PROTECTED_ROUTES[rawPath]) {
         return { view: 'app', activePage: PROTECTED_ROUTES[rawPath], path: rawPath, replace: false };
       }
-      if (rawPath === '/') {
-        return { view: 'app', activePage: 'dashboard', path: '/dashboard', replace: false };
-      }
       return { view: 'not-found', activePage: 'dashboard', path: rawPath, replace: false };
     } else {
-      if (rawPath === '/') {
-        return { view: 'landing', activePage: 'dashboard', path: '/', replace: false };
-      }
       if (rawPath === '/login' || rawPath === '/signin') {
         return { view: 'login', activePage: 'dashboard', path: '/login', replace: false };
       }
@@ -159,6 +156,10 @@ function App() {
       const currentUser = getStoredUser();
 
       // Priority routes accessible regardless of auth state
+      if (rawPath === '/') {
+        setRouteState({ view: 'landing', activePage: 'dashboard', path: '/' });
+        return;
+      }
       if (rawPath === '/reset-password' || rawPath === '/resetpassword') {
         const token = new URLSearchParams(window.location.search).get('token') || '';
         setRouteState({ view: 'reset-password', activePage: 'dashboard', path: window.location.pathname + window.location.search, token });
@@ -183,15 +184,11 @@ function App() {
         } else if (rawPath === '/login' || rawPath === '/register') {
           setRouteState({ view: 'app', activePage: 'dashboard', path: '/dashboard' });
           window.history.replaceState(null, '', '/dashboard');
-        } else if (rawPath === '/') {
-          setRouteState({ view: 'app', activePage: 'dashboard', path: '/dashboard' });
         } else {
           setRouteState({ view: 'not-found', activePage: 'dashboard', path: rawPath });
         }
       } else {
-        if (rawPath === '/') {
-          setRouteState({ view: 'landing', activePage: 'dashboard', path: '/' });
-        } else if (rawPath === '/login' || rawPath === '/signin') {
+        if (rawPath === '/login' || rawPath === '/signin') {
           setRouteState({ view: 'login', activePage: 'dashboard', path: '/login' });
         } else if (rawPath === '/register' || rawPath === '/signup') {
           setRouteState({ view: 'register', activePage: 'dashboard', path: '/register' });
