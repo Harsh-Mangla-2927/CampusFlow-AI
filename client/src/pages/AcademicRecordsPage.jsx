@@ -29,7 +29,11 @@ import {
   Check,
   ExternalLink,
   ChevronDown,
-  ClipboardList
+  ClipboardList,
+  Bell,
+  Search,
+  BellOff,
+  ArrowUpRight
 } from 'lucide-react';
 import { attendanceAPI, subjectsAPI, recordsAPI } from '../services/api';
 import { Modal, LoadingState, ErrorState, EmptyState } from '../components/SharedComponents';
@@ -43,12 +47,17 @@ export default function AcademicRecordsPage({
 }) {
   const { toast } = useToast();
 
-  // Active Tab State: 'attendance' | 'report-card'
+  // Active Tab State: 'attendance' | 'report-card' | 'circulars'
   const [activeTab, setActiveTab] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tabParam = params.get('tab');
-    if (tabParam === 'report-card' || tabParam === 'reportcard' || tabParam === 'grades') {
-      return 'report-card';
+    if (typeof window !== 'undefined' && window.location?.search) {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      if (tabParam === 'report-card' || tabParam === 'reportcard' || tabParam === 'grades') {
+        return 'report-card';
+      }
+      if (tabParam === 'circulars' || tabParam === 'notices') {
+        return 'circulars';
+      }
     }
     return initialTab;
   });
@@ -56,16 +65,21 @@ export default function AcademicRecordsPage({
   // Sync tab with URL search parameter smoothly
   const handleTabSwitch = (newTab) => {
     setActiveTab(newTab);
-    const url = new URL(window.location);
-    if (newTab === 'report-card') {
-      url.searchParams.set('tab', 'report-card');
-    } else {
-      url.searchParams.delete('tab');
+    if (typeof window !== 'undefined' && window.location) {
+      const url = new URL(window.location);
+      if (newTab === 'report-card' || newTab === 'circulars') {
+        url.searchParams.set('tab', newTab);
+      } else {
+        url.searchParams.delete('tab');
+      }
+      window.history.replaceState(null, '', url.pathname + (url.searchParams.toString() ? `?${url.searchParams.toString()}` : ''));
     }
-    window.history.replaceState(null, '', url.pathname + (url.searchParams.toString() ? `?${url.searchParams.toString()}` : ''));
 
     if (newTab === 'report-card' && !reportCardData && !loadingReportCard) {
       fetchReportCard();
+    }
+    if (newTab === 'circulars' && !circularsData && !loadingCirculars) {
+      fetchCirculars();
     }
   };
 
@@ -161,6 +175,31 @@ export default function AcademicRecordsPage({
     }
   }, []);
 
+  // ─────────────────────────────────────────────────────────────
+  // 3. CIRCULARS & NOTICES CORE STATE
+  // ─────────────────────────────────────────────────────────────
+  const [circularsData, setCircularsData] = useState(null);
+  const [loadingCirculars, setLoadingCirculars] = useState(() => activeTab === 'circulars');
+  const [circularsError, setCircularsError] = useState('');
+  const [circularsSearch, setCircularsSearch] = useState('');
+  const [circularsCategory, setCircularsCategory] = useState('ALL');
+
+  // Fetch University Circulars
+  const fetchCirculars = useCallback(async (isSilent = false) => {
+    if (!isSilent) setLoadingCirculars(true);
+    setCircularsError('');
+    try {
+      const res = await attendanceAPI.getCirculars();
+      if (res.data) {
+        setCircularsData(res.data);
+      }
+    } catch (err) {
+      setCircularsError(err.message || 'Failed to retrieve university circulars.');
+    } finally {
+      if (!isSilent) setLoadingCirculars(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!initialDashboardData) {
       fetchSummary(threshold);
@@ -172,6 +211,12 @@ export default function AcademicRecordsPage({
       fetchReportCard();
     }
   }, [activeTab, fetchReportCard, initialReportCardData, reportCardData]);
+
+  useEffect(() => {
+    if (activeTab === 'circulars' && !circularsData) {
+      fetchCirculars();
+    }
+  }, [activeTab, fetchCirculars, circularsData]);
 
   // Handle Manual Refresh for Attendance
   const handleManualRefresh = async () => {
@@ -580,54 +625,99 @@ export default function AcademicRecordsPage({
     return semesters.filter(s => s && s.semester === selectedSemesterFilter);
   }, [semesters, selectedSemesterFilter]);
 
+  // Processed and Filtered Circulars
+  const rawCirculars = useMemo(() => {
+    return Array.isArray(circularsData?.circulars) ? circularsData.circulars : [];
+  }, [circularsData]);
+
+  const circDataSource = circularsData?.dataSource || {
+    isConnected: dashboardData?.dataSource?.isConnected || false,
+    studentName: dashboardData?.dataSource?.studentName || '',
+    rollNumber: dashboardData?.dataSource?.rollNumber || '',
+  };
+
+  const filteredCirculars = useMemo(() => {
+    let list = rawCirculars;
+    if (circularsCategory !== 'ALL') {
+      list = list.filter(c => String(c?.category || '').toUpperCase() === circularsCategory.toUpperCase());
+    }
+    if (circularsSearch.trim()) {
+      const q = circularsSearch.toLowerCase();
+      list = list.filter(c =>
+        String(c?.title || '').toLowerCase().includes(q) ||
+        String(c?.excerpt || c?.description || '').toLowerCase().includes(q) ||
+        String(c?.refNo || '').toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [rawCirculars, circularsCategory, circularsSearch]);
+
   return (
-    <div className="attendly-dashboard">
-      {/* ─────────────────────────────────────────────────────────────
-          UNIFIED ACADEMIC RECORDS NAVIGATION BAR
-      ───────────────────────────────────────────────────────────── */}
-      <div className="academic-records-topbar">
-        <div className="academic-records-header-text">
-          <div className="attendly-kicker" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <GraduationCap size={13} className="text-accent" aria-hidden="true" />
-            <span>ACADEMIC INTELLIGENCE SUITE</span>
+    <div className="page-container academic-records-container">
+      <div className="attendly-dashboard">
+        {/* ─────────────────────────────────────────────────────────────
+            UNIFIED ACADEMIC RECORDS NAVIGATION BAR & BREADCRUMB
+        ───────────────────────────────────────────────────────────── */}
+        <div className="academic-records-topbar">
+          <div className="academic-records-header-text">
+            <div className="academic-records-breadcrumb" aria-label="Breadcrumb">
+              <span>Academic</span>
+              <ChevronRight size={11} className="breadcrumb-sep" aria-hidden="true" />
+              <span className="breadcrumb-current">Academic Records</span>
+            </div>
+            <h1 className="academic-records-main-title">Academic Records</h1>
+            <p className="academic-records-subtitle">
+              Unified student intelligence suite for live attendance monitoring, official university report cards, and administrative circulars.
+            </p>
           </div>
-          <h1 className="academic-records-main-title">Academic Records</h1>
-          <p className="academic-records-subtitle">
-            Unified student records for attendance tracking, lecture registers, and official university grade sheets.
-          </p>
-        </div>
 
-        {/* Tab Controls */}
-        <div className="academic-records-tab-pills" role="tablist" aria-label="Academic Records Navigation">
-          <button
-            className={`academic-pill-btn ${activeTab === 'attendance' ? 'active' : ''}`}
-            onClick={() => handleTabSwitch('attendance')}
-            role="tab"
-            aria-selected={activeTab === 'attendance'}
-            id="tab-btn-attendance"
-          >
-            <ClipboardList size={14} aria-hidden="true" />
-            <span>Attendance</span>
-            {overall.totalConducted > 0 && (
-              <span className="academic-tab-badge">{overall.percentage}%</span>
-            )}
-          </button>
+          {/* Tab Controls: Attendance, Report Card, Circulars */}
+          <div className="academic-records-tab-pills" role="tablist" aria-label="Academic Records Navigation">
+            <button
+              className={`academic-pill-btn ${activeTab === 'attendance' ? 'active' : ''}`}
+              onClick={() => handleTabSwitch('attendance')}
+              role="tab"
+              aria-selected={activeTab === 'attendance'}
+              id="tab-btn-attendance"
+            >
+              <ClipboardList size={14} aria-hidden="true" />
+              <span>Attendance</span>
+              {overall.totalConducted > 0 && (
+                <span className="academic-tab-badge">{overall.percentage}%</span>
+              )}
+            </button>
 
-          <button
-            className={`academic-pill-btn ${activeTab === 'report-card' ? 'active' : ''}`}
-            onClick={() => handleTabSwitch('report-card')}
-            role="tab"
-            aria-selected={activeTab === 'report-card'}
-            id="tab-btn-report-card"
-          >
-            <GraduationCap size={14} aria-hidden="true" />
-            <span>Report Card</span>
-            {record?.summary?.latestCgpa ? (
-              <span className="academic-tab-badge">CGPA {record.summary.latestCgpa}</span>
-            ) : null}
-          </button>
+            <button
+              className={`academic-pill-btn ${activeTab === 'report-card' ? 'active' : ''}`}
+              onClick={() => handleTabSwitch('report-card')}
+              role="tab"
+              aria-selected={activeTab === 'report-card'}
+              id="tab-btn-report-card"
+            >
+              <GraduationCap size={14} aria-hidden="true" />
+              <span>Report Card</span>
+              {record?.summary?.latestCgpa ? (
+                <span className="academic-tab-badge">CGPA {record.summary.latestCgpa}</span>
+              ) : null}
+            </button>
+
+            <button
+              className={`academic-pill-btn ${activeTab === 'circulars' ? 'active' : ''}`}
+              onClick={() => handleTabSwitch('circulars')}
+              role="tab"
+              aria-selected={activeTab === 'circulars'}
+              id="tab-btn-circulars"
+            >
+              <Bell size={14} aria-hidden="true" />
+              <span>Circulars</span>
+              {Array.isArray(circularsData?.circulars) && circularsData.circulars.length > 0 ? (
+                <span className="academic-tab-badge">{circularsData.circulars.length}</span>
+              ) : (
+                <span className="academic-tab-badge academic-badge-dot" title="University notices" />
+              )}
+            </button>
+          </div>
         </div>
-      </div>
 
       {/* ─────────────────────────────────────────────────────────────
           TAB 1: ATTENDANCE SECTION (100% PRESERVED FUNCTIONALITY)
@@ -635,19 +725,18 @@ export default function AcademicRecordsPage({
       {activeTab === 'attendance' && (
         <>
           {/* Attendance Action Header */}
-          <div className="attendly-header" style={{ marginTop: 'var(--s4)' }}>
+          <div className="attendly-header" style={{ marginTop: 'var(--s4)', borderBottom: 'none', paddingBottom: 0 }}>
             <div>
-              <div className="attendly-kicker">
-                <span>ATTENDANCE INTELLIGENCE</span>
+              <div className="attendly-kicker" style={{ margin: 0 }}>
+                <span>ATTENDANCE INTELLIGENCE & REGISTERS</span>
                 {dataSource.isConnected && (
                   <span className="attendly-live-pulse-dot" title="Connected to Code Brigade" />
                 )}
               </div>
-              <h2 className="attendly-title" style={{ fontSize: 22 }}>Attendance & Registers</h2>
-              <div className="attendly-subtitle">
+              <div className="attendly-subtitle" style={{ marginTop: 4 }}>
                 {dataSource.isConnected && dataSource.studentName
                   ? `Authenticated as ${dataSource.studentName} (${dataSource.rollNumber || dataSource.className || 'CUIET'})`
-                  : 'Track class attendance, lecture registers, and bunk safety margins.'}
+                  : 'Delivered lectures, attendance percentages, and bunk safety margins.'}
               </div>
             </div>
 
@@ -1436,6 +1525,223 @@ export default function AcademicRecordsPage({
       )}
 
       {/* ─────────────────────────────────────────────────────────────
+          TAB 3: CIRCULARS SECTION (OFFICIAL NOTICES & ANNOUNCEMENTS)
+      ───────────────────────────────────────────────────────────── */}
+      {activeTab === 'circulars' && (
+        <div className="circulars-section">
+          {/* Header & Controls */}
+          <div className="circulars-header-actions">
+            <div>
+              <div className="attendly-kicker" style={{ margin: 0 }}>
+                <span>OFFICIAL UNIVERSITY NOTICES</span>
+                {circDataSource.isConnected && (
+                  <span className="attendly-live-pulse-dot" title="Connected to Code Brigade" />
+                )}
+              </div>
+              <div className="attendly-subtitle" style={{ marginTop: 4 }}>
+                {circDataSource.isConnected && circDataSource.studentName
+                  ? `Authenticated as ${circDataSource.studentName} (${circDataSource.rollNumber || 'Chitkara University'})`
+                  : 'Official circulars, examination notifications, and administrative announcements.'}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => fetchCirculars()}
+                disabled={loadingCirculars}
+                title="Refresh university circulars"
+                id="btn-refresh-circulars"
+              >
+                <RefreshCw size={13} className={loadingCirculars ? 'animate-spin' : ''} aria-hidden="true" />
+                <span>Refresh</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Filter & Search Bar */}
+          <div className="circulars-filter-bar">
+            <div className="circulars-search-box">
+              <Search size={14} className="search-icon" aria-hidden="true" />
+              <input
+                type="text"
+                className="form-control circulars-search-input"
+                placeholder="Search circulars by title, topic, or ref..."
+                value={circularsSearch}
+                onChange={(e) => setCircularsSearch(e.target.value)}
+                id="input-search-circulars"
+              />
+            </div>
+
+            <div className="circulars-category-pills" role="radiogroup" aria-label="Circular Category Filter">
+              {['ALL', 'ACADEMIC', 'EXAMINATION', 'ADMINISTRATIVE', 'EVENTS'].map(cat => (
+                <button
+                  key={cat}
+                  type="button"
+                  className={`circulars-category-btn ${circularsCategory === cat ? 'active' : ''}`}
+                  onClick={() => setCircularsCategory(cat)}
+                  role="radio"
+                  aria-checked={circularsCategory === cat}
+                >
+                  {cat === 'ALL' ? 'All Notices' : cat.charAt(0) + cat.slice(1).toLowerCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Body Content: Loading, Error, Disconnected, Unavailable, or Live Feed */}
+          {loadingCirculars ? (
+            <LoadingState message="Connecting to university portal for circulars…" />
+          ) : circularsError ? (
+            <ErrorState message={circularsError} onRetry={() => fetchCirculars()} />
+          ) : !circDataSource.isConnected && rawCirculars.length === 0 ? (
+            <div className="circulars-notice-card">
+              <div className="circulars-notice-icon">
+                <BellOff size={26} aria-hidden="true" />
+              </div>
+              <div className="circulars-status-pill">
+                <span className="status-dot" />
+                <span>University Connection Required</span>
+              </div>
+              <h3 className="circulars-notice-title">Synchronize University Circulars</h3>
+              <p className="circulars-notice-text">
+                Connect your Chitkara University / Code Brigade account to automatically stream official academic circulars, examination notifications, and administrative updates.
+              </p>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => setConnectModalOpen(true)}
+                style={{ marginTop: 'var(--s2)' }}
+              >
+                <Link2 size={13} aria-hidden="true" />
+                <span>Connect Code Brigade</span>
+              </button>
+            </div>
+          ) : rawCirculars.length === 0 ? (
+            <div className="circulars-notice-card">
+              <div className="circulars-notice-icon">
+                <Bell size={26} aria-hidden="true" />
+              </div>
+              <div className="circulars-status-pill">
+                <span className="status-dot connected" />
+                <span>Connected to Code Brigade ({circDataSource.studentName || 'Authenticated'})</span>
+              </div>
+              <h3 className="circulars-notice-title">Official Upstream Endpoint Notice</h3>
+              <p className="circulars-notice-text">
+                Your live attendance and report card records are synchronized with Chitkara University Code Brigade. Official university circulars and notices require a verified Chalkpad Pro circulars upstream endpoint.
+              </p>
+              <div style={{
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border)',
+                padding: '12px 18px',
+                borderRadius: 6,
+                fontSize: 12,
+                color: 'var(--fg-secondary)',
+                maxWidth: 580,
+                marginTop: 'var(--s2)',
+                lineHeight: 1.6,
+                textAlign: 'left'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--accent)', fontWeight: 700, marginBottom: 4 }}>
+                  <ShieldCheck size={14} />
+                  <span>Academic Integrity Guarantee</span>
+                </div>
+                CampusFlow AI maintains strict data integrity: attendance registers and semester grade sheets are verified live from university servers. CampusFlow AI will never fabricate artificial circulars.
+              </div>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => fetchCirculars()}
+                style={{ marginTop: 'var(--s3)' }}
+              >
+                <RefreshCw size={13} aria-hidden="true" />
+                <span>Check University Sync</span>
+              </button>
+            </div>
+          ) : filteredCirculars.length === 0 ? (
+            <EmptyState
+              icon={<Search size={24} strokeWidth={1.5} />}
+              title="No matching circulars found"
+              description={`No notices found matching "${circularsSearch}" in category "${circularsCategory}". Try clearing your search or choosing All Notices.`}
+              action={
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => {
+                    setCircularsSearch('');
+                    setCircularsCategory('ALL');
+                  }}
+                  style={{ marginTop: 8 }}
+                >
+                  Clear Filters
+                </button>
+              }
+            />
+          ) : (
+            <div className="circulars-feed-grid">
+              {filteredCirculars.map((circ, idx) => {
+                const recent = circ.date && (Date.now() - new Date(circ.date).getTime()) < (7 * 24 * 60 * 60 * 1000);
+                return (
+                  <div key={circ.id || circ._id || idx} className="circular-card">
+                    <div className="circular-card-top">
+                      <div className="circular-badge-group">
+                        <span className="circular-category-badge">{circ.category || 'NOTICE'}</span>
+                        {recent && <span className="circular-new-badge">NEW</span>}
+                        {circ.department && (
+                          <span style={{ fontSize: 11, color: 'var(--fg-muted)', fontFamily: 'var(--font-mono)' }}>
+                            • {circ.department}
+                          </span>
+                        )}
+                      </div>
+                      <div className="circular-date-text">
+                        <Calendar size={12} aria-hidden="true" />
+                        <span>{formatDate(circ.date || circ.publishedAt, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                      </div>
+                    </div>
+
+                    <h3 className="circular-title">{circ.title}</h3>
+
+                    {circ.excerpt && (
+                      <p className="circular-excerpt">{circ.excerpt}</p>
+                    )}
+
+                    <div className="circular-footer">
+                      <div className="circular-ref-num">
+                        {circ.refNo ? `Ref: ${circ.refNo}` : 'Official University Notice'}
+                      </div>
+                      <div className="circular-links">
+                        {circ.attachmentUrl && (
+                          <a
+                            href={circ.attachmentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-secondary btn-xs"
+                          >
+                            <FileText size={12} aria-hidden="true" />
+                            <span>Attachment</span>
+                            <ExternalLink size={10} aria-hidden="true" />
+                          </a>
+                        )}
+                        {circ.sourceUrl && (
+                          <a
+                            href={circ.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-ghost btn-xs"
+                          >
+                            <span>University Portal</span>
+                            <ArrowUpRight size={11} aria-hidden="true" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
           SHARED MODAL 1: SUBJECT ATTENDANCE REGISTER
       ───────────────────────────────────────────────────────────── */}
       <Modal
@@ -1819,6 +2125,7 @@ export default function AcademicRecordsPage({
           </div>
         </div>
       </Modal>
+      </div>
     </div>
   );
 }
