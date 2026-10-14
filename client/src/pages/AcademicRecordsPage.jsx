@@ -186,6 +186,8 @@ export default function AcademicRecordsPage({
   const [circularsSearch, setCircularsSearch] = useState('');
   const [circularsCategory, setCircularsCategory] = useState('ALL');
   const [selectedCircular, setSelectedCircular] = useState(null);
+  const [loadingCircularDetail, setLoadingCircularDetail] = useState(false);
+  const [circularDetailError, setCircularDetailError] = useState(null);
 
   // Fetch University Circulars
   const fetchCirculars = useCallback(async (isSilent = false) => {
@@ -218,6 +220,66 @@ export default function AcademicRecordsPage({
       setSyncingCirculars(false);
     }
   }, []);
+
+  // Open Circular Notice & Fetch Complete Description
+  const handleOpenCircular = useCallback(async (circ) => {
+    if (!circ) return;
+    setSelectedCircular(circ);
+    setCircularDetailError(null);
+
+    // If full description is already populated, no re-fetch is necessary
+    if (circ.description && circ.description.trim().length > 30) {
+      setLoadingCircularDetail(false);
+      return;
+    }
+
+    setLoadingCircularDetail(true);
+    try {
+      const res = await attendanceAPI.getCircularDetail({
+        id: circ.upstreamId || circ.id,
+        timeStamp: circ.timeStamp || '',
+        readBit: '0',
+      });
+
+      const detailData = res?.data?.data || res?.data;
+      if (detailData?.success && (detailData.description || detailData.paragraphs?.length > 0)) {
+        const updatedCirc = {
+          ...circ,
+          fullTitle: detailData.title || circ.fullTitle || circ.title,
+          description: detailData.description,
+          paragraphs: detailData.paragraphs || [],
+          department: detailData.department || circ.department,
+          hasAttachment: detailData.hasAttachment ?? circ.hasAttachment,
+          attachmentUrl: detailData.attachmentUrl ?? circ.attachmentUrl,
+          attachmentName: detailData.attachmentName || circ.attachmentName,
+          attachmentNotice: detailData.attachmentNotice || (detailData.hasAttachment ? 'Official university attachment attached' : 'No attachment available'),
+        };
+        setSelectedCircular(updatedCirc);
+
+        // Cache into circulars list
+        setCircularsData(prev => {
+          if (!prev || !Array.isArray(prev.circulars)) return prev;
+          return {
+            ...prev,
+            circulars: prev.circulars.map(c => (c.id === circ.id ? updatedCirc : c)),
+          };
+        });
+      } else {
+        const errMsg = detailData?.message || detailData?.error || 'Full notice details could not be retrieved from university portal.';
+        setCircularDetailError(errMsg);
+      }
+    } catch (err) {
+      setCircularDetailError(err.message || 'Full notice details could not be retrieved.');
+    } finally {
+      setLoadingCircularDetail(false);
+    }
+  }, []);
+
+  const handleRetryCircularDetail = useCallback(() => {
+    if (selectedCircular) {
+      handleOpenCircular(selectedCircular);
+    }
+  }, [selectedCircular, handleOpenCircular]);
 
   useEffect(() => {
     if (!initialDashboardData) {
@@ -1727,11 +1789,11 @@ export default function AcademicRecordsPage({
                   <div
                     key={circ.id || circ._id || idx}
                     className="circular-card"
-                    onClick={() => setSelectedCircular(circ)}
+                    onClick={() => handleOpenCircular(circ)}
                     style={{ cursor: 'pointer' }}
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedCircular(circ); } }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpenCircular(circ); } }}
                   >
                     <div className="circular-card-top">
                       <div className="circular-badge-group">
@@ -1773,8 +1835,9 @@ export default function AcademicRecordsPage({
                         <button
                           type="button"
                           className="btn btn-secondary btn-xs"
-                          onClick={() => setSelectedCircular(circ)}
+                          onClick={() => handleOpenCircular(circ)}
                           title="View complete official notice"
+                          id={`btn-read-circular-${idx}`}
                         >
                           <Eye size={12} aria-hidden="true" />
                           <span>Read full notice</span>
@@ -2202,17 +2265,28 @@ export default function AcademicRecordsPage({
       ───────────────────────────────────────────────────────────── */}
       <Modal
         isOpen={Boolean(selectedCircular)}
-        onClose={() => setSelectedCircular(null)}
-        title={selectedCircular?.title || 'Official University Notice'}
+        onClose={() => {
+          setSelectedCircular(null);
+          setCircularDetailError(null);
+          setLoadingCircularDetail(false);
+        }}
+        title="Official University Notice"
+        maxWidth={780}
       >
         {selectedCircular && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s4)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="circular-modal-container">
+            {/* Notice Header Metadata */}
+            <div className="circular-modal-header">
+              <div className="circular-badge-row">
                 <span className="circular-category-badge">{selectedCircular.category || 'NOTICE'}</span>
                 {selectedCircular.department && (
-                  <span style={{ fontSize: 12, color: 'var(--fg-secondary)', fontFamily: 'var(--font-mono)' }}>
+                  <span className="circular-dept-tag">
                     • {selectedCircular.department}
+                  </span>
+                )}
+                {selectedCircular.addedBy && selectedCircular.addedBy !== selectedCircular.department && (
+                  <span className="circular-author-tag">
+                    (Issued by {selectedCircular.addedBy})
                   </span>
                 )}
               </div>
@@ -2222,60 +2296,119 @@ export default function AcademicRecordsPage({
               </div>
             </div>
 
-            <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 6, padding: 'var(--s4)' }}>
-              <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--fg-muted)', marginBottom: 6 }}>
-                REFERENCE: {selectedCircular.refNo || 'CU/CB/OFFICIAL'}
+            {/* Reference Number */}
+            {selectedCircular.refNo && (
+              <div className="circular-modal-ref">
+                <span className="ref-label">REF:</span> {selectedCircular.refNo}
               </div>
-              <h3 style={{ fontSize: 17, fontWeight: 700, margin: '4px 0 10px', color: 'var(--fg-primary)', lineHeight: 1.4 }}>
-                {selectedCircular.title}
-              </h3>
-              {selectedCircular.subject && (
-                <div style={{ fontSize: 13, color: 'var(--fg-secondary)', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  <strong>Subject:</strong> {selectedCircular.subject}
-                </div>
-              )}
-              <div className="circular-content-body">
-                {(selectedCircular.description || selectedCircular.excerpt || `Official notification issued by ${selectedCircular.addedBy || 'Chitkara University Administration'}.`)
-                  .split('\n\n')
-                  .filter(Boolean)
-                  .map((para, pIdx) => (
-                    <p key={pIdx}>{para}</p>
-                  ))}
-              </div>
-            </div>
+            )}
 
-            {/* Official Attachment Status / Action */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 14px',
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 6,
-              flexWrap: 'wrap',
-              gap: 10
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* Full Official Title */}
+            <h2 className="circular-modal-title">
+              {selectedCircular.fullTitle || selectedCircular.title}
+            </h2>
+
+            {/* Subject (if provided) */}
+            {selectedCircular.subject && (
+              <div className="circular-modal-subject">
+                <strong>Subject:</strong> {selectedCircular.subject}
+              </div>
+            )}
+
+            {/* Notice Body: Loading, Error, or Full Content */}
+            {loadingCircularDetail ? (
+              <div className="circular-detail-loading" id="circular-detail-loading">
+                <RefreshCw size={24} className="animate-spin" style={{ color: 'var(--accent)' }} />
+                <span>Retrieving complete official notice from university portal...</span>
+              </div>
+            ) : circularDetailError ? (
+              <div className="circular-detail-error-box" id="circular-detail-error">
+                <div className="error-icon-row">
+                  <AlertTriangle size={18} style={{ color: 'var(--danger, #EF4444)' }} />
+                  <strong>Full notice details could not be retrieved</strong>
+                </div>
+                <p className="error-message">
+                  {circularDetailError}
+                </p>
+                <div className="error-action-row">
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={handleRetryCircularDetail}
+                    id="btn-retry-circular-detail"
+                  >
+                    <RefreshCw size={12} />
+                    <span>Retry Loading Details</span>
+                  </button>
+                  {selectedCircular.sourceUrl && (
+                    <a
+                      href={selectedCircular.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-ghost btn-sm"
+                    >
+                      <span>Check on University Portal</span>
+                      <ExternalLink size={11} />
+                    </a>
+                  )}
+                </div>
+              </div>
+            ) : selectedCircular.description ? (
+              <div className="circular-modal-body" id="circular-modal-body">
+                {selectedCircular.paragraphs && selectedCircular.paragraphs.length > 0 ? (
+                  selectedCircular.paragraphs.map((para, pIdx) => (
+                    <p key={pIdx}>{para}</p>
+                  ))
+                ) : (
+                  selectedCircular.description.split('\n\n').filter(Boolean).map((para, pIdx) => (
+                    <p key={pIdx}>{para}</p>
+                  ))
+                )}
+              </div>
+            ) : (
+              <div className="circular-detail-error-box">
+                <div className="error-icon-row">
+                  <AlertTriangle size={18} style={{ color: 'var(--warning, #F59E0B)' }} />
+                  <strong>Notice Description Unavailable</strong>
+                </div>
+                <p className="error-message">
+                  The complete official notice description has not yet been streamed from the university timeline.
+                </p>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={handleRetryCircularDetail}
+                >
+                  <RefreshCw size={12} />
+                  <span>Fetch Details</span>
+                </button>
+              </div>
+            )}
+
+            {/* Official Attachment Section */}
+            <div className="circular-modal-attachment-section">
+              <div className="attach-meta-left">
                 <FileText size={16} style={{ color: selectedCircular.attachmentUrl ? '#38bdf8' : 'var(--fg-muted)' }} />
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--fg-primary)' }}>Official Attachment</div>
-                  <div style={{ fontSize: 11, color: 'var(--fg-muted)' }}>
+                  <div className="attach-title">Official Attachment</div>
+                  <div className="attach-subtitle">
                     {selectedCircular.attachmentUrl
                       ? (selectedCircular.attachmentName || 'Verified university document attached')
                       : 'No attachment available (source: ---)'}
                   </div>
                 </div>
               </div>
+
               {selectedCircular.attachmentUrl ? (
                 <a
                   href={selectedCircular.attachmentUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-secondary btn-sm"
+                  id="btn-download-circular-attachment"
                 >
                   <FileText size={13} />
-                  <span>Download Document</span>
+                  <span>Download Attachment</span>
                   <ExternalLink size={11} />
                 </a>
               ) : (
@@ -2283,24 +2416,26 @@ export default function AcademicRecordsPage({
               )}
             </div>
 
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '10px 14px',
-              background: 'rgba(56, 189, 248, 0.08)',
-              border: '1px solid rgba(56, 189, 248, 0.25)',
-              borderRadius: 6,
-              fontSize: 12,
-              color: 'var(--fg-secondary)'
-            }}>
+            {/* University Verification Guarantee */}
+            <div className="circular-modal-guarantee">
               <ShieldCheck size={16} style={{ color: '#38bdf8', flexShrink: 0 }} />
               <span>
                 Verified university notification streamed live from Chitkara University Code Brigade student portal.
               </span>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 'var(--s2)' }}>
+            {/* Actions */}
+            <div className="circular-modal-actions">
+              {circularDetailError && (
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={handleRetryCircularDetail}
+                >
+                  <RefreshCw size={12} />
+                  <span>Retry</span>
+                </button>
+              )}
               {selectedCircular.sourceUrl && (
                 <a
                   href={selectedCircular.sourceUrl}
@@ -2315,7 +2450,11 @@ export default function AcademicRecordsPage({
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
-                onClick={() => setSelectedCircular(null)}
+                onClick={() => {
+                  setSelectedCircular(null);
+                  setCircularDetailError(null);
+                  setLoadingCircularDetail(false);
+                }}
               >
                 Close
               </button>
