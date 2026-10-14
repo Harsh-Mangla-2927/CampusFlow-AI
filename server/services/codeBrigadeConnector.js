@@ -14,7 +14,11 @@
 'use strict';
 
 const crypto = require('crypto');
-const { parseAttendanceSubjectwise, parseAttendanceRegister } = require('./codeBrigadeParser');
+const {
+  parseAttendanceSubjectwise,
+  parseAttendanceRegister,
+  parseGradeCard,
+} = require('./codeBrigadeParser');
 
 const ALLOWED_HOSTS = ['cuiet.codebrigade.in', 'gdemo.schoolpad.in', 'codebrigade.in'];
 const DEFAULT_BASE_URL = 'https://cuiet.codebrigade.in';
@@ -481,6 +485,142 @@ class CodeBrigadeConnector {
       subjects: parsedSubjects,
       registers: parsedRegister,
     };
+  }
+
+  /**
+   * Fetch and parse live report card / grade card records from Code Brigade.
+   * Uses authorized student session with commonPageId 31 (Grade Card) and 19 (Report Card).
+   *
+   * @param {Object} session - Stored CodeBrigadeSession document
+   * @returns {Promise<Object>} Extracted official grade card and semester breakdown
+   */
+  async fetchReportCard(session) {
+    if (!session || !session.apiKey || !session.userId) {
+      const err = new Error('No active Code Brigade university session found.');
+      err.code = 'AUTHENTICATION_REQUIRED';
+      throw err;
+    }
+
+    const {
+      baseUrl = DEFAULT_BASE_URL,
+      apiKey,
+      userId,
+      sessionId,
+      roleId,
+      studentId = userId,
+      securityToken = '',
+      deviceUUID = generateDeviceUUID(),
+      classId = '',
+    } = session;
+
+    console.log(
+      `[CodeBrigade Connector] Fetching live grade card for Student ID: ${studentId}, Session: ${sessionId}`
+    );
+
+    const baseParams = {
+      userId: String(userId),
+      sessionId: String(sessionId),
+      roleId: String(roleId),
+      apiKey: String(apiKey),
+      deviceIdUUID: String(deviceUUID),
+      securityToken: String(securityToken),
+      token: String(securityToken),
+      studentId: String(studentId),
+    };
+    if (classId) baseParams.classId = String(classId);
+
+    const fetchCommonPage = async (pageId) => {
+      const fullUrl = `${baseUrl}/mobilev2/commonPage`;
+      const body = new URLSearchParams({
+        ...baseParams,
+        commonPageId: String(pageId),
+        device: 'android',
+        commonObj: '',
+      }).toString();
+
+      try {
+        const res = await timedFetch(fullUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept-Encoding': 'gzip',
+          },
+          body,
+        });
+        const text = await res.text();
+        return { ok: res.ok, status: res.status, text };
+      } catch (err) {
+        return { ok: false, status: 0, error: err.message };
+      }
+    };
+
+    // Query Grade Card (commonPageId 31) and Report Card (commonPageId 19)
+    const [gradeCardRes, reportCardRes] = await Promise.allSettled([
+      fetchCommonPage('31'),
+      fetchCommonPage('19'),
+    ]);
+
+    let parsedResult = null;
+
+    if (gradeCardRes.status === 'fulfilled' && gradeCardRes.value.ok) {
+      const text = gradeCardRes.value.text;
+      try {
+        const json = JSON.parse(text);
+        if (
+          json?.code === '403' ||
+          json?.status === 'error' ||
+          (json?.message && json.message.toLowerCase().includes('session has expired'))
+        ) {
+          const err = new Error('University authentication session expired. Please re-authenticate.');
+          err.code = 'SESSION_EXPIRED';
+          throw err;
+        }
+
+        if (json.content) {
+          const parsed = parseGradeCard(json.content);
+          if (parsed && !parsed.empty && parsed.semesters && parsed.semesters.length > 0) {
+            parsedResult = {
+              ...parsed,
+              title: json.title || 'Grade Card',
+              source: 'CODE_BRIGADE',
+            };
+          }
+        }
+      } catch (err) {
+        if (err.code === 'SESSION_EXPIRED') throw err;
+      }
+    }
+
+    // Fallback to report card if grade card had no semesters
+    if (!parsedResult && reportCardRes.status === 'fulfilled' && reportCardRes.value.ok) {
+      const text = reportCardRes.value.text;
+      try {
+        const json = JSON.parse(text);
+        if (json.content) {
+          const parsed = parseGradeCard(json.content);
+          if (parsed && !parsed.empty) {
+            parsedResult = {
+              ...parsed,
+              title: json.title || 'Report Card',
+              source: 'CODE_BRIGADE',
+            };
+          }
+        }
+      } catch (err) {
+        // Ignore JSON parse errors on fallback
+      }
+    }
+
+    if (!parsedResult) {
+      return {
+        empty: true,
+        message: 'No official university examination report card published yet for this session.',
+        source: 'CODE_BRIGADE',
+        semesters: [],
+      };
+    }
+
+    return parsedResult;
   }
 }
 

@@ -278,8 +278,145 @@ function parseAttendanceRegister(htmlContent) {
   return subjectsRegister;
 }
 
+/**
+ * Parse Grade Card / Academic Report Card HTML content (commonPageId 31 / 19).
+ * Extracts official semester results, subjects, credits, grades, SGPA, CGPA, and notes.
+ *
+ * @param {string} htmlContent
+ * @returns {Object|null}
+ */
+function parseGradeCard(htmlContent) {
+  if (!htmlContent || typeof htmlContent !== 'string') return null;
+
+  if (
+    htmlContent.includes('no-record') ||
+    htmlContent.includes('No Record Found') ||
+    htmlContent.includes('No record found')
+  ) {
+    return { empty: true, message: 'No Record Found.' };
+  }
+
+  // 1. Extract student profile metadata
+  const extractMeta = (regex) => {
+    const match = htmlContent.match(regex);
+    return match ? match[1].replace(/<[^>]*>/g, '').trim() : '';
+  };
+
+  const studentName = extractMeta(/Name<br>\s*<b>([^<]+)<\/b>/i);
+  const rollNumber = extractMeta(/Roll No\.<br>\s*<b>([^<]+)<\/b>/i);
+  const fatherName = extractMeta(/Father's Name<br>\s*<b>([^<]+)<\/b>/i);
+  const motherName = extractMeta(/Mother's Name<br>\s*<b>([^<]+)<\/b>/i);
+  const className = extractMeta(/Class Name<br>\s*<b>([^<]+)<\/b>/i);
+
+  // 2. Extract official university evaluation notes
+  const notes = [];
+  const noteMatches = htmlContent.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi);
+  for (const match of noteMatches) {
+    const noteText = match[1]
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (noteText) notes.push(noteText);
+  }
+
+  // 3. Extract table rows & semesters
+  const semesters = [];
+  let currentSemesterSubjects = [];
+
+  const trRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+  let trMatch;
+
+  while ((trMatch = trRegex.exec(htmlContent)) !== null) {
+    const rowHtml = trMatch[1];
+
+    // Check if this is a Study Period / SGPA / CGPA summary row
+    const periodMatch = rowHtml.match(/Study Period:\s*([^<]+)/i);
+    const sgpaMatch = rowHtml.match(/SGPA:\s*([\d.]+)/i);
+    const cgpaMatch = rowHtml.match(/CGPA:\s*([\d.]+)/i);
+
+    if (periodMatch) {
+      const periodName = periodMatch[1].trim();
+      const sgpa = sgpaMatch ? parseFloat(sgpaMatch[1]) : null;
+      const cgpa = cgpaMatch ? parseFloat(cgpaMatch[1]) : null;
+
+      const semCredits = currentSemesterSubjects.reduce((sum, s) => sum + (s.credits || 0), 0);
+
+      semesters.push({
+        semester: periodName,
+        sgpa,
+        cgpa,
+        totalCredits: Math.round(semCredits * 100) / 100,
+        subjects: currentSemesterSubjects,
+      });
+
+      currentSemesterSubjects = [];
+      continue;
+    }
+
+    // Ignore table headers
+    if (rowHtml.includes('<strong>') || rowHtml.includes('<th')) continue;
+
+    const tdMatches = [...rowHtml.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)].map((m) =>
+      m[1]
+        .replace(/<[^>]*>/g, '')
+        .replace(/&amp;/g, '&')
+        .replace(/&nbsp;/g, ' ')
+        .trim()
+    );
+
+    if (tdMatches.length >= 5) {
+      const [sNo, code, name, creditsStr, grade] = tdMatches;
+      const credits = parseFloat(creditsStr);
+      // Ensure it's a valid subject row: sNo is number, code has characters, credits is numeric
+      if (/^\d+$/.test(sNo) && code && name && !isNaN(credits) && grade) {
+        currentSemesterSubjects.push({
+          sNo: parseInt(sNo, 10),
+          code: code.toUpperCase(),
+          name,
+          credits,
+          grade: grade.toUpperCase(),
+          status: grade.toUpperCase() === 'F' ? 'FAIL' : 'PASS',
+        });
+      }
+    }
+  }
+
+  // Calculate cumulative stats
+  const totalSemesters = semesters.length;
+  const latestCgpa = semesters.length > 0 ? semesters[semesters.length - 1].cgpa : null;
+  const latestSgpa = semesters.length > 0 ? semesters[semesters.length - 1].sgpa : null;
+  const totalCreditsEarned = semesters.reduce((acc, sem) => {
+    return (
+      acc +
+      sem.subjects
+        .filter((s) => s.status === 'PASS')
+        .reduce((sAcc, s) => sAcc + (s.credits || 0), 0)
+    );
+  }, 0);
+
+  return {
+    empty: semesters.length === 0,
+    studentName,
+    rollNumber,
+    fatherName,
+    motherName,
+    className,
+    semesters,
+    summary: {
+      totalSemesters,
+      latestCgpa,
+      latestSgpa,
+      totalCreditsEarned: Math.round(totalCreditsEarned * 100) / 100,
+    },
+    notes,
+  };
+}
+
 module.exports = {
   cleanHtmlText,
   parseAttendanceSubjectwise,
   parseAttendanceRegister,
+  parseGradeCard,
 };
+
