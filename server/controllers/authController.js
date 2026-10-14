@@ -1,4 +1,6 @@
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const User = require('../models/User');
@@ -286,6 +288,8 @@ const verifyOtp = async (req, res, next) => {
             _id: user._id, id: user._id,
             name: user.name, email: user.email,
             university: user.university, course: user.course, semester: user.semester,
+            section: user.section || '', rollNumber: user.rollNumber || '',
+            profilePicture: user.profilePicture || null,
           },
         },
       });
@@ -326,6 +330,8 @@ const verifyOtp = async (req, res, next) => {
             _id: newUser._id, id: newUser._id,
             name: newUser.name, email: newUser.email,
             university: newUser.university, course: newUser.course, semester: newUser.semester,
+            section: newUser.section || '', rollNumber: newUser.rollNumber || '',
+            profilePicture: newUser.profilePicture || null,
           },
         },
       });
@@ -473,6 +479,7 @@ const updateProfile = async (req, res, next) => {
           name: updated.name, email: updated.email,
           university: updated.university, course: updated.course,
           semester: updated.semester, section: updated.section, rollNumber: updated.rollNumber,
+          profilePicture: updated.profilePicture || null,
         },
       },
     });
@@ -676,6 +683,93 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
+// ── UPLOAD PROFILE PHOTO ───────────────────────────────────
+// @route   POST /api/auth/profile/photo
+// @access  Private
+const uploadProfilePhoto = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No image file was provided. Please choose a JPEG, PNG, or WebP photo.',
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    // Clean up previous custom avatar file if present
+    if (user.profilePicture && user.profilePicture.startsWith('/uploads/avatars/')) {
+      const oldPath = path.join(__dirname, '..', user.profilePicture);
+      if (fs.existsSync(oldPath)) {
+        try { fs.unlinkSync(oldPath); } catch (e) { /* ignore cleanup error */ }
+      }
+    }
+
+    const photoUrl = `/uploads/avatars/${req.file.filename}`;
+    user.profilePicture = photoUrl;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile photo updated successfully.',
+      data: {
+        profilePicture: photoUrl,
+        user: {
+          _id: user._id, id: user._id,
+          name: user.name, email: user.email,
+          university: user.university, course: user.course,
+          semester: user.semester, section: user.section || '', rollNumber: user.rollNumber || '',
+          profilePicture: user.profilePicture,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ── DELETE PROFILE PHOTO ───────────────────────────────────
+// @route   DELETE /api/auth/profile/photo
+// @access  Private
+const deleteProfilePhoto = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    if (user.profilePicture && user.profilePicture.startsWith('/uploads/avatars/')) {
+      const oldPath = path.join(__dirname, '..', user.profilePicture);
+      if (fs.existsSync(oldPath)) {
+        try { fs.unlinkSync(oldPath); } catch (e) { /* ignore cleanup error */ }
+      }
+    }
+
+    user.profilePicture = null;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile photo removed.',
+      data: {
+        profilePicture: null,
+        user: {
+          _id: user._id, id: user._id,
+          name: user.name, email: user.email,
+          university: user.university, course: user.course,
+          semester: user.semester, section: user.section || '', rollNumber: user.rollNumber || '',
+          profilePicture: null,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -686,4 +780,6 @@ module.exports = {
   getMe,
   updateProfile,
   changePassword,
+  uploadProfilePhoto,
+  deleteProfilePhoto,
 };

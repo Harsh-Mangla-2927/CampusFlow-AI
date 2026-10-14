@@ -128,6 +128,23 @@ export const authAPI = {
   getMe:          ()     => request('/auth/me'),
   updateProfile:  (data) => request('/auth/profile',         { method: 'PUT',  body: JSON.stringify(data) }),
   changePassword: (data) => request('/auth/password',        { method: 'PUT',  body: JSON.stringify(data) }),
+  uploadProfilePhoto: (formData) => {
+    const token = getToken();
+    return fetch(`${BASE_URL}/auth/profile/photo`, {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: formData,
+    }).then(async (res) => {
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error((data && data.message) || 'Failed to upload profile photo');
+      }
+      return data;
+    });
+  },
+  deleteProfilePhoto: () => request('/auth/profile/photo', { method: 'DELETE' }),
 };
 
 // ── Subjects API ─────────────────────────────────────────────
