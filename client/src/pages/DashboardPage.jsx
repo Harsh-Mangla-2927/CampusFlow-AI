@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { intelligenceAPI } from '../services/api';
-import { LoadingState, ErrorState, StatCard, SectionHeader, AcademicHealthRing, ProgressBar } from '../components/SharedComponents';
+import { LoadingState, ErrorState, AcademicHealthRing, ProgressBar } from '../components/SharedComponents';
 import { getGreeting, deadlineLabel, getPriorityBadgeClass } from '../utils/helpers';
-import { RefreshCw, AlertTriangle, ArrowRight, BookOpen, CheckSquare, FileText, Activity } from 'lucide-react';
+import {
+  RefreshCw, AlertTriangle, ArrowRight, BookOpen, CheckSquare, FileText,
+  Activity, Plus, Calendar, ShieldCheck, Clock, Zap
+} from 'lucide-react';
 
-function DashboardPage({ onNavigate }) {
+export default function DashboardPage({ onNavigate }) {
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState('');
@@ -26,17 +29,10 @@ function DashboardPage({ onNavigate }) {
     load();
   }, []);
 
-  if (loading) return <LoadingState message="Loading dashboard…" />;
+  if (loading) return <LoadingState message="Aggregating academic workspace…" />;
   if (error)   return <ErrorState message={error} onRetry={load} />;
   if (!data)   return null;
 
-  // ── FIELD MAPPING (matches intelligenceController.js response) ──
-  // data.summary       → stat counts
-  // data.todaysFocus   → prioritized tasks (top 5)
-  // data.academicAlerts → at-risk subjects
-  // data.upcomingExams → upcoming exams
-  // data.conflicts     → deadline conflicts
-  // data.academicHealth → 0-100 score
   const {
     user,
     academicHealth = 0,
@@ -58,99 +54,411 @@ function DashboardPage({ onNavigate }) {
 
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-  // Avg attendance from academicAlerts (subjects with attendance info)
+  // Average attendance calculation from alerts/subjects
   const avgAttendance = academicAlerts.length > 0
     ? Math.round(academicAlerts.reduce((s, r) => s + (r.attendance?.currentPct || 0), 0) / academicAlerts.length)
     : 85;
 
+  const healthLevel = academicHealth >= 75 ? 'Optimal' : academicHealth >= 50 ? 'Moderate' : 'Critical';
+  const healthColor = academicHealth >= 75 ? 'var(--success)' : academicHealth >= 50 ? 'var(--warning)' : 'var(--danger)';
+
   return (
     <div className="page-container">
-      {/* GREETING */}
-      <div className="dash-greeting">
-        <h1>{getGreeting()}, {user?.name?.split(' ')[0] || 'Student'}.</h1>
-        <p className="dash-greeting-sub" style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>
-          {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-        </p>
+      {/* ── DASHBOARD HEADER ── */}
+      <div className="dash-header-section" style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 'var(--s4)',
+        marginBottom: 'var(--s8)',
+        paddingBottom: 'var(--s6)',
+        borderBottom: '1px solid var(--border)',
+      }}>
+        <div>
+          <div style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            color: 'var(--accent)',
+            marginBottom: 6,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+          }}>
+            <span style={{ width: 6, height: 6, background: 'var(--accent)' }} aria-hidden="true" />
+            Academic Headquarters
+          </div>
+          <h1 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(1.8rem, 4vw, 2.75rem)',
+            fontWeight: 900,
+            letterSpacing: '-0.02em',
+            margin: 0,
+            lineHeight: 1.1,
+          }}>
+            {getGreeting()}, {user?.name?.split(' ')[0] || 'Scholar'}.
+          </h1>
+          <p style={{
+            color: 'var(--fg-muted)',
+            fontSize: 13,
+            marginTop: 6,
+            marginBottom: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            flexWrap: 'wrap',
+          }}>
+            <span>
+              {new Date().toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              })}
+            </span>
+            <span style={{ color: 'var(--border-strong)' }}>•</span>
+            <span>
+              {user?.course ? `${user.course} (Sem ${user.semester || 1})` : 'Active Session'}
+            </span>
+            <span style={{ color: 'var(--border-strong)' }}>•</span>
+            <span style={{ color: healthColor, fontWeight: 600 }}>
+              Health: {healthLevel} ({academicHealth}%)
+            </span>
+          </p>
+        </div>
+
+        {/* Quick Actions Bar */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => onNavigate('tasks')}
+            id="dash-quick-task"
+            title="Create a new academic task"
+          >
+            <Plus size={13} strokeWidth={2.2} aria-hidden="true" />
+            <span>New Task</span>
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => onNavigate('attendance')}
+            id="dash-quick-attendance"
+            title="Review attendance and sync university records"
+          >
+            <Activity size={13} strokeWidth={2} aria-hidden="true" />
+            <span>Attendance</span>
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            onClick={() => onNavigate('planner')}
+            id="dash-quick-planner"
+            title="Launch adaptive daily study plan"
+          >
+            <Zap size={13} strokeWidth={2.2} aria-hidden="true" />
+            <span>Study Plan</span>
+          </button>
+        </div>
       </div>
 
-      {/* CONFLICT BANNER */}
+      {/* ── CONFLICT BANNER ── */}
       {conflicts?.length > 0 && (
-        <div className="conflict-banner" role="alert">
-          <div className="conflict-banner-title">
-            <AlertTriangle size={14} strokeWidth={2} aria-hidden="true" />
-            Deadline Conflict Detected
+        <div className="conflict-banner" role="alert" style={{
+          marginBottom: 'var(--s6)',
+          background: 'rgba(239, 68, 68, 0.08)',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          borderLeft: '4px solid var(--danger)',
+          padding: '14px 18px',
+          borderRadius: 4,
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 12,
+        }}>
+          <AlertTriangle size={18} style={{ color: 'var(--danger)', flexShrink: 0, marginTop: 1 }} aria-hidden="true" />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--fg-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Urgent Schedule Conflict
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--fg-secondary)', marginTop: 2 }}>
+              {conflicts[0].message || conflicts[0].description || 'Multiple overlapping academic deadlines detected this week.'}
+            </div>
           </div>
-          <div style={{ fontSize: 13, color: 'var(--fg-secondary)' }}>
-            {conflicts[0].message || conflicts[0].description || 'Multiple deadlines overlap this week.'}
-          </div>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={() => onNavigate('tasks')}
+            style={{ color: 'var(--danger)', fontSize: 12 }}
+          >
+            Resolve
+          </button>
         </div>
       )}
 
-      {/* STATS GRID */}
-      <div className="stats-grid" role="region" aria-label="Academic statistics">
-        <StatCard label="Subjects"       value={totalSubjects}      icon={<BookOpen size={14} strokeWidth={1.5} />} />
-        <StatCard label="Pending Tasks"  value={pendingTasks}       accentColor="var(--warning)"  icon={<CheckSquare size={14} strokeWidth={1.5} />} />
-        <StatCard label="Upcoming Exams" value={upcomingExamsCount} accentColor="var(--accent)"   icon={<FileText size={14} strokeWidth={1.5} />} />
-        <StatCard label="At Risk"        value={highRiskSubjects}
-          accentColor={highRiskSubjects > 0 ? 'var(--danger)' : 'var(--success)'}
-          icon={<Activity size={14} strokeWidth={1.5} />}
-          detail={highRiskSubjects > 0 ? 'Needs attention' : 'All clear'} />
-      </div>
-
-      <div className="dashboard-grid">
-
-        {/* ── Academic Health ── */}
-        <div className="card">
-          <SectionHeader overline="Intelligence" title="Academic Health" />
-          <AcademicHealthRing score={academicHealth} size={120} />
-          <div style={{ marginTop: 'var(--s6)' }}>
-            <div style={{ marginBottom: 'var(--s4)' }}>
-              <ProgressBar
-                value={avgAttendance}
-                color={avgAttendance >= 75 ? 'var(--success)' : avgAttendance >= 65 ? 'var(--warning)' : 'var(--danger)'}
-                label="Attendance" />
-            </div>
-            <ProgressBar value={completionRate} color="var(--accent)" label="Task Completion" />
+      {/* ── KEY ACADEMIC METRICS (5 Cards) ── */}
+      <div
+        role="region"
+        aria-label="Academic statistics overview"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: 'var(--s4)',
+          marginBottom: 'var(--s8)',
+        }}
+      >
+        <div
+          className="stat-card"
+          onClick={() => onNavigate('subjects')}
+          style={{ cursor: 'pointer' }}
+          role="button"
+          tabIndex={0}
+          title="Click to view all enrolled subjects"
+        >
+          <div className="stat-card-header">
+            <span className="stat-card-label">Active Subjects</span>
+            <span className="stat-card-icon" aria-hidden="true"><BookOpen size={14} /></span>
+          </div>
+          <div className="stat-card-value">{totalSubjects}</div>
+          <div className="stat-card-detail" style={{ color: 'var(--fg-muted)' }}>
+            Enrolled curriculum
           </div>
         </div>
 
-        {/* ── Priority Queue (todaysFocus) ── */}
-        <div className="card">
-          <SectionHeader overline="Priority Engine" title="Priority Queue">
-            <button className="btn btn-ghost btn-sm" onClick={() => onNavigate('tasks')} id="dash-view-tasks">
-              All Tasks <ArrowRight size={11} aria-hidden="true" />
+        <div
+          className="stat-card"
+          onClick={() => onNavigate('tasks')}
+          style={{ cursor: 'pointer' }}
+          role="button"
+          tabIndex={0}
+          title="Click to view task backlog"
+        >
+          <div className="stat-card-header">
+            <span className="stat-card-label">Pending Tasks</span>
+            <span className="stat-card-icon" style={{ color: 'var(--warning)' }} aria-hidden="true"><CheckSquare size={14} /></span>
+          </div>
+          <div className="stat-card-value" style={{ color: pendingTasks > 5 ? 'var(--warning)' : 'var(--fg-primary)' }}>
+            {pendingTasks}
+          </div>
+          <div className="stat-card-detail" style={{ color: 'var(--fg-muted)' }}>
+            {completionRate}% completed
+          </div>
+        </div>
+
+        <div
+          className="stat-card"
+          onClick={() => onNavigate('exams')}
+          style={{ cursor: 'pointer' }}
+          role="button"
+          tabIndex={0}
+          title="Click to view exam schedule"
+        >
+          <div className="stat-card-header">
+            <span className="stat-card-label">Upcoming Exams</span>
+            <span className="stat-card-icon" style={{ color: 'var(--accent)' }} aria-hidden="true"><FileText size={14} /></span>
+          </div>
+          <div className="stat-card-value" style={{ color: upcomingExamsCount > 0 ? 'var(--accent)' : 'var(--fg-primary)' }}>
+            {upcomingExamsCount}
+          </div>
+          <div className="stat-card-detail" style={{ color: 'var(--fg-muted)' }}>
+            Next 14 days
+          </div>
+        </div>
+
+        <div
+          className="stat-card"
+          onClick={() => onNavigate('attendance')}
+          style={{ cursor: 'pointer' }}
+          role="button"
+          tabIndex={0}
+          title="Click to view full attendance dashboard"
+        >
+          <div className="stat-card-header">
+            <span className="stat-card-label">Attendance</span>
+            <span className="stat-card-icon" style={{ color: avgAttendance >= 75 ? 'var(--success)' : 'var(--danger)' }} aria-hidden="true"><Activity size={14} /></span>
+          </div>
+          <div className="stat-card-value" style={{ color: avgAttendance >= 75 ? 'var(--success)' : 'var(--danger)' }}>
+            {avgAttendance}%
+          </div>
+          <div className="stat-card-detail" style={{ color: avgAttendance >= 75 ? 'var(--success)' : 'var(--danger)' }}>
+            {avgAttendance >= 75 ? 'Above 75% goal' : 'Shortfall alert'}
+          </div>
+        </div>
+
+        <div
+          className="stat-card"
+          onClick={() => onNavigate('recommendations')}
+          style={{ cursor: 'pointer' }}
+          role="button"
+          tabIndex={0}
+          title="Click to view risk analysis and recommendations"
+        >
+          <div className="stat-card-header">
+            <span className="stat-card-label">Academic Risk</span>
+            <span className="stat-card-icon" style={{ color: highRiskSubjects > 0 ? 'var(--danger)' : 'var(--success)' }} aria-hidden="true">
+              <ShieldCheck size={14} />
+            </span>
+          </div>
+          <div className="stat-card-value" style={{ color: highRiskSubjects > 0 ? 'var(--danger)' : 'var(--success)' }}>
+            {highRiskSubjects}
+          </div>
+          <div className="stat-card-detail" style={{ color: highRiskSubjects > 0 ? 'var(--danger)' : 'var(--success)' }}>
+            {highRiskSubjects > 0 ? 'Action required' : 'All subjects safe'}
+          </div>
+        </div>
+      </div>
+
+      {/* ── MAIN DASHBOARD GRID ── */}
+      <div className="dashboard-grid">
+        {/* ── Left Column: Academic Health & Intelligence Breakdown ── */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--s4)' }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--accent)' }}>
+                Intelligence Index
+              </div>
+              <h3 style={{ margin: '2px 0 0', fontSize: 16, fontWeight: 800 }}>Academic Health</h3>
+            </div>
+            <span style={{
+              fontSize: 11,
+              fontFamily: 'var(--font-mono)',
+              padding: '2px 8px',
+              border: `1px solid ${healthColor}`,
+              color: healthColor,
+              fontWeight: 700,
+            }}>
+              {healthLevel}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center', margin: 'var(--s4) 0' }}>
+            <AcademicHealthRing score={academicHealth} size={130} />
+          </div>
+
+          <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 'var(--s3)' }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
+                <span style={{ color: 'var(--fg-muted)' }}>Average Attendance</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: avgAttendance >= 75 ? 'var(--success)' : 'var(--danger)' }}>
+                  {avgAttendance}%
+                </span>
+              </div>
+              <ProgressBar
+                value={avgAttendance}
+                color={avgAttendance >= 75 ? 'var(--success)' : avgAttendance >= 65 ? 'var(--warning)' : 'var(--danger)'}
+              />
+            </div>
+
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
+                <span style={{ color: 'var(--fg-muted)' }}>Task Velocity</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--fg-primary)' }}>
+                  {completionRate}% ({completedTasks}/{totalTasks || 0})
+                </span>
+              </div>
+              <ProgressBar value={completionRate} color="var(--accent)" />
+            </div>
+
+            <div style={{
+              fontSize: 11,
+              lineHeight: 1.5,
+              color: 'var(--fg-faint)',
+              marginTop: 'var(--s2)',
+              paddingTop: 'var(--s3)',
+              borderTop: '1px solid var(--border-subtle)',
+            }}>
+              Computed from attendance safety (40%), pending deadlines (35%), and exam timeline margins (25%).
+            </div>
+          </div>
+        </div>
+
+        {/* ── Middle/Right Column: Priority Queue (Today's Focus) ── */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--s4)' }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg-faint)' }}>
+                Dynamic Priority Engine
+              </div>
+              <h3 style={{ margin: '2px 0 0', fontSize: 16, fontWeight: 800 }}>Priority Queue</h3>
+            </div>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => onNavigate('tasks')}
+              id="dash-view-tasks"
+              style={{ fontSize: 12, gap: 4 }}
+            >
+              All Tasks <ArrowRight size={12} aria-hidden="true" />
             </button>
-          </SectionHeader>
+          </div>
+
           {todaysFocus.length === 0 ? (
-            <p style={{ fontSize: 13, color: 'var(--fg-muted)' }}>No pending tasks. You're clear.</p>
+            <div style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '36px 16px',
+              textAlign: 'center',
+              border: '1px dashed var(--border-subtle)',
+              borderRadius: 4,
+            }}>
+              <CheckSquare size={28} style={{ color: 'var(--success)', marginBottom: 12 }} />
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--fg-primary)' }}>Zero Pending Urgencies</div>
+              <p style={{ fontSize: 12.5, color: 'var(--fg-muted)', margin: '6px 0 16px', maxWidth: 260 }}>
+                You've cleared high-priority academic tasks for today.
+              </p>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => onNavigate('tasks')}
+              >
+                + Add Academic Task
+              </button>
+            </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s2)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {todaysFocus.slice(0, 5).map((task) => (
-                <div key={task._id} className={`priority-card priority-card-${(task.priorityLevel || 'MEDIUM').toLowerCase()}`}>
-                  <div className="priority-card-header">
-                    <div>
-                      <div className="priority-card-title">{task.title}</div>
+                <div
+                  key={task._id}
+                  className={`priority-card priority-card-${(task.priorityLevel || 'MEDIUM').toLowerCase()}`}
+                  style={{ padding: '12px 14px' }}
+                >
+                  <div className="priority-card-header" style={{ marginBottom: 6 }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div className="priority-card-title" style={{ fontSize: 13.5, fontWeight: 700 }}>{task.title}</div>
                       {task.subject && (
-                        <div className="priority-card-subject" style={{ fontFamily: 'var(--font-mono)' }}>{task.subject.name || task.subject.code}</div>
+                        <div className="priority-card-subject" style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-muted)' }}>
+                          {task.subject.code ? `${task.subject.code} · ` : ''}{task.subject.name}
+                        </div>
                       )}
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
                       <div style={{
-                        fontFamily: 'var(--font-mono)', fontSize: '1.4rem', fontWeight: 800,
-                        lineHeight: 1, letterSpacing: '-0.01em',
+                        fontFamily: 'var(--font-mono)', fontSize: '1.25rem', fontWeight: 900,
+                        lineHeight: 1,
                         color: task.priorityLevel === 'HIGH' ? 'var(--danger)' : task.priorityLevel === 'MEDIUM' ? 'var(--warning)' : 'var(--success)',
                       }}>
-                        {task.priorityScore || '—'}
+                        {task.priorityScore ?? '—'}
                       </div>
-                      <div style={{ fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--fg-muted)', fontFamily: 'var(--font-mono)' }}>score</div>
+                      <div style={{ fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--fg-faint)', fontFamily: 'var(--font-mono)' }}>urgency</div>
                     </div>
                   </div>
-                  <div className="priority-card-meta">
-                    <span className="priority-card-meta-item" style={{ fontFamily: 'var(--font-mono)', fontSize: 11 }}>{deadlineLabel(task.deadline)}</span>
-                    <span className={getPriorityBadgeClass(task.priorityLevel)} style={{ fontFamily: 'var(--font-mono)' }}>{task.priorityLevel}</span>
+                  <div className="priority-card-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className="priority-card-meta-item" style={{ fontFamily: 'var(--font-mono)', fontSize: 11 }}>
+                      <Clock size={11} style={{ marginRight: 4, verticalAlign: -1 }} />
+                      {deadlineLabel(task.deadline)}
+                    </span>
+                    <span className={getPriorityBadgeClass(task.priorityLevel)} style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>
+                      {task.priorityLevel}
+                    </span>
                   </div>
                   {task.priorityExplanation && (
-                    <div className="priority-explanation">{task.priorityExplanation}</div>
+                    <div className="priority-explanation" style={{ fontSize: 11.5, marginTop: 6 }}>
+                      {task.priorityExplanation}
+                    </div>
                   )}
                 </div>
               ))}
@@ -158,41 +466,69 @@ function DashboardPage({ onNavigate }) {
           )}
         </div>
 
-        {/* ── Academic Alerts (risk subjects) ── */}
+        {/* ── At-Risk Subjects Alerts ── */}
         <div className="card">
-          <SectionHeader overline="Risk Detection" title="At-Risk Subjects">
-            <button className="btn btn-ghost btn-sm" onClick={() => onNavigate('subjects')} id="dash-view-subjects">
-              All <ArrowRight size={11} aria-hidden="true" />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--s4)' }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg-faint)' }}>
+                Early Warning Engine
+              </div>
+              <h3 style={{ margin: '2px 0 0', fontSize: 16, fontWeight: 800 }}>Academic Risk Alerts</h3>
+            </div>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => onNavigate('subjects')}
+              id="dash-view-subjects"
+              style={{ fontSize: 12, gap: 4 }}
+            >
+              All Subjects <ArrowRight size={12} aria-hidden="true" />
             </button>
-          </SectionHeader>
+          </div>
+
           {academicAlerts.length === 0 ? (
-            <p style={{ fontSize: 13, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ width: 6, height: 6, background: 'var(--success)', display: 'inline-block' }} aria-hidden="true" />
-              All subjects are in safe territory.
-            </p>
+            <div style={{
+              padding: '24px 16px',
+              textAlign: 'center',
+              border: '1px solid var(--border-subtle)',
+              background: 'rgba(16, 185, 129, 0.04)',
+              borderRadius: 4,
+            }}>
+              <ShieldCheck size={24} style={{ color: 'var(--success)', marginBottom: 8 }} />
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--success)' }}>Safe Academic Standing</div>
+              <p style={{ fontSize: 12, color: 'var(--fg-muted)', margin: '4px 0 0' }}>
+                All enrolled courses satisfy attendance thresholds and score benchmarks.
+              </p>
+            </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s3)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {academicAlerts.map((subj) => {
                 const attPct = subj.attendance?.currentPct || 0;
-                const color  = subj.riskLevel === 'HIGH' ? 'var(--danger)' : 'var(--warning)';
+                const isHigh = subj.riskLevel === 'HIGH';
+                const color  = isHigh ? 'var(--danger)' : 'var(--warning)';
                 return (
                   <div key={subj._id} style={{
-                    padding: 'var(--s4) var(--s5)',
+                    padding: '12px 14px',
                     border: '1px solid var(--border)',
                     borderLeft: `3px solid ${color}`,
+                    background: 'var(--bg-elevated)',
                   }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--s2)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                       <div>
-                        <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, textTransform: 'uppercase', color: 'var(--fg-primary)', lineHeight: 1 }}>
+                        <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 800, textTransform: 'uppercase', color: 'var(--fg-primary)', lineHeight: 1.2 }}>
                           {subj.subjectName || subj.name}
                         </div>
-                        <div style={{ fontSize: 11, color: 'var(--fg-muted)', marginTop: 2, fontFamily: 'var(--font-mono)' }}>{subj.subjectCode || subj.code}</div>
+                        <div style={{ fontSize: 11, color: 'var(--fg-muted)', marginTop: 2, fontFamily: 'var(--font-mono)' }}>
+                          {subj.subjectCode || subj.code}
+                        </div>
                       </div>
-                      <span className={`badge badge-${subj.riskLevel === 'HIGH' ? 'high' : 'medium'}`} style={{ fontFamily: 'var(--font-mono)' }}>{subj.riskLevel}</span>
+                      <span className={`badge badge-${isHigh ? 'high' : 'medium'}`} style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>
+                        {subj.riskLevel} RISK
+                      </span>
                     </div>
                     <ProgressBar value={attPct} color={color} label={`Attendance: ${attPct}%`} />
                     {subj.riskFactors?.[0] && (
-                      <div style={{ fontSize: 12, color: 'var(--fg-muted)', marginTop: 'var(--s2)', fontStyle: 'italic' }}>
+                      <div style={{ fontSize: 11.5, color: 'var(--fg-secondary)', marginTop: 8 }}>
                         {subj.riskFactors[0]}
                       </div>
                     )}
@@ -203,37 +539,78 @@ function DashboardPage({ onNavigate }) {
           )}
         </div>
 
-        {/* ── Upcoming Exams ── */}
+        {/* ── Upcoming Exams Timeline ── */}
         <div className="card">
-          <SectionHeader overline="Upcoming" title="Exams">
-            <button className="btn btn-ghost btn-sm" onClick={() => onNavigate('exams')} id="dash-view-exams">
-              All <ArrowRight size={11} aria-hidden="true" />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--s4)' }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg-faint)' }}>
+                Exam Calendar
+              </div>
+              <h3 style={{ margin: '2px 0 0', fontSize: 16, fontWeight: 800 }}>Upcoming Exams</h3>
+            </div>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => onNavigate('exams')}
+              id="dash-view-exams"
+              style={{ fontSize: 12, gap: 4 }}
+            >
+              All Exams <ArrowRight size={12} aria-hidden="true" />
             </button>
-          </SectionHeader>
+          </div>
+
           {upcomingExams.length === 0 ? (
-            <p style={{ fontSize: 13, color: 'var(--fg-muted)' }}>No upcoming exams in the next 14 days.</p>
+            <div style={{
+              padding: '24px 16px',
+              textAlign: 'center',
+              border: '1px dashed var(--border-subtle)',
+              borderRadius: 4,
+            }}>
+              <Calendar size={24} style={{ color: 'var(--fg-muted)', marginBottom: 8 }} />
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg-primary)' }}>No Exams in Next 14 Days</div>
+              <p style={{ fontSize: 12, color: 'var(--fg-muted)', margin: '4px 0 12px' }}>
+                Your immediate examination schedule is clear.
+              </p>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => onNavigate('exams')}
+              >
+                + Schedule Exam
+              </button>
+            </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s2)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {upcomingExams.slice(0, 4).map((exam) => {
                 const days = Math.ceil((new Date(exam.date) - new Date()) / 86400000);
-                const color = days <= 3 ? 'var(--danger)' : days <= 7 ? 'var(--warning)' : 'var(--success)';
+                const color = days <= 3 ? 'var(--danger)' : days <= 7 ? 'var(--warning)' : 'var(--accent)';
                 return (
                   <div key={exam._id} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: 'var(--s3) var(--s4)', border: '1px solid var(--border)', gap: 'var(--s4)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '12px 14px',
+                    border: '1px solid var(--border)',
+                    background: 'var(--bg-elevated)',
+                    gap: 12,
                   }}>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg-primary)', lineHeight: 1.2 }}>{exam.title}</div>
-                      <div style={{ fontSize: 11, color: 'var(--fg-muted)', marginTop: 2, letterSpacing: '0.04em', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
-                        {exam.subject?.name || exam.subject?.code || ''}
+                      <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--fg-primary)', lineHeight: 1.2 }}>
+                        {exam.title}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--fg-muted)', marginTop: 3, textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
+                        {exam.subject?.code ? `${exam.subject.code} · ` : ''}{exam.subject?.name || ''}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--fg-faint)', marginTop: 2 }}>
+                        {new Date(exam.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </div>
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.5rem', fontWeight: 900, color, letterSpacing: '-0.02em', lineHeight: 1 }}>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.4rem', fontWeight: 900, color, lineHeight: 1 }}>
                         {days <= 0 ? 'Today' : `${days}d`}
                       </div>
-                      <div style={{ fontSize: 10, color: 'var(--fg-faint)', letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
-                        {days > 0 ? 'remaining' : ''}
+                      <div style={{ fontSize: 9.5, color: 'var(--fg-faint)', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'var(--font-mono)' }}>
+                        {days > 0 ? 'countdown' : 'exam day'}
                       </div>
                     </div>
                   </div>
@@ -242,18 +619,34 @@ function DashboardPage({ onNavigate }) {
             </div>
           )}
         </div>
-
       </div>
 
-      {/* Refresh */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--s8)', paddingTop: 'var(--s6)', borderTop: '1px solid var(--border)' }}>
-        <button className="btn btn-secondary btn-sm" onClick={load} id="btn-dashboard-refresh">
+      {/* ── Refresh Footer ── */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 'var(--s8)',
+        paddingTop: 'var(--s6)',
+        borderTop: '1px solid var(--border)',
+        flexWrap: 'wrap',
+        gap: 12,
+      }}>
+        <div style={{ fontSize: 12, color: 'var(--fg-faint)' }}>
+          CampusFlow Intelligence synchronized with live university attendance and local schedule.
+        </div>
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm"
+          onClick={load}
+          id="btn-dashboard-refresh"
+          style={{ gap: 6 }}
+        >
           <RefreshCw size={12} strokeWidth={2} aria-hidden="true" />
-          Refresh Dashboard
+          <span>Sync Workspace</span>
         </button>
       </div>
     </div>
   );
 }
 
-export default DashboardPage;
