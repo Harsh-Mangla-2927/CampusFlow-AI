@@ -171,6 +171,9 @@ async function runSuite() {
     assert.strictEqual(res[0].displayDate, '14-10-2026');
     assert.strictEqual(res[0].category, 'EXAMINATION');
     assert.strictEqual(res[0].source, 'CODE_BRIGADE');
+    assert.strictEqual(typeof res[0].timeStamp, 'string');
+    assert.ok(res[0].timeStamp.length > 0);
+    assert.strictEqual(res[0].upstreamId, '1');
   });
 
   runTest('parseFeedDetailHtml handles null or empty input safely', () => {
@@ -191,6 +194,9 @@ async function runSuite() {
         <ul>
           <li>Carry university identity card.</li>
         </ul>
+        <ol>
+          <li>Report to exam hall 15 minutes before time.</li>
+        </ol>
         <p>Regards,<br>Office of Controller of Examinations<br>Chitkara University</p>
       </div>
       <div class="ui-feed-det-attach">
@@ -202,6 +208,7 @@ async function runSuite() {
     assert.ok(parsed.paragraphs.length >= 3);
     assert.ok(parsed.description.includes('Dear Students'));
     assert.ok(parsed.description.includes('Carry university identity card'));
+    assert.ok(parsed.description.includes('Report to exam hall'));
     assert.strictEqual(parsed.hasAttachment, false);
     assert.strictEqual(parsed.attachmentUrl, null);
     assert.strictEqual(parsed.attachmentNotice, 'No attachment available');
