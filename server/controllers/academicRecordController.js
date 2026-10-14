@@ -87,8 +87,26 @@ const getAcademicRecords = async (req, res, next) => {
   }
 };
 
+/**
+ * Get university circulars and notices.
+ * GET /api/records/circulars
+ */
+const getCirculars = async (req, res, next) => {
+  try {
+    const userId = req.user._id || req.user.id;
+    const data = await academicRecordService.getCirculars(userId);
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getReportCard,
   syncReportCard,
   getAcademicRecords,
+  getCirculars,
 };

@@ -234,6 +234,13 @@ export const attendanceAPI = {
     request('/records/report-card'),
 
   /**
+   * Get university circulars and notices.
+   * GET /api/records/circulars
+   */
+  getCirculars: () =>
+    request('/records/circulars'),
+
+  /**
    * Synchronize live report card from Code Brigade.
    * POST /api/records/report-card/sync
    */
@@ -315,6 +322,7 @@ export const studyPlansAPI = {
 export const recordsAPI = {
   getSummary:       (threshold) => attendanceAPI.getSummary(threshold),
   getReportCard:    () => attendanceAPI.getReportCard(),
+  getCirculars:     () => attendanceAPI.getCirculars(),
   syncReportCard:   () => attendanceAPI.syncReportCard(),
   syncAttendance:   () => attendanceAPI.syncAttendance(),
   connectCodeBrigade: (data) => attendanceAPI.connectCodeBrigade(data),

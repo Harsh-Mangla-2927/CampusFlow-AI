@@ -143,7 +143,40 @@ async function syncReportCard(userId) {
   }
 }
 
+/**
+ * Get university circulars and notices for authenticated student.
+ * Safely inspects university connection status without fabricating notices.
+ *
+ * @param {string|ObjectId} userId
+ * @returns {Promise<Object>}
+ */
+async function getCirculars(userId) {
+  const cbSession = await CodeBrigadeSession.findOne({ user: userId }).lean();
+  const isConnected = !!(
+    cbSession &&
+    cbSession.status !== 'DISCONNECTED' &&
+    cbSession.apiKey &&
+    cbSession.sessionId
+  );
+
+  return {
+    circulars: [],
+    dataSource: {
+      provider: 'CODE_BRIGADE',
+      providerName: 'Chitkara University / Code Brigade',
+      isConnected,
+      studentName: cbSession?.studentName || '',
+      rollNumber: cbSession?.rollNumber || '',
+      className: cbSession?.className || '',
+      lastSyncedAt: cbSession?.lastSyncedAt || null,
+      endpointStatus: 'AWAITING_VERIFIED_ENDPOINT',
+      notice: 'Official university circulars endpoint is pending verification with Code Brigade upstream. CampusFlow AI safeguards academic integrity and never displays fabricated notices.',
+    },
+  };
+}
+
 module.exports = {
   getReportCard,
   syncReportCard,
+  getCirculars,
 };
