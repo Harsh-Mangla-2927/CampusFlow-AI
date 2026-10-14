@@ -19,7 +19,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 const mongoose = require('mongoose');
-const { parseGradeCard, cleanHtmlText, parseCircularsList } = require('./services/codeBrigadeParser');
+const { parseGradeCard, cleanHtmlText, parseCircularsList, parseFeedDetailHtml } = require('./services/codeBrigadeParser');
 const AcademicRecord = require('./models/AcademicRecord');
 const User = require('./models/User');
 const CodeBrigadeSession = require('./models/CodeBrigadeSession');
@@ -173,6 +173,59 @@ async function runSuite() {
     assert.strictEqual(res[0].source, 'CODE_BRIGADE');
   });
 
+  runTest('parseFeedDetailHtml handles null or empty input safely', () => {
+    const res = parseFeedDetailHtml(null);
+    assert.strictEqual(res.title, '');
+    assert.strictEqual(res.hasAttachment, false);
+    assert.strictEqual(res.attachmentNotice, 'No attachment available');
+  });
+
+  runTest('parseFeedDetailHtml extracts title, paragraphs, and handles "---" attachment', () => {
+    const sampleHtml = `
+      <div class="ui-feed-title-wrap">
+        <div class="ui-feed-det-title">Datesheet for BE (CSE) Mid Term Evaluation 2026</div>
+      </div>
+      <div class="ui-feed-det-desc">
+        <p>Dear Students,</p>
+        <p>Mid Term Tests will commence from 20th October.</p>
+        <ul>
+          <li>Carry university identity card.</li>
+        </ul>
+        <p>Regards,<br>Office of Controller of Examinations<br>Chitkara University</p>
+      </div>
+      <div class="ui-feed-det-attach">
+        ---
+      </div>
+    `;
+    const parsed = parseFeedDetailHtml(sampleHtml);
+    assert.strictEqual(parsed.title, 'Datesheet for BE (CSE) Mid Term Evaluation 2026');
+    assert.ok(parsed.paragraphs.length >= 3);
+    assert.ok(parsed.description.includes('Dear Students'));
+    assert.ok(parsed.description.includes('Carry university identity card'));
+    assert.strictEqual(parsed.hasAttachment, false);
+    assert.strictEqual(parsed.attachmentUrl, null);
+    assert.strictEqual(parsed.attachmentNotice, 'No attachment available');
+  });
+
+  runTest('parseFeedDetailHtml safely extracts genuine attachment URLs', () => {
+    const sampleHtml = `
+      <div class="ui-feed-title-wrap">
+        <div class="ui-feed-det-title">European Innovation Challenge 2026</div>
+      </div>
+      <div class="ui-feed-det-desc">
+        <p>Registrations open.</p>
+      </div>
+      <div class="ui-feed-det-attach">
+        <a href="/attachments/circulars/challenge_guidelines.pdf">Challenge Guidelines (PDF)</a>
+      </div>
+    `;
+    const parsed = parseFeedDetailHtml(sampleHtml);
+    assert.strictEqual(parsed.title, 'European Innovation Challenge 2026');
+    assert.strictEqual(parsed.hasAttachment, true);
+    assert.strictEqual(parsed.attachmentUrl, 'https://cuiet.codebrigade.in/attachments/circulars/challenge_guidelines.pdf');
+    assert.strictEqual(parsed.attachmentName, 'Challenge Guidelines (PDF)');
+  });
+
   // ── 2. Database Integration & Student Isolation ───────────────────────
   console.log('\n2. Database & Student Isolation:');
 
@@ -260,6 +313,24 @@ async function runSuite() {
       assert.strictEqual(res.dataSource.endpointUrl, 'mobilev2/getCircularsList');
       assert.strictEqual(typeof res.circulars[0].title, 'string');
       assert.strictEqual(typeof res.circulars[0].category, 'string');
+    });
+
+    await runAsyncTest('syncCirculars updates lastSyncedAt and preserves verified notices', async () => {
+      const activeSession = await CodeBrigadeSession.findOne({ status: 'CONNECTED' }).lean();
+      if (!activeSession) return;
+      const res = await academicRecordService.syncCirculars(activeSession.user);
+      assert.strictEqual(res.dataSource.isConnected, true);
+      assert.strictEqual(res.dataSource.endpointStatus, 'VERIFIED');
+      assert.ok(res.dataSource.lastSyncedAt instanceof Date || typeof res.dataSource.lastSyncedAt === 'string');
+      assert.ok(res.circulars.length > 0);
+    });
+
+    await runAsyncTest('getCircularDetail handles detail lookup gracefully', async () => {
+      const activeSession = await CodeBrigadeSession.findOne({ status: 'CONNECTED' }).lean();
+      if (!activeSession) return;
+      const detail = await academicRecordService.getCircularDetail(activeSession.user, { id: '1', timeStamp: '1728900000', readBit: '0' });
+      assert.strictEqual(typeof detail, 'object');
+      assert.strictEqual(detail.attachmentNotice, 'No attachment available');
     });
 
   } catch (dbErr) {
