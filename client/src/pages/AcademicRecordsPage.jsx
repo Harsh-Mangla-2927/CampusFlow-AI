@@ -36,7 +36,11 @@ import { Modal, LoadingState, ErrorState, EmptyState } from '../components/Share
 import { useToast } from '../components/Toast';
 import { formatDate } from '../utils/helpers';
 
-export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
+export default function AcademicRecordsPage({
+  initialTab = 'attendance',
+  initialDashboardData = null,
+  initialReportCardData = null,
+}) {
   const { toast } = useToast();
 
   // Active Tab State: 'attendance' | 'report-card'
@@ -68,11 +72,11 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
   // ─────────────────────────────────────────────────────────────
   // 1. ATTENDANCE CORE STATE (100% PRESERVED FROM ATTENDANCE PAGE)
   // ─────────────────────────────────────────────────────────────
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !initialDashboardData);
   const [refreshing, setRefreshing] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState('');
-  const [dashboardData, setDashboardData] = useState(null);
+  const [dashboardData, setDashboardData] = useState(initialDashboardData);
   const [threshold, setThreshold] = useState(75);
 
   // Subject Register Modal State
@@ -116,8 +120,8 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
   // ─────────────────────────────────────────────────────────────
   // 2. REPORT CARD CORE STATE (OFFICIAL UNIVERSITY RESULTS)
   // ─────────────────────────────────────────────────────────────
-  const [reportCardData, setReportCardData] = useState(null);
-  const [loadingReportCard, setLoadingReportCard] = useState(false);
+  const [reportCardData, setReportCardData] = useState(initialReportCardData);
+  const [loadingReportCard, setLoadingReportCard] = useState(() => activeTab === 'report-card' && !initialReportCardData);
   const [syncingReportCard, setSyncingReportCard] = useState(false);
   const [reportCardError, setReportCardError] = useState('');
   const [selectedSemesterFilter, setSelectedSemesterFilter] = useState('ALL');
@@ -158,14 +162,16 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
   }, []);
 
   useEffect(() => {
-    fetchSummary(threshold);
-  }, [fetchSummary, threshold]);
+    if (!initialDashboardData) {
+      fetchSummary(threshold);
+    }
+  }, [fetchSummary, threshold, initialDashboardData]);
 
   useEffect(() => {
-    if (activeTab === 'report-card') {
+    if (activeTab === 'report-card' && !initialReportCardData && !reportCardData) {
       fetchReportCard();
     }
-  }, [activeTab, fetchReportCard]);
+  }, [activeTab, fetchReportCard, initialReportCardData, reportCardData]);
 
   // Handle Manual Refresh for Attendance
   const handleManualRefresh = async () => {
@@ -225,9 +231,9 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
 
       if (res.requiresOTP) {
         setOtpRequired(true);
-        setAuthUserId(res.data.authUserId);
-        setOtpHint(res.data.otpHint);
-        setDeviceUUID(res.data.deviceUUID);
+        setAuthUserId(res.data?.authUserId || '');
+        setOtpHint(res.data?.otpHint || '');
+        setDeviceUUID(res.data?.deviceUUID || '');
         toast.info(res.message || 'OTP sent by university portal. Please verify.');
         return;
       }
@@ -379,24 +385,94 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
     return registerData.sessions.filter(s => s.status === registerFilter);
   }, [registerData, registerFilter]);
 
-  // Derived Attendance Data
-  const subjects = dashboardData?.subjects || [];
-  const overall = dashboardData?.overall || {
-    percentage: 0,
-    totalConducted: 0,
-    totalAttended: 0,
-    totalMissed: 0,
-    threshold: 75,
-    standing: {
-      status: 'NO_DATA',
-      label: 'No Classes Recorded',
-      badgeClass: 'badge-neutral',
-      color: 'var(--fg-faint)',
-      isShortage: false,
-    },
-    recovery: { required: 0, isMet: true, impossible: false, message: 'No classes recorded yet.' },
-    canMiss: { canMiss: 0, isMet: true, message: 'No attendance buffer available.' },
-  };
+  // Derived Attendance Data with bulletproof normalization
+  const subjects = useMemo(() => {
+    if (!Array.isArray(dashboardData?.subjects)) return [];
+    return dashboardData.subjects.map(s => {
+      const conducted = Math.max(0, Number(s?.totalClasses) || 0);
+      const attended = Math.max(0, Number(s?.attendedClasses) || 0);
+      const pct = typeof s?.attendancePercentage === 'number' && !isNaN(s.attendancePercentage)
+        ? s.attendancePercentage
+        : (conducted > 0 ? Math.round((attended / conducted) * 1000) / 10 : 0);
+      const isShort = pct < threshold;
+      return {
+        ...s,
+        totalClasses: conducted,
+        attendedClasses: attended,
+        missedClasses: Math.max(0, Number(s?.missedClasses) || (conducted - attended)),
+        attendancePercentage: pct,
+        badgeClass: s?.badgeClass || (conducted === 0 ? 'badge-neutral' : isShort ? 'badge-critical' : 'badge-safe'),
+        colorHex: s?.colorHex || s?.color || (conducted === 0 ? 'var(--fg-faint)' : isShort ? 'var(--danger)' : 'var(--success)'),
+        classesNeededForThreshold: Math.max(0, Number(s?.classesNeededForThreshold) || 0),
+        classesCanMiss: Math.max(0, Number(s?.classesCanMiss) || 0),
+        dutyLeave: Math.max(0, Number(s?.dutyLeave) || 0),
+        medicalLeave: Math.max(0, Number(s?.medicalLeave) || 0),
+      };
+    });
+  }, [dashboardData?.subjects, threshold]);
+
+  const rawOverall = dashboardData?.overall;
+  const overall = useMemo(() => {
+    const conducted = Math.max(0, Number(rawOverall?.totalConducted ?? rawOverall?.totalClasses) || 0);
+    const attended = Math.max(0, Number(rawOverall?.totalAttended ?? rawOverall?.attendedClasses) || 0);
+    const missed = Math.max(0, Number(rawOverall?.totalMissed ?? rawOverall?.missedClasses) || Math.max(0, conducted - attended));
+    const percentage = typeof rawOverall?.percentage === 'number' && !isNaN(rawOverall.percentage)
+      ? rawOverall.percentage
+      : (typeof rawOverall?.attendancePercentage === 'number' && !isNaN(rawOverall.attendancePercentage)
+          ? rawOverall.attendancePercentage
+          : (conducted > 0 ? Math.round((attended / conducted) * 1000) / 10 : 0));
+
+    const isShortage = rawOverall?.standing?.isShortage ?? rawOverall?.isShortage ?? (conducted > 0 && percentage < threshold);
+    const color = rawOverall?.standing?.color || rawOverall?.color || (conducted === 0 ? 'var(--fg-faint)' : isShortage ? 'var(--danger, #ef4444)' : 'var(--success, #10b981)');
+    const label = rawOverall?.standing?.label || rawOverall?.standingLabel || (conducted === 0 ? 'No Classes Recorded' : isShortage ? 'Attendance Shortage' : 'Good Standing');
+    const badgeClass = rawOverall?.standing?.badgeClass || rawOverall?.badgeClass || (conducted === 0 ? 'badge-neutral' : isShortage ? 'badge-critical' : 'badge-safe');
+    const status = rawOverall?.standing?.status || rawOverall?.status || (conducted === 0 ? 'NO_DATA' : isShortage ? 'SHORTAGE' : 'GOOD_STANDING');
+
+    const recoveryMessage = rawOverall?.recovery?.message || rawOverall?.recoveryMessage || (isShortage ? `Attendance is below ${threshold}%. Recovery required.` : 'Attendance requirements currently met.');
+    const canMissMessage = rawOverall?.canMiss?.message || rawOverall?.canMissMessage || (conducted === 0 ? 'No attendance buffer available.' : 'Attendance buffer within target range.');
+    const classesNeeded = Math.max(0, Number(rawOverall?.recovery?.required ?? rawOverall?.classesNeededForThreshold) || 0);
+    const classesCanMiss = Math.max(0, Number(rawOverall?.canMiss?.canMiss ?? rawOverall?.classesCanMiss) || 0);
+
+    return {
+      percentage,
+      totalConducted: conducted,
+      totalAttended: attended,
+      totalMissed: missed,
+      attendancePercentage: percentage,
+      totalClasses: conducted,
+      attendedClasses: attended,
+      missedClasses: missed,
+      threshold,
+      color,
+      standingLabel: label,
+      badgeClass,
+      status,
+      isShortage,
+      recoveryMessage,
+      canMissMessage,
+      classesNeededForThreshold: classesNeeded,
+      classesCanMiss,
+      standing: {
+        status,
+        label,
+        badgeClass,
+        color,
+        isShortage,
+      },
+      recovery: {
+        required: classesNeeded,
+        isMet: rawOverall?.recovery?.isMet ?? rawOverall?.isTargetMet ?? !isShortage,
+        impossible: rawOverall?.recovery?.impossible ?? rawOverall?.isTargetImpossible ?? false,
+        message: recoveryMessage,
+      },
+      canMiss: {
+        canMiss: classesCanMiss,
+        isMet: rawOverall?.canMiss?.isMet ?? true,
+        message: canMissMessage,
+      },
+    };
+  }, [rawOverall, threshold]);
+
   const insights = dashboardData?.insights || [];
   const shortfalls = dashboardData?.shortfallRankings || [];
   const dataSource = dashboardData?.dataSource || {
@@ -409,8 +485,8 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
   // Calculator computations
   const calcSubject = useMemo(() => {
     if (calcSubjectId === 'OVERALL') {
-      const conducted = customConducted !== '' ? Number(customConducted) : overall.totalConducted;
-      const attended = customAttended !== '' ? Number(customAttended) : overall.totalAttended;
+      const conducted = customConducted !== '' ? Math.max(0, Number(customConducted) || 0) : overall.totalConducted;
+      const attended = customAttended !== '' ? Math.max(0, Number(customAttended) || 0) : overall.totalAttended;
       return {
         name: 'Overall Aggregate',
         totalClasses: conducted,
@@ -420,20 +496,20 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
     }
     const found = subjects.find(s => s._id === calcSubjectId);
     if (!found) return { name: 'Unknown', totalClasses: 0, attendedClasses: 0, percentage: 0 };
-    const conducted = customConducted !== '' ? Number(customConducted) : found.totalClasses;
-    const attended = customAttended !== '' ? Number(customAttended) : found.attendedClasses;
+    const conducted = customConducted !== '' ? Math.max(0, Number(customConducted) || 0) : found.totalClasses;
+    const attended = customAttended !== '' ? Math.max(0, Number(customAttended) || 0) : found.attendedClasses;
     return {
       name: found.name,
       totalClasses: conducted,
       attendedClasses: attended,
       percentage: conducted > 0 ? Math.round((attended / conducted) * 1000) / 10 : 0,
     };
-  }, [calcSubjectId, customConducted, customAttended, overall, subjects]);
+  }, [calcSubjectId, customConducted, customAttended, overall.totalConducted, overall.totalAttended, subjects]);
 
   const calcResults = useMemo(() => {
-    const a = Math.max(0, calcSubject.attendedClasses);
-    const c = Math.max(0, calcSubject.totalClasses);
-    const t = Math.min(100, Math.max(1, calcTarget)) / 100;
+    const a = Math.max(0, Number(calcSubject.attendedClasses) || 0);
+    const c = Math.max(0, Number(calcSubject.totalClasses) || 0);
+    const t = Math.min(100, Math.max(1, Number(calcTarget) || 75)) / 100;
     const currentPct = c > 0 ? Math.round((a / c) * 1000) / 10 : 0;
 
     let classesToAttend = 0;
@@ -460,7 +536,7 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
       classesToAttend,
       classesCanMiss,
       impossible,
-      isTargetMet: currentPct >= calcTarget,
+      isTargetMet: currentPct >= (Number(calcTarget) || 75),
     };
   }, [calcSubject, calcTarget]);
 
@@ -469,7 +545,7 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
   const stroke = 12;
   const normalizedRadius = radius - stroke * 0.5;
   const circumference = normalizedRadius * 2 * Math.PI;
-  const strokeDashoffset = circumference - (overall.percentage / 100) * circumference;
+  const strokeDashoffset = circumference - (Math.min(100, Math.max(0, Number(overall.percentage) || 0)) / 100) * circumference;
 
   // Grade color helper for Report Card
   const getGradeStyle = (grade = '') => {
@@ -493,13 +569,16 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
   };
 
   // Filtered Semesters for Report Card
-  const record = reportCardData?.record;
+  const record = reportCardData?.record || null;
   const rcDataSource = reportCardData?.dataSource || { isConnected: false };
+  const semesters = useMemo(() => {
+    return Array.isArray(record?.semesters) ? record.semesters : [];
+  }, [record]);
+
   const semestersList = useMemo(() => {
-    if (!record?.semesters) return [];
-    if (selectedSemesterFilter === 'ALL') return record.semesters;
-    return record.semesters.filter(s => s.semester === selectedSemesterFilter);
-  }, [record, selectedSemesterFilter]);
+    if (selectedSemesterFilter === 'ALL') return semesters;
+    return semesters.filter(s => s && s.semester === selectedSemesterFilter);
+  }, [semesters, selectedSemesterFilter]);
 
   return (
     <div className="attendly-dashboard">
@@ -668,7 +747,7 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
                         cy={radius}
                       />
                       <circle
-                        stroke={overall.standing.color || 'var(--accent)'}
+                        stroke={overall.standing?.color || overall.color || 'var(--accent)'}
                         fill="transparent"
                         strokeWidth={stroke}
                         strokeDasharray={`${circumference} ${circumference}`}
@@ -687,8 +766,8 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
                   </div>
 
                   <div className="attendly-hero-badge-wrap">
-                    <span className={`badge ${overall.standing.badgeClass}`}>
-                      {overall.standing.label}
+                    <span className={`badge ${overall.standing?.badgeClass || overall.badgeClass || 'badge-neutral'}`}>
+                      {overall.standing?.label || overall.standingLabel || 'Attendance'}
                     </span>
                   </div>
                 </div>
@@ -747,14 +826,14 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
                         <div className="attendly-recovery-text text-danger">
                           <AlertTriangle size={15} aria-hidden="true" />
                           <span>
-                            <strong>Attendance Shortfall:</strong> {overall.recovery.message}
+                            <strong>Attendance Shortfall:</strong> {overall.recovery?.message || overall.recoveryMessage || 'Attendance shortfall detected.'}
                           </span>
                         </div>
                       ) : (
                         <div className="attendly-recovery-text text-success">
                           <CheckCircle2 size={15} aria-hidden="true" />
                           <span>
-                            <strong>Safety Margin:</strong> {overall.canMiss.message}
+                            <strong>Safety Margin:</strong> {overall.canMiss?.message || overall.canMissMessage || 'Attendance safety margin active.'}
                           </span>
                         </div>
                       )}
@@ -791,11 +870,19 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
 
               {subjects.length === 0 ? (
                 <EmptyState
-                  icon={BookOpen}
+                  icon={<BookOpen size={24} strokeWidth={1.5} />}
                   title="No subjects found"
-                  message="No courses are currently being tracked. Connect your Code Brigade account to automatically synchronize subjects and attendance."
-                  actionLabel="Connect Code Brigade"
-                  onAction={() => setConnectModalOpen(true)}
+                  description="No courses are currently being tracked. Connect your Code Brigade account to automatically synchronize subjects and attendance."
+                  action={
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={() => setConnectModalOpen(true)}
+                      style={{ marginTop: 8 }}
+                    >
+                      <Link2 size={13} aria-hidden="true" />
+                      Connect Code Brigade
+                    </button>
+                  }
                 />
               ) : (
                 <div className="attendly-subjects-grid">
@@ -1140,7 +1227,7 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
                 Connect Code Brigade Account
               </button>
             </div>
-          ) : record?.semesters?.length === 0 ? (
+          ) : semesters.length === 0 ? (
             /* Connected but No Records Published Yet */
             <div className="report-card-empty-state">
               <div className="report-card-empty-icon">
@@ -1181,11 +1268,11 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
                 <div className="report-card-hero-card">
                   <div className="report-card-hero-label">Latest Semester SGPA</div>
                   <div className="report-card-hero-num text-accent">
-                    {record.summary?.latestSgpa ?? (record.semesters?.[record.semesters.length - 1]?.sgpa ?? 'N/A')}
+                    {record.summary?.latestSgpa ?? (semesters[semesters.length - 1]?.sgpa ?? 'N/A')}
                   </div>
                   <div className="report-card-hero-meta">
                     <span className="text-muted" style={{ fontSize: 12 }}>
-                      {record.semesters?.[record.semesters.length - 1]?.semester || 'Latest Term'}
+                      {semesters[semesters.length - 1]?.semester || 'Latest Term'}
                     </span>
                   </div>
                 </div>
@@ -1196,7 +1283,7 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
                   <div className="report-card-hero-num">{record.summary?.totalCreditsEarned ?? 0}</div>
                   <div className="report-card-hero-meta">
                     <span className="text-muted" style={{ fontSize: 12 }}>
-                      Across {record.summary?.totalSemesters ?? record.semesters.length} Completed Terms
+                      Across {record.summary?.totalSemesters ?? semesters.length} Completed Terms
                     </span>
                   </div>
                 </div>
@@ -1228,16 +1315,16 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
                     className={`report-filter-btn ${selectedSemesterFilter === 'ALL' ? 'active' : ''}`}
                     onClick={() => setSelectedSemesterFilter('ALL')}
                   >
-                    All Terms ({record.semesters.length})
+                    All Terms ({semesters.length})
                   </button>
-                  {record.semesters.map(s => (
+                  {semesters.map((s, sIdx) => (
                     <button
-                      key={s.semester}
+                      key={s?.semester || sIdx}
                       type="button"
-                      className={`report-filter-btn ${selectedSemesterFilter === s.semester ? 'active' : ''}`}
-                      onClick={() => setSelectedSemesterFilter(s.semester)}
+                      className={`report-filter-btn ${selectedSemesterFilter === s?.semester ? 'active' : ''}`}
+                      onClick={() => setSelectedSemesterFilter(s?.semester)}
                     >
-                      {s.semester}
+                      {s?.semester || `Semester ${sIdx + 1}`}
                     </button>
                   ))}
                 </div>
@@ -1246,31 +1333,31 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
               {/* 3. Semester Breakdown Cards */}
               <div className="report-card-semesters-list">
                 {semestersList.map((sem, sIdx) => (
-                  <div key={sem.semester || sIdx} className="report-card-semester-box">
+                  <div key={sem?.semester || sIdx} className="report-card-semester-box">
                     <div className="semester-box-header">
                       <div className="semester-box-title">
                         <GraduationCap size={16} className="text-accent" />
-                        <span>Study Period: {sem.semester}</span>
+                        <span>Study Period: {sem?.semester || 'Term'}</span>
                       </div>
                       <div className="semester-box-metrics">
                         <div className="sem-metric-pill">
                           <span className="sem-metric-label">SGPA</span>
-                          <span className="sem-metric-val">{sem.sgpa ?? '—'}</span>
+                          <span className="sem-metric-val">{sem?.sgpa ?? '—'}</span>
                         </div>
                         <div className="sem-metric-pill">
                           <span className="sem-metric-label">CGPA</span>
-                          <span className="sem-metric-val">{sem.cgpa ?? '—'}</span>
+                          <span className="sem-metric-val">{sem?.cgpa ?? '—'}</span>
                         </div>
                         <div className="sem-metric-pill">
                           <span className="sem-metric-label">Credits</span>
-                          <span className="sem-metric-val">{sem.totalCredits}</span>
+                          <span className="sem-metric-val">{sem?.totalCredits ?? '—'}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Subjects Table */}
                     <div className="table-responsive" style={{ margin: 0 }}>
-                      <table className="report-card-table" aria-label={`Examination results for ${sem.semester}`}>
+                      <table className="report-card-table" aria-label={`Examination results for ${sem?.semester || 'Semester'}`}>
                         <thead>
                           <tr>
                             <th style={{ width: '5%', textAlign: 'center' }}>#</th>
@@ -1282,21 +1369,21 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
                           </tr>
                         </thead>
                         <tbody>
-                          {sem.subjects.map((subj, cIdx) => {
-                            const gradeStyle = getGradeStyle(subj.grade);
+                          {(sem?.subjects || []).map((subj, cIdx) => {
+                            const gradeStyle = getGradeStyle(subj?.grade);
                             return (
-                              <tr key={subj.code || cIdx}>
+                              <tr key={subj?.code || cIdx}>
                                 <td style={{ textAlign: 'center', color: 'var(--fg-faint)', fontSize: 12 }}>
-                                  {subj.sNo || cIdx + 1}
+                                  {subj?.sNo || cIdx + 1}
                                 </td>
                                 <td>
-                                  <span className="report-code-badge">{subj.code}</span>
+                                  <span className="report-code-badge">{subj?.code || 'NO-CODE'}</span>
                                 </td>
                                 <td>
-                                  <div className="report-course-name">{subj.name}</div>
+                                  <div className="report-course-name">{subj?.name || 'Course'}</div>
                                 </td>
                                 <td style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: 13 }}>
-                                  {Number(subj.credits).toFixed(2)}
+                                  {Number(subj?.credits || 0).toFixed(2)}
                                 </td>
                                 <td style={{ textAlign: 'center' }}>
                                   <span
@@ -1308,15 +1395,15 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
                                     }}
                                     title={gradeStyle.label}
                                   >
-                                    {subj.grade}
+                                    {subj?.grade || '—'}
                                   </span>
                                 </td>
                                 <td style={{ textAlign: 'center' }}>
                                   <span
-                                    className={`badge ${subj.status === 'PASS' ? 'badge-success' : 'badge-danger'}`}
+                                    className={`badge ${subj?.status === 'PASS' ? 'badge-success' : 'badge-danger'}`}
                                     style={{ fontSize: 11, padding: '2px 8px' }}
                                   >
-                                    {subj.status}
+                                    {subj?.status || 'UNKNOWN'}
                                   </span>
                                 </td>
                               </tr>
@@ -1330,7 +1417,7 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
               </div>
 
               {/* 4. University Evaluation Notes Card */}
-              {record.officialNotes && record.officialNotes.length > 0 && (
+              {Array.isArray(record?.officialNotes) && record.officialNotes.length > 0 && (
                 <div className="university-notes-card">
                   <div className="university-notes-header">
                     <Info size={15} className="text-accent" />
@@ -1384,9 +1471,9 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
             <LoadingState message="Fetching detailed lecture sessions…" />
           ) : filteredSessions.length === 0 ? (
             <EmptyState
-              icon={Calendar}
+              icon={<Calendar size={24} strokeWidth={1.5} />}
               title="No lecture sessions found"
-              message="No recorded sessions found for the selected filter."
+              description="No recorded sessions found for the selected filter."
             />
           ) : (
             <div className="table-responsive" style={{ maxHeight: 380, overflowY: 'auto' }}>
@@ -1401,28 +1488,28 @@ export default function AcademicRecordsPage({ initialTab = 'attendance' }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredSessions.map((session, sIdx) => {
-                    const isPresent = session.status === 'PRESENT';
+                  {(filteredSessions || []).map((session, sIdx) => {
+                    const isPresent = session?.status === 'PRESENT';
                     return (
-                      <tr key={session._id || sIdx}>
+                      <tr key={session?._id || sIdx}>
                         <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-                          #{session.lectureNum || sIdx + 1}
+                          #{session?.lectureNum || sIdx + 1}
                         </td>
                         <td style={{ fontSize: 12 }}>
-                          {formatDate(session.date, { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {formatDate(session?.date, { day: 'numeric', month: 'short', year: 'numeric' })}
                         </td>
                         <td style={{ fontSize: 12, color: 'var(--fg-secondary)' }}>
-                          {session.period || 'Scheduled Class'}
+                          {session?.period || 'Scheduled Class'}
                         </td>
                         <td style={{ fontSize: 12 }}>
-                          {session.topic || 'Regular Curriculum Lecture'}
+                          {session?.topic || 'Regular Curriculum Lecture'}
                         </td>
                         <td style={{ textAlign: 'right' }}>
                           <span
                             className={`badge ${isPresent ? 'badge-success' : 'badge-danger'}`}
                             style={{ fontSize: 11 }}
                           >
-                            {session.status}
+                            {session?.status || 'UNKNOWN'}
                           </span>
                         </td>
                       </tr>
