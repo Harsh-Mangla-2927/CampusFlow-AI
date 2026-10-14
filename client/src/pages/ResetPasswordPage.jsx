@@ -188,7 +188,7 @@ export default function ResetPasswordPage({ token: initialToken, onGoLogin, onGo
           </button>
 
           <div className="auth-form-header">
-            <div className="auth-logo-mark" aria-hidden="true">CF</div>
+            <img src="/favicon.svg" alt="CampusFlow AI" className="auth-logo-img" />
             <h2 className="auth-form-title">Create a New Password</h2>
             <p className="auth-form-sub">Enter your new strong password below to regain access to your account.</p>
           </div>

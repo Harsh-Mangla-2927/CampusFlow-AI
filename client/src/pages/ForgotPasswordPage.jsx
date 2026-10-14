@@ -140,7 +140,7 @@ export default function ForgotPasswordPage({ onGoLogin, onGoLanding }) {
           </button>
 
           <div className="auth-form-header">
-            <div className="auth-logo-mark" aria-hidden="true">CF</div>
+            <img src="/favicon.svg" alt="CampusFlow AI" className="auth-logo-img" />
             <h2 className="auth-form-title">Forgot your password?</h2>
             <p className="auth-form-sub">Enter your registered university email. We'll send you instructions to securely reset your password.</p>
           </div>

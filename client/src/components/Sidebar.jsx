@@ -69,7 +69,7 @@ function Sidebar({ activePage, onNavigate, user, onLogout, mobileOpen, onMobileC
         {/* Brand */}
         <div className="sidebar-brand">
           <div className="sidebar-brand-mark">
-            <div className="sidebar-brand-icon" aria-hidden="true">CF</div>
+            <img src="/favicon.svg" alt="CampusFlow AI" className="sidebar-brand-logo-img" />
             <div className="sidebar-brand-name">CampusFlow</div>
           </div>
           <div className="sidebar-brand-tagline">Academic Intelligence Platform</div>

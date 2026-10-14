@@ -18,7 +18,7 @@ class ErrorBoundary extends React.Component {
           flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           padding: 40, fontFamily: 'monospace',
         }}>
-          <div style={{ width: 40, height: 40, background: '#E8FF00', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: '#080808', marginBottom: 24, fontSize: 14 }}>CF</div>
+          <img src="/favicon.svg" alt="CampusFlow AI" style={{ width: 44, height: 44, marginBottom: 24 }} />
           <div style={{ color: '#EF4444', fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>
             Runtime Error
           </div>
@@ -29,7 +29,7 @@ class ErrorBoundary extends React.Component {
             {this.state.error.stack?.slice(0, 600)}
           </pre>
           <button
-            style={{ marginTop: 24, padding: '10px 24px', background: '#E8FF00', color: '#080808', border: 'none', cursor: 'pointer', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 12 }}
+            style={{ marginTop: 24, padding: '10px 24px', background: 'var(--accent, #FF3D00)', color: '#080808', border: 'none', cursor: 'pointer', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 12, borderRadius: 4 }}
             onClick={() => this.setState({ error: null })}
           >
             Retry

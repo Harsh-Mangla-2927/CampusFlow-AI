@@ -99,7 +99,7 @@ export default function ContactPage({ onGoLanding, onGoDashboard, user }) {
       <header className="contact-nav">
         <div className="contact-nav-inner">
           <div className="contact-logo" onClick={onGoLanding} role="button" tabIndex={0}>
-            <div className="contact-logo-mark">CF</div>
+            <img src="/favicon.svg" alt="CampusFlow AI" style={{ width: 26, height: 26, borderRadius: 5 }} />
             <span className="contact-logo-text">CampusFlow AI</span>
           </div>
 

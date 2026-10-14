@@ -210,7 +210,7 @@ export default function OtpVerificationForm({
       </button>
 
       <div className="auth-form-header">
-        <div className="auth-logo-mark" aria-hidden="true">CF</div>
+        <img src="/favicon.svg" alt="CampusFlow AI" className="auth-logo-img" />
         <h2 className="auth-form-title">{title}</h2>
         <p className="auth-form-sub">{subtitle}</p>
 

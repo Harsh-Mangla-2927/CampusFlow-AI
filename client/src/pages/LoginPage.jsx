@@ -196,7 +196,7 @@ export default function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForg
               </button>
 
               <div className="auth-form-header">
-                <div className="auth-logo-mark" aria-hidden="true">CF</div>
+                <img src="/favicon.svg" alt="CampusFlow AI" className="auth-logo-img" />
                 <h2 className="auth-form-title">Welcome back.</h2>
                 <p className="auth-form-sub">Sign in to continue to your academic workspace.</p>
               </div>
