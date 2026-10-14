@@ -181,6 +181,7 @@ export default function AcademicRecordsPage({
   // ─────────────────────────────────────────────────────────────
   const [circularsData, setCircularsData] = useState(null);
   const [loadingCirculars, setLoadingCirculars] = useState(() => activeTab === 'circulars');
+  const [syncingCirculars, setSyncingCirculars] = useState(false);
   const [circularsError, setCircularsError] = useState('');
   const [circularsSearch, setCircularsSearch] = useState('');
   const [circularsCategory, setCircularsCategory] = useState('ALL');
@@ -199,6 +200,22 @@ export default function AcademicRecordsPage({
       setCircularsError(err.message || 'Failed to retrieve university circulars.');
     } finally {
       if (!isSilent) setLoadingCirculars(false);
+    }
+  }, []);
+
+  // Live Manual Synchronization of University Circulars
+  const handleSyncCirculars = useCallback(async () => {
+    setSyncingCirculars(true);
+    setCircularsError('');
+    try {
+      const res = await attendanceAPI.syncCirculars();
+      if (res.data) {
+        setCircularsData(res.data);
+      }
+    } catch (err) {
+      setCircularsError(err.message || 'Failed to synchronize university circulars.');
+    } finally {
+      setSyncingCirculars(false);
     }
   }, []);
 
@@ -653,6 +670,15 @@ export default function AcademicRecordsPage({
     }
     return list;
   }, [rawCirculars, circularsCategory, circularsSearch]);
+
+  const categoryCounts = useMemo(() => {
+    const counts = { ALL: rawCirculars.length, ACADEMIC: 0, EXAMINATION: 0, ADMINISTRATIVE: 0, EVENTS: 0 };
+    rawCirculars.forEach(c => {
+      const cat = String(c?.category || '').toUpperCase();
+      if (counts[cat] !== undefined) counts[cat]++;
+    });
+    return counts;
+  }, [rawCirculars]);
 
   return (
     <div className="page-container academic-records-container">
@@ -1547,17 +1573,29 @@ export default function AcademicRecordsPage({
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              {circDataSource.isConnected && (
+                <span className="circulars-status-pill" style={{ margin: 0, padding: '4px 10px' }}>
+                  <span className="status-dot connected" />
+                  <span>
+                    {syncingCirculars
+                      ? 'Synchronizing...'
+                      : (circDataSource.lastSyncedAt
+                          ? `Live Sync Verified • ${formatDate(circDataSource.lastSyncedAt, { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })}`
+                          : 'Connected to Code Brigade')}
+                  </span>
+                </span>
+              )}
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
-                onClick={() => fetchCirculars()}
-                disabled={loadingCirculars}
-                title="Refresh university circulars"
+                onClick={handleSyncCirculars}
+                disabled={syncingCirculars || loadingCirculars}
+                title="Synchronize latest circulars from Code Brigade"
                 id="btn-refresh-circulars"
               >
-                <RefreshCw size={13} className={loadingCirculars ? 'animate-spin' : ''} aria-hidden="true" />
-                <span>Refresh</span>
+                <RefreshCw size={13} className={syncingCirculars ? 'animate-spin' : ''} aria-hidden="true" />
+                <span>{syncingCirculars ? 'Syncing...' : 'Sync Circulars'}</span>
               </button>
             </div>
           </div>
@@ -1577,18 +1615,22 @@ export default function AcademicRecordsPage({
             </div>
 
             <div className="circulars-category-pills" role="radiogroup" aria-label="Circular Category Filter">
-              {['ALL', 'ACADEMIC', 'EXAMINATION', 'ADMINISTRATIVE', 'EVENTS'].map(cat => (
-                <button
-                  key={cat}
-                  type="button"
-                  className={`circulars-category-btn ${circularsCategory === cat ? 'active' : ''}`}
-                  onClick={() => setCircularsCategory(cat)}
-                  role="radio"
-                  aria-checked={circularsCategory === cat}
-                >
-                  {cat === 'ALL' ? 'All Notices' : cat.charAt(0) + cat.slice(1).toLowerCase()}
-                </button>
-              ))}
+              {['ALL', 'ACADEMIC', 'EXAMINATION', 'ADMINISTRATIVE', 'EVENTS'].map(cat => {
+                const count = categoryCounts[cat] || 0;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    className={`circulars-category-btn ${circularsCategory === cat ? 'active' : ''}`}
+                    onClick={() => setCircularsCategory(cat)}
+                    role="radio"
+                    aria-checked={circularsCategory === cat}
+                  >
+                    <span>{cat === 'ALL' ? 'All Notices' : cat.charAt(0) + cat.slice(1).toLowerCase()}</span>
+                    <span className="circulars-count-badge">{count}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -1714,18 +1756,28 @@ export default function AcademicRecordsPage({
                     )}
 
                     <div className="circular-footer">
-                      <div className="circular-ref-num">
-                        {circ.refNo ? `Ref: ${circ.refNo}` : 'Official University Notice'}
+                      <div className="circular-ref-num" style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        <span>{circ.refNo ? `Ref: ${circ.refNo}` : 'Official University Notice'}</span>
+                        {circ.attachmentUrl ? (
+                          <span className="circular-attach-pill">
+                            <FileText size={10} aria-hidden="true" />
+                            <span>Attachment</span>
+                          </span>
+                        ) : (
+                          <span className="circular-no-attach-pill">
+                            No attachment
+                          </span>
+                        )}
                       </div>
                       <div className="circular-links" onClick={(e) => e.stopPropagation()}>
                         <button
                           type="button"
                           className="btn btn-secondary btn-xs"
                           onClick={() => setSelectedCircular(circ)}
-                          title="View complete circular details"
+                          title="View complete official notice"
                         >
                           <Eye size={12} aria-hidden="true" />
-                          <span>Details</span>
+                          <span>Read full notice</span>
                         </button>
                         {circ.attachmentUrl && (
                           <a
@@ -1735,7 +1787,7 @@ export default function AcademicRecordsPage({
                             className="btn btn-secondary btn-xs"
                           >
                             <FileText size={12} aria-hidden="true" />
-                            <span>Attachment</span>
+                            <span>Download</span>
                             <ExternalLink size={10} aria-hidden="true" />
                           </a>
                         )}
@@ -2170,21 +2222,65 @@ export default function AcademicRecordsPage({
               </div>
             </div>
 
-            <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 6, padding: 'var(--s3)' }}>
+            <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 6, padding: 'var(--s4)' }}>
               <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--fg-muted)', marginBottom: 6 }}>
                 REFERENCE: {selectedCircular.refNo || 'CU/CB/OFFICIAL'}
               </div>
-              <h3 style={{ fontSize: 16, fontWeight: 700, margin: '4px 0 8px', color: 'var(--fg-primary)' }}>
+              <h3 style={{ fontSize: 17, fontWeight: 700, margin: '4px 0 10px', color: 'var(--fg-primary)', lineHeight: 1.4 }}>
                 {selectedCircular.title}
               </h3>
               {selectedCircular.subject && (
-                <div style={{ fontSize: 13, color: 'var(--fg-secondary)', marginBottom: 8 }}>
+                <div style={{ fontSize: 13, color: 'var(--fg-secondary)', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   <strong>Subject:</strong> {selectedCircular.subject}
                 </div>
               )}
-              <p style={{ fontSize: 13, color: 'var(--fg-muted)', lineHeight: 1.6, margin: 0 }}>
-                {selectedCircular.excerpt || `Official notification issued by ${selectedCircular.addedBy || 'Chitkara University Administration'}.`}
-              </p>
+              <div className="circular-content-body">
+                {(selectedCircular.description || selectedCircular.excerpt || `Official notification issued by ${selectedCircular.addedBy || 'Chitkara University Administration'}.`)
+                  .split('\n\n')
+                  .filter(Boolean)
+                  .map((para, pIdx) => (
+                    <p key={pIdx}>{para}</p>
+                  ))}
+              </div>
+            </div>
+
+            {/* Official Attachment Status / Action */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px 14px',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border)',
+              borderRadius: 6,
+              flexWrap: 'wrap',
+              gap: 10
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <FileText size={16} style={{ color: selectedCircular.attachmentUrl ? '#38bdf8' : 'var(--fg-muted)' }} />
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--fg-primary)' }}>Official Attachment</div>
+                  <div style={{ fontSize: 11, color: 'var(--fg-muted)' }}>
+                    {selectedCircular.attachmentUrl
+                      ? (selectedCircular.attachmentName || 'Verified university document attached')
+                      : 'No attachment available (source: ---)'}
+                  </div>
+                </div>
+              </div>
+              {selectedCircular.attachmentUrl ? (
+                <a
+                  href={selectedCircular.attachmentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-secondary btn-sm"
+                >
+                  <FileText size={13} />
+                  <span>Download Document</span>
+                  <ExternalLink size={11} />
+                </a>
+              ) : (
+                <span className="circular-no-attach-pill">No attachment available</span>
+              )}
             </div>
 
             <div style={{
@@ -2205,18 +2301,6 @@ export default function AcademicRecordsPage({
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 'var(--s2)' }}>
-              {selectedCircular.attachmentUrl && (
-                <a
-                  href={selectedCircular.attachmentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-secondary btn-sm"
-                >
-                  <FileText size={13} />
-                  <span>View Attachment</span>
-                  <ExternalLink size={11} />
-                </a>
-              )}
               {selectedCircular.sourceUrl && (
                 <a
                   href={selectedCircular.sourceUrl}

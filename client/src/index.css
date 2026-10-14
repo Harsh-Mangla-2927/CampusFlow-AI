@@ -8436,6 +8436,67 @@ select.form-control option {
   margin-bottom: 14px;
 }
 
+/* Circulars UI Enhancement Styles */
+.circulars-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--fg-muted);
+  margin-left: 6px;
+}
+
+.circulars-category-btn.active .circulars-count-badge {
+  background: rgba(255, 61, 0, 0.2);
+  border-color: rgba(255, 61, 0, 0.4);
+  color: var(--accent);
+}
+
+.circular-attach-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 7px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 3px;
+  color: #38bdf8;
+}
+
+.circular-no-attach-pill {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 7px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--fg-faint);
+}
+
+.circular-content-body {
+  font-size: 13px;
+  color: var(--fg-secondary);
+  line-height: 1.65;
+}
+
+.circular-content-body p {
+  margin: 0 0 10px;
+}
+
+.circular-content-body p:last-child {
+  margin-bottom: 0;
+}
+
 
 
 

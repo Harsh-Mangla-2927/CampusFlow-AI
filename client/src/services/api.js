@@ -241,6 +241,20 @@ export const attendanceAPI = {
     request('/records/circulars'),
 
   /**
+   * Synchronize university circulars and notices.
+   * POST /api/records/circulars/sync
+   */
+  syncCirculars: () =>
+    request('/records/circulars/sync', { method: 'POST' }),
+
+  /**
+   * Get circular notice details.
+   * POST /api/records/circulars/detail
+   */
+  getCircularDetail: (data) =>
+    request('/records/circulars/detail', { method: 'POST', body: JSON.stringify(data) }),
+
+  /**
    * Synchronize live report card from Code Brigade.
    * POST /api/records/report-card/sync
    */
