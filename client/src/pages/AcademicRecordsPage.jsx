@@ -28,7 +28,8 @@ import {
   FileText,
   Check,
   ExternalLink,
-  ChevronDown
+  ChevronDown,
+  ClipboardList
 } from 'lucide-react';
 import { attendanceAPI, subjectsAPI, recordsAPI } from '../services/api';
 import { Modal, LoadingState, ErrorState, EmptyState } from '../components/SharedComponents';
