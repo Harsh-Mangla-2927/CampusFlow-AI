@@ -413,10 +413,112 @@ function parseGradeCard(htmlContent) {
   };
 }
 
+/**
+ * Parse circulars list HTML fragment from mobilev2/getCircularsList.
+ *
+ * @param {string} htmlContent
+ * @returns {Array<Object>} Extracted circular notices with normalized fields
+ */
+function parseCircularsList(htmlContent) {
+  if (!htmlContent || typeof htmlContent !== 'string') return [];
+
+  const circulars = [];
+  const rawBlocks = htmlContent.split(/<div class=['"]mng-res-wrap['"]>/i).slice(1);
+  let index = 0;
+
+  for (const block of rawBlocks) {
+    index++;
+
+    // Title extraction: <div class='status col-left'> {title}<br><span...
+    const titleMatch = block.match(/<div class=['"]status col-left['"]>\s*([^<]+?)(?:<br\s*[\/]?>|\n|<span)/i);
+    let title = titleMatch ? cleanHtmlText(titleMatch[1]).trim() : '';
+
+    // Date & Time extraction: <nobr>14-10-2026 at 12:19 PM</nobr>
+    const dateTimeMatch = block.match(/<nobr>\s*([^<]+?)\s*<\/nobr>/i);
+    const rawDateTime = dateTimeMatch ? dateTimeMatch[1].trim() : '';
+
+    // Key-value field extractor
+    const getField = (fieldName) => {
+      const reg = new RegExp(`<div class=['"]title['"]>\\s*${fieldName}\\s*<\\/div>[\\s\\S]*?<span class=[\\s'"]*receipt-date[\\s'"]*>\\s*([^<]*?)\\s*<\\/span>`, 'i');
+      const m = block.match(reg);
+      return m ? cleanHtmlText(m[1]).trim() : '';
+    };
+
+    const addedBy = getField('Added By');
+    const subject = getField('Subject');
+    const addedOn = getField('Added On');
+
+    // Safe ISO Date parsing
+    let isoDate = null;
+    let displayDate = addedOn || '';
+    if (rawDateTime) {
+      const dtParts = rawDateTime.match(/(\d{1,2})-(\d{1,2})-(\d{4})(?:\s+at\s+(\d{1,2}):(\d{2})\s*(AM|PM)?)?/i);
+      if (dtParts) {
+        const [, d, m, y, h, min, ampm] = dtParts;
+        let hours = h ? parseInt(h, 10) : 0;
+        const minutes = min ? parseInt(min, 10) : 0;
+        if (ampm) {
+          if (ampm.toUpperCase() === 'PM' && hours < 12) hours += 12;
+          if (ampm.toUpperCase() === 'AM' && hours === 12) hours = 0;
+        }
+        const dt = new Date(Date.UTC(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10), hours, minutes));
+        if (!isNaN(dt.getTime())) {
+          isoDate = dt.toISOString();
+          displayDate = `${d.padStart(2, '0')}-${m.padStart(2, '0')}-${y}`;
+        }
+      }
+    }
+
+    // Attachment link extraction if any exists in the block
+    const hrefMatch = block.match(/href=['"]([^'"]+)['"]/i);
+    let attachmentUrl = null;
+    if (hrefMatch && hrefMatch[1] && !hrefMatch[1].startsWith('javascript:')) {
+      const rawUrl = hrefMatch[1].trim();
+      attachmentUrl = rawUrl.startsWith('http') ? rawUrl : `https://cuiet.codebrigade.in/${rawUrl.replace(/^\/+/, '')}`;
+    }
+
+    // Categorization logic
+    const combined = `${title} ${subject}`.toLowerCase();
+    let category = 'NOTICE';
+    if (/datesheet|mid[\s-]?term|test|exam|evaluation|marks|grade/i.test(combined)) {
+      category = 'EXAMINATION';
+    } else if (/academic|curriculum|syllabus|class|batch|lecture|plan/i.test(combined)) {
+      category = 'ACADEMIC';
+    } else if (/innovat|european|hackathon|workshop|event|seminar|fest|competition/i.test(combined)) {
+      category = 'EVENTS';
+    } else if (/verificat|mandatory|registration|hostel|transport|fee|accounts|admin|heads/i.test(combined)) {
+      category = 'ADMINISTRATIVE';
+    }
+
+    const excerpt = subject ? subject : (addedBy ? `Issued by ${addedBy}. Published on ${displayDate || 'university portal'}.` : '');
+    const refNo = `CU/CB/${displayDate ? displayDate.split('-')[2] || '2026' : '2026'}/${String(index).padStart(3, '0')}`;
+
+    circulars.push({
+      id: `cb_circ_${index}_${displayDate.replace(/[^0-9]/g, '')}`,
+      title: title || `University Circular #${index}`,
+      subject: subject || null,
+      addedBy: addedBy || 'University Administration',
+      department: addedBy || 'Chitkara University',
+      date: isoDate || new Date().toISOString(),
+      displayDate,
+      rawDateTime,
+      category,
+      excerpt,
+      refNo,
+      attachmentUrl,
+      sourceUrl: 'https://cuiet.codebrigade.in',
+      source: 'CODE_BRIGADE',
+    });
+  }
+
+  return circulars;
+}
+
 module.exports = {
   cleanHtmlText,
   parseAttendanceSubjectwise,
   parseAttendanceRegister,
   parseGradeCard,
+  parseCircularsList,
 };
 

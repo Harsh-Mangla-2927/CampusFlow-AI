@@ -145,13 +145,13 @@ async function syncReportCard(userId) {
 
 /**
  * Get university circulars and notices for authenticated student.
- * Safely inspects university connection status without fabricating notices.
+ * Retrieves verified, live administrative and academic circulars from Code Brigade.
  *
  * @param {string|ObjectId} userId
  * @returns {Promise<Object>}
  */
 async function getCirculars(userId) {
-  const cbSession = await CodeBrigadeSession.findOne({ user: userId }).lean();
+  const cbSession = await CodeBrigadeSession.findOne({ user: userId });
   const isConnected = !!(
     cbSession &&
     cbSession.status !== 'DISCONNECTED' &&
@@ -159,20 +159,66 @@ async function getCirculars(userId) {
     cbSession.sessionId
   );
 
-  return {
-    circulars: [],
-    dataSource: {
-      provider: 'CODE_BRIGADE',
-      providerName: 'Chitkara University / Code Brigade',
-      isConnected,
-      studentName: cbSession?.studentName || '',
-      rollNumber: cbSession?.rollNumber || '',
-      className: cbSession?.className || '',
-      lastSyncedAt: cbSession?.lastSyncedAt || null,
-      endpointStatus: 'AWAITING_VERIFIED_ENDPOINT',
-      notice: 'Official university circulars endpoint is pending verification with Code Brigade upstream. CampusFlow AI safeguards academic integrity and never displays fabricated notices.',
-    },
-  };
+  if (!isConnected) {
+    return {
+      circulars: [],
+      dataSource: {
+        provider: 'CODE_BRIGADE',
+        providerName: 'Chitkara University / Code Brigade',
+        isConnected: false,
+        studentName: cbSession?.studentName || '',
+        rollNumber: cbSession?.rollNumber || '',
+        className: cbSession?.className || '',
+        lastSyncedAt: cbSession?.lastSyncedAt || null,
+        endpointStatus: 'NOT_CONNECTED',
+        notice: 'Connect your Code Brigade account to stream live university circulars.',
+      },
+    };
+  }
+
+  try {
+    const circulars = await codeBrigadeConnector.fetchCirculars(cbSession);
+
+    return {
+      circulars,
+      dataSource: {
+        provider: 'CODE_BRIGADE',
+        providerName: 'Chitkara University / Code Brigade',
+        isConnected: true,
+        studentName: cbSession.studentName || '',
+        rollNumber: cbSession.rollNumber || '',
+        className: cbSession.className || '',
+        lastSyncedAt: new Date(),
+        endpointStatus: 'VERIFIED',
+        endpointUrl: 'mobilev2/getCircularsList',
+        notice: 'Official live university circulars retrieved from Chitkara University Code Brigade.',
+      },
+    };
+  } catch (err) {
+    console.error('[AcademicRecord Service] Circulars retrieval error:', err.message);
+
+    if (err.code === 'SESSION_EXPIRED') {
+      cbSession.status = 'DISCONNECTED';
+      cbSession.lastSyncError = 'University session expired. Please re-authenticate.';
+      await cbSession.save();
+    }
+
+    return {
+      circulars: [],
+      dataSource: {
+        provider: 'CODE_BRIGADE',
+        providerName: 'Chitkara University / Code Brigade',
+        isConnected: cbSession.status !== 'DISCONNECTED',
+        studentName: cbSession.studentName || '',
+        rollNumber: cbSession.rollNumber || '',
+        className: cbSession.className || '',
+        lastSyncedAt: cbSession.lastSyncedAt || null,
+        endpointStatus: 'SYNC_ERROR',
+        endpointUrl: 'mobilev2/getCircularsList',
+        notice: `Could not retrieve circulars: ${err.message}`,
+      },
+    };
+  }
 }
 
 module.exports = {

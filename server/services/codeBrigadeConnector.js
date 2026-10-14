@@ -18,6 +18,7 @@ const {
   parseAttendanceSubjectwise,
   parseAttendanceRegister,
   parseGradeCard,
+  parseCircularsList,
 } = require('./codeBrigadeParser');
 
 const ALLOWED_HOSTS = ['cuiet.codebrigade.in', 'gdemo.schoolpad.in', 'codebrigade.in'];
@@ -622,7 +623,84 @@ class CodeBrigadeConnector {
 
     return parsedResult;
   }
+
+  /**
+   * Fetch live authenticated circulars and notices list from Code Brigade.
+   * Uses authorized student session with /mobilev2/getCircularsList.
+   *
+   * @param {Object} session Active CodeBrigadeSession document
+   * @returns {Promise<Array<Object>>} Parsed circular notices
+   */
+  async fetchCirculars(session) {
+    if (!session || !session.apiKey || !session.sessionId) {
+      const err = new Error('No active Code Brigade session found. Authentication required.');
+      err.code = 'AUTHENTICATION_REQUIRED';
+      throw err;
+    }
+
+    const {
+      baseUrl = DEFAULT_BASE_URL,
+      apiKey,
+      userId,
+      sessionId,
+      roleId = '4',
+      studentId = userId,
+      securityToken = '',
+      deviceUUID = generateDeviceUUID(),
+    } = session;
+
+    console.log(
+      `[CodeBrigade Connector] Fetching live circulars for Student ID: ${studentId}, Session: ${sessionId}`
+    );
+
+    const bodyParams = new URLSearchParams({
+      userId: String(userId),
+      sessionId: String(sessionId),
+      roleId: String(roleId),
+      apiKey: String(apiKey),
+      deviceIdUUID: String(deviceUUID),
+      securityToken: String(securityToken),
+      token: String(securityToken),
+      studentId: String(studentId),
+      device: 'android',
+    });
+
+    const fullUrl = `${baseUrl}/mobilev2/getCircularsList`;
+    const res = await timedFetch(fullUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: bodyParams.toString(),
+    });
+
+    if (!res.ok) {
+      throw new Error(`University server returned HTTP ${res.status} when fetching circulars.`);
+    }
+
+    const raw = await res.text();
+    let htmlFragment = '';
+    try {
+      const parsedJson = JSON.parse(raw.trim());
+      if (
+        parsedJson?.code === '403' ||
+        parsedJson?.status === 'error' ||
+        (typeof parsedJson?.message === 'string' && parsedJson.message.toLowerCase().includes('session has expired'))
+      ) {
+        const err = new Error('University authentication session expired. Please re-authenticate.');
+        err.code = 'SESSION_EXPIRED';
+        throw err;
+      }
+      htmlFragment = typeof parsedJson === 'string' ? parsedJson : (parsedJson.content || parsedJson.html || '');
+    } catch (parseErr) {
+      if (parseErr.code === 'SESSION_EXPIRED') throw parseErr;
+      htmlFragment = raw;
+    }
+
+    return parseCircularsList(htmlFragment);
+  }
 }
 
 module.exports = new CodeBrigadeConnector();
+
 

@@ -19,7 +19,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 const mongoose = require('mongoose');
-const { parseGradeCard, cleanHtmlText } = require('./services/codeBrigadeParser');
+const { parseGradeCard, cleanHtmlText, parseCircularsList } = require('./services/codeBrigadeParser');
 const AcademicRecord = require('./models/AcademicRecord');
 const User = require('./models/User');
 const CodeBrigadeSession = require('./models/CodeBrigadeSession');
@@ -144,6 +144,35 @@ async function runSuite() {
     });
   }
 
+  // ── Circulars Parser Tests ──────────────────────────────────────────
+  console.log('\n2. Circulars & Official Notices Parser:');
+
+  runTest('parseCircularsList handles null or empty input safely', () => {
+    assert.deepStrictEqual(parseCircularsList(null), []);
+    assert.deepStrictEqual(parseCircularsList(undefined), []);
+    assert.deepStrictEqual(parseCircularsList(''), []);
+    assert.deepStrictEqual(parseCircularsList(123), []);
+  });
+
+  runTest('parseCircularsList extracts circular fields with categories and dates', () => {
+    const sampleFragment = `
+      <div class='mng-res-wrap'>
+        <div class='status col-left'> Datesheet for BE (CSE) Mid Term<br><span style='color:grey;'><nobr>14-10-2026 at 03:39 PM</nobr></span></div>
+        <div class='wrap'><div class='title'>Added By</div><div class='colon'>:</div><div class='value'><span class= 'receipt-date'>NIRUPAK SHARMA</span></div></div>
+        <div class='wrap'><div class='title'>Subject</div><div class='colon'>:</div><div class='value'><span class='receipt-date'>Mid Semester Exams 2026</span></div></div>
+        <div class='wrap'><div class='title'>Added On</div><div class='colon'>:</div><div class='value'><span class = 'receipt-date'>14-10-2026</span></div></div>
+      </div>
+    `;
+    const res = parseCircularsList(sampleFragment);
+    assert.strictEqual(res.length, 1);
+    assert.strictEqual(res[0].title, 'Datesheet for BE (CSE) Mid Term');
+    assert.strictEqual(res[0].addedBy, 'NIRUPAK SHARMA');
+    assert.strictEqual(res[0].subject, 'Mid Semester Exams 2026');
+    assert.strictEqual(res[0].displayDate, '14-10-2026');
+    assert.strictEqual(res[0].category, 'EXAMINATION');
+    assert.strictEqual(res[0].source, 'CODE_BRIGADE');
+  });
+
   // ── 2. Database Integration & Student Isolation ───────────────────────
   console.log('\n2. Database & Student Isolation:');
 
@@ -208,13 +237,29 @@ async function runSuite() {
       }
     });
 
-    await runAsyncTest('getCirculars safely reports data source status without fabricating notices', async () => {
+    await runAsyncTest('getCirculars reports disconnected state without fabricating notices when not authenticated', async () => {
       const dummyId = new mongoose.Types.ObjectId();
       const res = await academicRecordService.getCirculars(dummyId);
       assert.strictEqual(Array.isArray(res.circulars), true);
       assert.strictEqual(res.circulars.length, 0);
       assert.strictEqual(res.dataSource.isConnected, false);
-      assert.strictEqual(res.dataSource.endpointStatus, 'AWAITING_VERIFIED_ENDPOINT');
+      assert.strictEqual(res.dataSource.endpointStatus, 'NOT_CONNECTED');
+    });
+
+    await runAsyncTest('getCirculars retrieves verified live university notices for connected student', async () => {
+      const activeSession = await CodeBrigadeSession.findOne({ status: 'CONNECTED' }).lean();
+      if (!activeSession) {
+        console.log('    (Skipping live session test: no active connected session in DB)');
+        return;
+      }
+      const res = await academicRecordService.getCirculars(activeSession.user);
+      assert.strictEqual(Array.isArray(res.circulars), true);
+      assert.strictEqual(res.circulars.length > 0, true);
+      assert.strictEqual(res.dataSource.isConnected, true);
+      assert.strictEqual(res.dataSource.endpointStatus, 'VERIFIED');
+      assert.strictEqual(res.dataSource.endpointUrl, 'mobilev2/getCircularsList');
+      assert.strictEqual(typeof res.circulars[0].title, 'string');
+      assert.strictEqual(typeof res.circulars[0].category, 'string');
     });
 
   } catch (dbErr) {

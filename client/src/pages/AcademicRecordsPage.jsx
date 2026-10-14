@@ -33,7 +33,8 @@ import {
   Bell,
   Search,
   BellOff,
-  ArrowUpRight
+  ArrowUpRight,
+  Eye
 } from 'lucide-react';
 import { attendanceAPI, subjectsAPI, recordsAPI } from '../services/api';
 import { Modal, LoadingState, ErrorState, EmptyState } from '../components/SharedComponents';
@@ -183,6 +184,7 @@ export default function AcademicRecordsPage({
   const [circularsError, setCircularsError] = useState('');
   const [circularsSearch, setCircularsSearch] = useState('');
   const [circularsCategory, setCircularsCategory] = useState('ALL');
+  const [selectedCircular, setSelectedCircular] = useState(null);
 
   // Fetch University Circulars
   const fetchCirculars = useCallback(async (isSilent = false) => {
@@ -1680,7 +1682,15 @@ export default function AcademicRecordsPage({
               {filteredCirculars.map((circ, idx) => {
                 const recent = circ.date && (Date.now() - new Date(circ.date).getTime()) < (7 * 24 * 60 * 60 * 1000);
                 return (
-                  <div key={circ.id || circ._id || idx} className="circular-card">
+                  <div
+                    key={circ.id || circ._id || idx}
+                    className="circular-card"
+                    onClick={() => setSelectedCircular(circ)}
+                    style={{ cursor: 'pointer' }}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedCircular(circ); } }}
+                  >
                     <div className="circular-card-top">
                       <div className="circular-badge-group">
                         <span className="circular-category-badge">{circ.category || 'NOTICE'}</span>
@@ -1707,7 +1717,16 @@ export default function AcademicRecordsPage({
                       <div className="circular-ref-num">
                         {circ.refNo ? `Ref: ${circ.refNo}` : 'Official University Notice'}
                       </div>
-                      <div className="circular-links">
+                      <div className="circular-links" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-xs"
+                          onClick={() => setSelectedCircular(circ)}
+                          title="View complete circular details"
+                        >
+                          <Eye size={12} aria-hidden="true" />
+                          <span>Details</span>
+                        </button>
                         {circ.attachmentUrl && (
                           <a
                             href={circ.attachmentUrl}
@@ -2124,6 +2143,101 @@ export default function AcademicRecordsPage({
             )}
           </div>
         </div>
+      </Modal>
+
+      {/* ─────────────────────────────────────────────────────────────
+          SHARED MODAL 5: OFFICIAL CIRCULAR DETAILS
+      ───────────────────────────────────────────────────────────── */}
+      <Modal
+        isOpen={Boolean(selectedCircular)}
+        onClose={() => setSelectedCircular(null)}
+        title={selectedCircular?.title || 'Official University Notice'}
+      >
+        {selectedCircular && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s4)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span className="circular-category-badge">{selectedCircular.category || 'NOTICE'}</span>
+                {selectedCircular.department && (
+                  <span style={{ fontSize: 12, color: 'var(--fg-secondary)', fontFamily: 'var(--font-mono)' }}>
+                    • {selectedCircular.department}
+                  </span>
+                )}
+              </div>
+              <div className="circular-date-text">
+                <Calendar size={13} aria-hidden="true" />
+                <span>{selectedCircular.rawDateTime || selectedCircular.displayDate || formatDate(selectedCircular.date)}</span>
+              </div>
+            </div>
+
+            <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 6, padding: 'var(--s3)' }}>
+              <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--fg-muted)', marginBottom: 6 }}>
+                REFERENCE: {selectedCircular.refNo || 'CU/CB/OFFICIAL'}
+              </div>
+              <h3 style={{ fontSize: 16, fontWeight: 700, margin: '4px 0 8px', color: 'var(--fg-primary)' }}>
+                {selectedCircular.title}
+              </h3>
+              {selectedCircular.subject && (
+                <div style={{ fontSize: 13, color: 'var(--fg-secondary)', marginBottom: 8 }}>
+                  <strong>Subject:</strong> {selectedCircular.subject}
+                </div>
+              )}
+              <p style={{ fontSize: 13, color: 'var(--fg-muted)', lineHeight: 1.6, margin: 0 }}>
+                {selectedCircular.excerpt || `Official notification issued by ${selectedCircular.addedBy || 'Chitkara University Administration'}.`}
+              </p>
+            </div>
+
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '10px 14px',
+              background: 'rgba(56, 189, 248, 0.08)',
+              border: '1px solid rgba(56, 189, 248, 0.25)',
+              borderRadius: 6,
+              fontSize: 12,
+              color: 'var(--fg-secondary)'
+            }}>
+              <ShieldCheck size={16} style={{ color: '#38bdf8', flexShrink: 0 }} />
+              <span>
+                Verified university notification streamed live from Chitkara University Code Brigade student portal.
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 'var(--s2)' }}>
+              {selectedCircular.attachmentUrl && (
+                <a
+                  href={selectedCircular.attachmentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-secondary btn-sm"
+                >
+                  <FileText size={13} />
+                  <span>View Attachment</span>
+                  <ExternalLink size={11} />
+                </a>
+              )}
+              {selectedCircular.sourceUrl && (
+                <a
+                  href={selectedCircular.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-primary btn-sm"
+                >
+                  <span>Open University Portal</span>
+                  <ArrowUpRight size={12} />
+                </a>
+              )}
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => setSelectedCircular(null)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
       </Modal>
       </div>
     </div>
