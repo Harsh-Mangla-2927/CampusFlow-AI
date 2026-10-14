@@ -9,6 +9,7 @@ const { errorHandler, notFound } = require('./middleware/errorMiddleware');
 const authRoutes = require('./routes/authRoutes');
 const subjectRoutes = require('./routes/subjectRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
+const academicRecordRoutes = require('./routes/academicRecordRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const examRoutes = require('./routes/examRoutes');
 const studyPlanRoutes = require('./routes/studyPlanRoutes');
@@ -59,6 +60,8 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/records', academicRecordRoutes);
+app.use('/api/academic-records', academicRecordRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/exams', examRoutes);
 app.use('/api/study-plans', studyPlanRoutes);

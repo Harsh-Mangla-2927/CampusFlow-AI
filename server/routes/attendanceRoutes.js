@@ -29,6 +29,10 @@ const {
   getAttendanceHistory,
 } = require('../controllers/attendanceController');
 const { protect } = require('../middleware/authMiddleware');
+const {
+  getReportCard,
+  syncReportCard,
+} = require('../controllers/academicRecordController');
 
 // All attendance routes are protected and scoped to the authenticated student
 router.use(protect);
@@ -61,5 +65,9 @@ router.get('/subjects/:id/history', getAttendanceHistory);
 
 // Session correction
 router.put('/sessions/:sessionId', correctAttendance);
+
+// Academic Report Card / Examination Results
+router.get('/report-card', getReportCard);
+router.post('/report-card/sync', syncReportCard);
 
 module.exports = router;

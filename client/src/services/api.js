@@ -227,6 +227,20 @@ export const attendanceAPI = {
     request('/attendance/sample-data', { method: 'POST', body: JSON.stringify({ action }) }),
 
   /**
+   * Get student's verified university report card / grade sheet.
+   * GET /api/records/report-card
+   */
+  getReportCard: () =>
+    request('/records/report-card'),
+
+  /**
+   * Synchronize live report card from Code Brigade.
+   * POST /api/records/report-card/sync
+   */
+  syncReportCard: () =>
+    request('/records/report-card/sync', { method: 'POST' }),
+
+  /**
    * Quick mark attendance session.
    * POST /api/attendance/mark
    */
@@ -295,6 +309,17 @@ export const studyPlansAPI = {
   create:    (data)          => request('/study-plans',                          { method: 'POST', body: JSON.stringify(data) }),
   toggleDay: (id, dayIndex)  => request(`/study-plans/${id}/schedule/${dayIndex}`, { method: 'PUT' }),
   delete:    (id)            => request(`/study-plans/${id}`,                   { method: 'DELETE' }),
+};
+
+// ── Academic Records API ──────────────────────────────────────
+export const recordsAPI = {
+  getSummary:       (threshold) => attendanceAPI.getSummary(threshold),
+  getReportCard:    () => attendanceAPI.getReportCard(),
+  syncReportCard:   () => attendanceAPI.syncReportCard(),
+  syncAttendance:   () => attendanceAPI.syncAttendance(),
+  connectCodeBrigade: (data) => attendanceAPI.connectCodeBrigade(data),
+  verifyOtp:        (data) => attendanceAPI.verifyCodeBrigadeOtp(data),
+  disconnect:       () => attendanceAPI.disconnectCodeBrigade(),
 };
 
 // ── Intelligence API ──────────────────────────────────────────
