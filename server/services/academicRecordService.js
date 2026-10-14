@@ -251,6 +251,14 @@ async function syncCirculars(userId) {
  */
 async function getCircularDetail(userId, { id, timeStamp, readBit = '0' }) {
   const session = await CodeBrigadeSession.findOne({ user: userId });
+  if (!session || session.status === 'DISCONNECTED') {
+    return {
+      success: false,
+      supported: false,
+      message: 'No active university session. Please connect your Code Brigade account.',
+      attachmentNotice: 'No attachment available',
+    };
+  }
   return codeBrigadeConnector.fetchCircularDetail(id, timeStamp, readBit, session);
 }
 

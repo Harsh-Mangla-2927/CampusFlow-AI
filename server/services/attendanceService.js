@@ -265,7 +265,7 @@ async function connectCodeBrigade(userId, credentials) {
     throw error;
   }
 
-  const { userData, deviceUUID, securityToken, classId = '', className = '' } = authResult;
+  const { userData, deviceUUID, securityToken, classId = '', className = '', cookies = '' } = authResult;
 
   // Save session securely in MongoDB bound to this student's userId
   let sessionDoc = await CodeBrigadeSession.findOne({ user: userId });
@@ -286,6 +286,9 @@ async function connectCodeBrigade(userId, credentials) {
   sessionDoc.rollNumber = userData.rollNumber;
   sessionDoc.classId = classId || userData.classId || '';
   sessionDoc.className = className || userData.className || '';
+  if (cookies) {
+    sessionDoc.cookies = cookies;
+  }
   sessionDoc.status = 'CONNECTED';
   sessionDoc.lastSyncStatus = 'SUCCESS';
   sessionDoc.lastSyncError = '';

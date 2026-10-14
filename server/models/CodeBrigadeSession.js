@@ -64,6 +64,10 @@ const codeBrigadeSessionSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    cookies: {
+      type: String,
+      default: '',
+    },
     studentName: {
       type: String,
       default: '',

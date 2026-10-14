@@ -68,6 +68,73 @@ async function timedFetch(url, options = {}) {
   }
 }
 
+/**
+ * Attempt web portal login to capture CodeIgniter session cookies for web-only endpoints.
+ *
+ * @param {string} username
+ * @param {string} password
+ * @param {string} [baseUrl]
+ * @returns {Promise<string>} Semicolon-delimited Cookie header value
+ */
+async function attemptWebLogin(username, password, baseUrl = DEFAULT_BASE_URL) {
+  try {
+    const loadRes = await timedFetch(`${baseUrl}/loginManager/load`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      },
+    });
+
+    if (!loadRes.ok) return '';
+    const loadCookies = loadRes.headers.get('set-cookie') || '';
+    const html = await loadRes.text();
+
+    const csrfMatch = html.match(/name=["']csrf_token_login["'][^>]*value=["']([^"']+)["']/i);
+    const formIdMatch = html.match(/name=["']formId["'][^>]*value=["']([^"']+)["']/i);
+
+    const csrfToken = csrfMatch ? csrfMatch[1] : '';
+    const formId = formIdMatch ? formIdMatch[1] : '';
+
+    if (!csrfToken) return '';
+
+    const cookiePairs = [];
+    const ciMatch = loadCookies.match(/ci_session=[^;]+/i);
+    const phpMatch = loadCookies.match(/PHPSESSID=[^;]+/i);
+    if (ciMatch) cookiePairs.push(ciMatch[0]);
+    if (phpMatch) cookiePairs.push(phpMatch[0]);
+
+    const loginParams = new URLSearchParams({
+      formId,
+      csrf_token_login: csrfToken,
+      txtUsername: username.trim(),
+      txtPassword: password,
+      txtInstitute: '1',
+    });
+
+    const checkRes = await timedFetch(`${baseUrl}/loginManager/checkLogin`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        ...(cookiePairs.length > 0 && { Cookie: cookiePairs.join('; ') }),
+      },
+      body: loginParams.toString(),
+      redirect: 'manual',
+    });
+
+    const checkCookies = checkRes.headers.get('set-cookie') || '';
+    const finalCookies = [];
+    const ciFinal = checkCookies.match(/ci_session=[^;]+/i) || ciMatch;
+    const phpFinal = checkCookies.match(/PHPSESSID=[^;]+/i) || phpMatch;
+    if (ciFinal) finalCookies.push(ciFinal[0]);
+    if (phpFinal) finalCookies.push(phpFinal[0]);
+
+    return finalCookies.join('; ');
+  } catch (err) {
+    console.warn('[CodeBrigade Connector] Web login notice:', err.message);
+    return '';
+  }
+}
+
 class CodeBrigadeConnector {
   constructor() {
     this.baseUrl = DEFAULT_BASE_URL;
@@ -174,6 +241,14 @@ class CodeBrigadeConnector {
         console.warn('Notice: Could not retrieve extended student details:', userErr.message);
       }
 
+      // Attempt to capture web session cookies for timeline endpoints
+      let cookies = '';
+      try {
+        cookies = await attemptWebLogin(username, password, this.baseUrl);
+      } catch (cErr) {
+        console.warn('Notice: Web session cookie not obtained:', cErr.message);
+      }
+
       return {
         success: true,
         requiresOTP: false,
@@ -181,6 +256,7 @@ class CodeBrigadeConnector {
         securityToken,
         classId,
         className,
+        cookies,
         userData: {
           apiKey: userData.apiKey,
           userId: String(userData.userId),
@@ -728,6 +804,7 @@ class CodeBrigadeConnector {
 
     const headers = {
       'Content-Type': 'application/x-www-form-urlencoded',
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     };
 
     if (session?.cookies) {
@@ -743,6 +820,7 @@ class CodeBrigadeConnector {
 
       if (res.status === 401 || res.status === 403) {
         return {
+          success: false,
           supported: false,
           statusCode: res.status,
           message: 'Direct web timeline detail endpoint requires an active CodeIgniter browser session.',
@@ -751,12 +829,19 @@ class CodeBrigadeConnector {
       }
 
       if (!res.ok) {
-        throw new Error(`University server returned HTTP ${res.status}`);
+        return {
+          success: false,
+          supported: false,
+          statusCode: res.status,
+          message: `University server returned HTTP ${res.status}`,
+          attachmentNotice: 'No attachment available',
+        };
       }
 
       const html = await res.text();
       const parsed = parseFeedDetailHtml(html);
       return {
+        success: true,
         supported: true,
         statusCode: 200,
         ...parsed,
@@ -764,8 +849,10 @@ class CodeBrigadeConnector {
     } catch (err) {
       console.warn('[CodeBrigade Connector] Notice detail request note:', err.message);
       return {
+        success: false,
         supported: false,
         error: err.message,
+        message: err.message || 'Full notice details could not be retrieved from university portal.',
         attachmentNotice: 'No attachment available',
       };
     }

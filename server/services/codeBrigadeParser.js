@@ -448,8 +448,9 @@ function parseCircularsList(htmlContent) {
     const subject = getField('Subject');
     const addedOn = getField('Added On');
 
-    // Safe ISO Date parsing
+    // Safe ISO Date parsing & Unix Epoch timestamp calculation
     let isoDate = null;
+    let unixTimestamp = null;
     let displayDate = addedOn || '';
     if (rawDateTime) {
       const dtParts = rawDateTime.match(/(\d{1,2})-(\d{1,2})-(\d{4})(?:\s+at\s+(\d{1,2}):(\d{2})\s*(AM|PM)?)?/i);
@@ -464,6 +465,7 @@ function parseCircularsList(htmlContent) {
         const dt = new Date(Date.UTC(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10), hours, minutes));
         if (!isNaN(dt.getTime())) {
           isoDate = dt.toISOString();
+          unixTimestamp = Math.floor(dt.getTime() / 1000);
           displayDate = `${d.padStart(2, '0')}-${m.padStart(2, '0')}-${y}`;
         }
       }
@@ -476,6 +478,10 @@ function parseCircularsList(htmlContent) {
       const rawUrl = hrefMatch[1].trim();
       attachmentUrl = rawUrl.startsWith('http') ? rawUrl : `https://cuiet.codebrigade.in/${rawUrl.replace(/^\/+/, '')}`;
     }
+
+    // Extract upstream ID if present in element attributes or display handler
+    const idMatch = block.match(/(?:data-id|id)=['"]?(\d+)['"]?/i) || block.match(/display\((\d+)/i);
+    const upstreamId = idMatch ? idMatch[1] : String(index);
 
     // Categorization logic
     const combined = `${title} ${subject}`.toLowerCase();
@@ -495,18 +501,21 @@ function parseCircularsList(htmlContent) {
 
     circulars.push({
       id: `cb_circ_${index}_${displayDate.replace(/[^0-9]/g, '')}`,
+      upstreamId,
       title: title || `University Circular #${index}`,
+      fullTitle: title || `University Circular #${index}`,
       subject: subject || null,
       addedBy: addedBy || 'University Administration',
       department: addedBy || 'Chitkara University',
       date: isoDate || new Date().toISOString(),
       displayDate,
       rawDateTime,
+      timeStamp: unixTimestamp ? String(unixTimestamp) : '',
       category,
       excerpt,
       refNo,
       attachmentUrl,
-      sourceUrl: 'https://cuiet.codebrigade.in',
+      sourceUrl: 'https://cuiet.codebrigade.in/dashboardFeed/feed',
       source: 'CODE_BRIGADE',
     });
   }
@@ -564,11 +573,16 @@ function parseFeedDetailHtml(htmlContent) {
   const formattedText = rawDescHtml
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
     .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
     .replace(/<br\s*[\/]?>/gi, '\n')
     .replace(/<\/p>/gi, '\n\n')
     .replace(/<\/div>/gi, '\n')
-    .replace(/<li\b[^>]*>/gi, '• ')
-    .replace(/<\/li>/gi, '\n')
+    .replace(/<ol\b[^>]*>/gi, '\n')
+    .replace(/<\/ol>/gi, '\n')
+    .replace(/<ul\b[^>]*>/gi, '\n')
+    .replace(/<\/ul>/gi, '\n')
+    .replace(/<li\b[^>]*>/gi, '\n• ')
+    .replace(/<\/li>/gi, '')
     .replace(/<[^>]*>/g, ' ')
     .replace(/&nbsp;?/gi, ' ')
     .replace(/&amp;/gi, '&')
