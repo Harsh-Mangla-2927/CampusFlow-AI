@@ -233,6 +233,28 @@ async function runSuite() {
     assert.strictEqual(parsed.attachmentName, 'Challenge Guidelines (PDF)');
   });
 
+  runTest('parseFeedDetailHtml safely rejects login pages without leaking form text as description', () => {
+    const loginHtml = `
+      <html>
+        <head><title>Login</title></head>
+        <body>
+          <form id="loginForm" action="/loginManager/checkLogin">
+            <input type="hidden" name="formId" value="123" />
+            <input type="text" name="txtUsername" placeholder="Chalkpad ID" />
+            <input type="password" name="txtPassword" />
+            <button type="submit">Sign In</button>
+          </form>
+        </body>
+      </html>
+    `;
+    const parsed = parseFeedDetailHtml(loginHtml);
+    assert.strictEqual(parsed.title, '');
+    assert.strictEqual(parsed.description, '');
+    assert.deepStrictEqual(parsed.paragraphs, []);
+    assert.strictEqual(parsed.hasAttachment, false);
+    assert.strictEqual(parsed.attachmentNotice, 'No attachment available');
+  });
+
   // ── 2. Database Integration & Student Isolation ───────────────────────
   console.log('\n2. Database & Student Isolation:');
 

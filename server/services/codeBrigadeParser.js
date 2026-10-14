@@ -551,23 +551,31 @@ function parseFeedDetailHtml(htmlContent) {
   // 1. Extract title from .ui-feed-det-title or .ui-feed-title-wrap
   let title = '';
   const titleMatch = htmlContent.match(/class=['"][^'"]*ui-feed-det-title[^'"]*['"][^>]*>([\s\S]*?)<\/(?:div|span|h[1-6]|p)>/i);
+  const wrapMatch = htmlContent.match(/class=['"][^'"]*ui-feed-title-wrap[^'"]*['"][^>]*>([\s\S]*?)<\/(?:div|header)>/i);
   if (titleMatch) {
     title = cleanHtmlText(titleMatch[1]);
-  } else {
-    const wrapMatch = htmlContent.match(/class=['"][^'"]*ui-feed-title-wrap[^'"]*['"][^>]*>([\s\S]*?)<\/(?:div|header)>/i);
-    if (wrapMatch) {
-      title = cleanHtmlText(wrapMatch[1]);
-    }
+  } else if (wrapMatch) {
+    title = cleanHtmlText(wrapMatch[1]);
   }
 
   // 2. Extract description from .ui-feed-det-desc
-  let rawDescHtml = '';
   const descMatch = htmlContent.match(/class=['"][^'"]*ui-feed-det-desc[^'"]*['"][^>]*>([\s\S]*?)<\/(?:div|section)>/i);
-  if (descMatch) {
-    rawDescHtml = descMatch[1];
-  } else {
-    rawDescHtml = htmlContent;
+  
+  // Guard against unauthenticated login redirects or unrelated HTML pages
+  if (!descMatch && !titleMatch && !wrapMatch) {
+    return {
+      title: '',
+      description: '',
+      paragraphs: [],
+      department: '',
+      hasAttachment: false,
+      attachmentUrl: null,
+      attachmentName: '',
+      attachmentNotice: 'No attachment available',
+    };
   }
+
+  let rawDescHtml = descMatch ? descMatch[1] : '';
 
   // Format and sanitize description preserving structure
   const formattedText = rawDescHtml

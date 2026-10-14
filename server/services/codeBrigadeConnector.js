@@ -85,7 +85,10 @@ async function attemptWebLogin(username, password, baseUrl = DEFAULT_BASE_URL) {
     });
 
     if (!loadRes.ok) return '';
-    const loadCookies = loadRes.headers.get('set-cookie') || '';
+    const setCookies = typeof loadRes.headers.getSetCookie === 'function'
+      ? loadRes.headers.getSetCookie()
+      : [loadRes.headers.get('set-cookie') || ''];
+    const loadCookies = setCookies.join('; ');
     const html = await loadRes.text();
 
     const csrfMatch = html.match(/name=["']csrf_token_login["'][^>]*value=["']([^"']+)["']/i);
@@ -121,7 +124,10 @@ async function attemptWebLogin(username, password, baseUrl = DEFAULT_BASE_URL) {
       redirect: 'manual',
     });
 
-    const checkCookies = checkRes.headers.get('set-cookie') || '';
+    const checkSetCookies = typeof checkRes.headers.getSetCookie === 'function'
+      ? checkRes.headers.getSetCookie()
+      : [checkRes.headers.get('set-cookie') || ''];
+    const checkCookies = checkSetCookies.join('; ');
     const finalCookies = [];
     const ciFinal = checkCookies.match(/ci_session=[^;]+/i) || ciMatch;
     const phpFinal = checkCookies.match(/PHPSESSID=[^;]+/i) || phpMatch;
@@ -816,9 +822,10 @@ class CodeBrigadeConnector {
         method: 'POST',
         headers,
         body: bodyParams.toString(),
+        redirect: 'manual',
       });
 
-      if (res.status === 401 || res.status === 403) {
+      if (res.status === 302 || res.status === 401 || res.status === 403) {
         return {
           success: false,
           supported: false,
@@ -840,6 +847,17 @@ class CodeBrigadeConnector {
 
       const html = await res.text();
       const parsed = parseFeedDetailHtml(html);
+
+      if (!parsed.description && !parsed.title) {
+        return {
+          success: false,
+          supported: false,
+          statusCode: 200,
+          message: 'Full notice details could not be parsed from university portal response.',
+          attachmentNotice: 'No attachment available',
+        };
+      }
+
       return {
         success: true,
         supported: true,

@@ -418,7 +418,7 @@ async function runHttpTests() {
     const jwt = require('jsonwebtoken');
 
     if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(process.env.MONGODB_LOCAL_URI || 'mongodb://127.0.0.1:27017/campusflow');
+      await mongoose.connect(process.env.MONGODB_URI || process.env.MONGODB_LOCAL_URI || 'mongodb://127.0.0.1:27017/campusflow');
     }
 
     const testUser = await User.findOne({ email: 'harsh@chitkara.edu.in' }) || await User.findOne();
