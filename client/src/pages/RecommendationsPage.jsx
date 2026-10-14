@@ -83,12 +83,22 @@ function RecommendationsPage() {
     <div className="page-container">
       <div className="page-header">
         <div className="page-header-text">
+          <div style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            color: 'var(--accent)',
+            marginBottom: 4,
+          }}>
+            Explainable Advisory System
+          </div>
           <h1>Recommendations</h1>
-          <p>Personalized action items — derived from your actual data, not generic tips.</p>
+          <p>Prioritized interventions generated from attendance margins, task delays, and exam proximity.</p>
         </div>
-        <button className="btn btn-secondary btn-sm" onClick={load} id="btn-refresh-recs">
+        <button className="btn btn-secondary btn-sm" onClick={load} id="btn-refresh-recs" style={{ gap: 6 }}>
           <RefreshCw size={12} strokeWidth={2} aria-hidden="true" />
-          Refresh
+          <span>Refresh Advisory</span>
         </button>
       </div>
 

@@ -47,12 +47,22 @@ function AnalyticsPage() {
     <div className="page-container">
       <div className="page-header">
         <div className="page-header-text">
+          <div style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            color: 'var(--accent)',
+            marginBottom: 4,
+          }}>
+            Academic Intelligence Engine
+          </div>
           <h1>Analytics</h1>
-          <p>Your academic performance at a glance — derived from real data.</p>
+          <p>Multi-dimensional analysis synthesized from active courses, attendance logs, and marks.</p>
         </div>
-        <button className="btn btn-secondary btn-sm" onClick={load} id="btn-refresh-analytics">
+        <button className="btn btn-secondary btn-sm" onClick={load} id="btn-refresh-analytics" style={{ gap: 6 }}>
           <RefreshCw size={12} strokeWidth={2} aria-hidden="true" />
-          Refresh
+          <span>Refresh Analytics</span>
         </button>
       </div>
 

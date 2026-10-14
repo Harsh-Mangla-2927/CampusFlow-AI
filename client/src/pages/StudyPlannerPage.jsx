@@ -68,13 +68,14 @@ function PlannerForm({ subjects, onSave, onCancel, loading }) {
 }
 
 function StudyPlannerPage() {
-  const [plans, setPlans]         = useState([]);
-  const { toast }                 = useToast();
-  const [subjects, setSubjects]   = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [error, setError]         = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [saving, setSaving]       = useState(false);
+  const [plans, setPlans]                 = useState([]);
+  const { toast }                         = useToast();
+  const [subjects, setSubjects]           = useState([]);
+  const [loading, setLoading]             = useState(true);
+  const [error, setError]                 = useState('');
+  const [showModal, setShowModal]         = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [saving, setSaving]               = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -100,25 +101,37 @@ function StudyPlannerPage() {
       const res = await studyPlansAPI.create(formData);
       setPlans(p => [res.data, ...p]);
       setShowModal(false);
-      toast.success('Study plan created.');
-    } catch (err) { toast.error(err.message || 'Failed to create plan.'); }
-    finally { setSaving(false); }
+      toast.success('Study plan generated.');
+    } catch (err) {
+      toast.error(err.message || 'Failed to create plan.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleToggleDay = async (planId, dayIndex) => {
     try {
       const res = await studyPlansAPI.toggleDay(planId, dayIndex);
       setPlans(p => p.map(plan => plan._id === res.data._id ? res.data : plan));
-    } catch (err) { toast.error(err.message); }
+    } catch (err) {
+      toast.error(err.message);
+    }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Remove this study plan?')) return;
+  const confirmDelete = async () => {
+    if (!deleteConfirm) return;
+    const { id, title } = deleteConfirm;
+    setSaving(true);
     try {
       await studyPlansAPI.delete(id);
       setPlans(p => p.filter(plan => plan._id !== id));
-      toast.success('Study plan removed.');
-    } catch (err) { toast.error(err.message); }
+      toast.success(`Study plan "${title}" removed.`);
+      setDeleteConfirm(null);
+    } catch (err) {
+      toast.error(err.message || 'Failed to remove plan.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) return <LoadingState message="Loading study plans…" />;
@@ -126,14 +139,46 @@ function StudyPlannerPage() {
 
   return (
     <div className="page-container">
+      {/* ── UNIFIED PAGE HEADER ── */}
       <div className="page-header">
         <div className="page-header-text">
-          <h1>Study Planner</h1>
-          <p>Day-by-day study schedules generated from your exam dates and availability.</p>
+          <div style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            color: 'var(--accent)',
+            marginBottom: 4,
+          }}>
+            Adaptive Revision Schedules
+          </div>
+          <h1 style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            Study Planner
+            <span style={{
+              fontSize: 14,
+              fontFamily: 'var(--font-mono)',
+              fontWeight: 700,
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border)',
+              padding: '2px 10px',
+              color: 'var(--fg-secondary)',
+            }}>
+              {plans.length} active
+            </span>
+          </h1>
+          <p>
+            Day-by-day revision schedules calibrated against your exam deadlines and daily hours.
+          </p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)} id="btn-create-plan">
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() => setShowModal(true)}
+          id="btn-create-plan"
+          style={{ gap: 6 }}
+        >
           <Plus size={14} strokeWidth={2.5} aria-hidden="true" />
-          Generate Plan
+          <span>Generate Plan</span>
         </button>
       </div>
 
@@ -176,8 +221,16 @@ function StudyPlannerPage() {
                         {completed}/{plan.schedule.length} sessions
                       </div>
                     </div>
-                    <button className="btn btn-ghost btn-icon btn-sm" onClick={() => handleDelete(plan._id)} id={`btn-del-plan-${plan._id}`} aria-label={`Delete plan: ${plan.title}`}>
-                      <Trash2 size={13} strokeWidth={1.5} aria-hidden="true" />
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-icon btn-sm"
+                      onClick={() => setDeleteConfirm({ id: plan._id, title: plan.title })}
+                      id={`btn-del-plan-${plan._id}`}
+                      aria-label={`Delete plan: ${plan.title}`}
+                      onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'var(--fg-muted)'}
+                    >
+                      <Trash2 size={13} strokeWidth={1.8} aria-hidden="true" />
                     </button>
                   </div>
                 </div>
@@ -196,13 +249,14 @@ function StudyPlannerPage() {
                     return (
                       <button
                         key={idx}
+                        type="button"
                         onClick={() => handleToggleDay(plan._id, idx)}
                         role="checkbox"
                         aria-checked={entry.completed}
                         id={`day-${plan._id}-${idx}`}
                         title={entry.completed ? 'Mark incomplete' : 'Mark complete'}
                         style={{
-                          background: entry.completed ? 'rgba(232,255,0,0.06)' : isToday ? 'rgba(255,255,255,0.03)' : 'var(--bg-base)',
+                          background: entry.completed ? 'var(--accent-dim)' : isToday ? 'rgba(255,255,255,0.03)' : 'var(--bg-base)',
                           border: `1px solid ${entry.completed ? 'var(--accent-border)' : isToday ? 'var(--border-strong)' : 'transparent'}`,
                           padding: 'var(--s3)',
                           cursor: 'pointer',
@@ -241,6 +295,43 @@ function StudyPlannerPage() {
 
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Generate Study Plan">
         <PlannerForm subjects={subjects} onSave={handleSave} onCancel={() => setShowModal(false)} loading={saving} />
+      </Modal>
+
+      {/* Custom Deletion Confirmation Dialog (No window.confirm) */}
+      <Modal
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        title="Remove Study Plan?"
+      >
+        <div style={{ padding: '8px 0 16px' }}>
+          <p style={{ margin: '0 0 16px', fontSize: 13.5, color: 'var(--fg-secondary)', lineHeight: 1.5 }}>
+            Are you sure you want to remove <strong style={{ color: 'var(--fg-primary)' }}>"{deleteConfirm?.title}"</strong>?
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setDeleteConfirm(null)}
+              disabled={saving}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={confirmDelete}
+              disabled={saving}
+              style={{
+                background: 'var(--danger)',
+                borderColor: 'var(--danger)',
+                color: '#FFFFFF',
+                fontWeight: 700,
+              }}
+            >
+              {saving ? 'Removing…' : 'Remove Plan'}
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
