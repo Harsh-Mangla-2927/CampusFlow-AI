@@ -19,6 +19,7 @@ const {
   parseAttendanceRegister,
   parseGradeCard,
   parseCircularsList,
+  parseFeedDetailHtml,
 } = require('./codeBrigadeParser');
 
 const ALLOWED_HOSTS = ['cuiet.codebrigade.in', 'gdemo.schoolpad.in', 'codebrigade.in'];
@@ -698,6 +699,76 @@ class CodeBrigadeConnector {
     }
 
     return parseCircularsList(htmlFragment);
+  }
+
+  /**
+   * Fetch full circular description and attachment from Code Brigade dashboardFeed/display.
+   * Observed fields: id, timeStamp, readBit.
+   * Target selectors parsed: .ui-feed-title-wrap, .ui-feed-det-title, .ui-feed-det-desc, .ui-feed-det-attach
+   *
+   * @param {string|number} id Circular item identifier
+   * @param {string|number} timeStamp Timestamp of the circular
+   * @param {string|number} [readBit='0'] Read indicator flag
+   * @param {Object} [session] Optional CodeBrigadeSession document
+   * @returns {Promise<Object>} Parsed title, description, paragraphs, department, attachment metadata
+   */
+  async fetchCircularDetail(id, timeStamp, readBit = '0', session = null) {
+    if (!id) {
+      throw new Error('Circular ID is required to fetch details.');
+    }
+
+    const baseUrl = session?.baseUrl || this.baseUrl || DEFAULT_BASE_URL;
+    const fullUrl = `${baseUrl}/dashboardFeed/display`;
+
+    const bodyParams = new URLSearchParams({
+      id: String(id),
+      timeStamp: String(timeStamp || ''),
+      readBit: String(readBit ?? '0'),
+    });
+
+    const headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+
+    if (session?.cookies) {
+      headers['Cookie'] = session.cookies;
+    }
+
+    try {
+      const res = await timedFetch(fullUrl, {
+        method: 'POST',
+        headers,
+        body: bodyParams.toString(),
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        return {
+          supported: false,
+          statusCode: res.status,
+          message: 'Direct web timeline detail endpoint requires an active CodeIgniter browser session.',
+          attachmentNotice: 'No attachment available',
+        };
+      }
+
+      if (!res.ok) {
+        throw new Error(`University server returned HTTP ${res.status}`);
+      }
+
+      const html = await res.text();
+      const parsed = parseFeedDetailHtml(html);
+      return {
+        supported: true,
+        statusCode: 200,
+        ...parsed,
+      };
+    } catch (err) {
+      console.warn('[CodeBrigade Connector] Notice detail request note:', err.message);
+      return {
+        supported: false,
+        error: err.message,
+        attachmentNotice: 'No attachment available',
+      };
+    }
   }
 }
 

@@ -15,6 +15,8 @@ const {
   syncReportCard,
   getAcademicRecords,
   getCirculars,
+  syncCirculars,
+  getCircularDetail,
 } = require('../controllers/academicRecordController');
 
 // All academic record routes require authentication
@@ -29,5 +31,7 @@ router.post('/report-card/sync', syncReportCard);
 
 // University circulars & official notices
 router.get('/circulars', getCirculars);
+router.post('/circulars/sync', syncCirculars);
+router.post('/circulars/detail', getCircularDetail);
 
 module.exports = router;

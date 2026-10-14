@@ -104,9 +104,53 @@ const getCirculars = async (req, res, next) => {
   }
 };
 
+/**
+ * Trigger live synchronization of university circulars.
+ * POST /api/records/circulars/sync
+ */
+const syncCirculars = async (req, res, next) => {
+  try {
+    const userId = req.user._id || req.user.id;
+    const data = await academicRecordService.syncCirculars(userId);
+    return res.status(200).json({
+      success: true,
+      message: 'Official university circulars synchronized successfully.',
+      data,
+    });
+  } catch (err) {
+    if (err.statusCode === 400) {
+      return res.status(400).json({
+        success: false,
+        message: err.message,
+      });
+    }
+    next(err);
+  }
+};
+
+/**
+ * Fetch notice details from dashboardFeed/display.
+ * POST /api/records/circulars/detail
+ */
+const getCircularDetail = async (req, res, next) => {
+  try {
+    const userId = req.user._id || req.user.id;
+    const { id, timeStamp, readBit } = req.body || {};
+    const data = await academicRecordService.getCircularDetail(userId, { id, timeStamp, readBit });
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getReportCard,
   syncReportCard,
   getAcademicRecords,
   getCirculars,
+  syncCirculars,
+  getCircularDetail,
 };

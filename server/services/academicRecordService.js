@@ -179,6 +179,10 @@ async function getCirculars(userId) {
   try {
     const circulars = await codeBrigadeConnector.fetchCirculars(cbSession);
 
+    // Save genuine sync timestamp to session
+    cbSession.lastSyncedAt = new Date();
+    await cbSession.save();
+
     return {
       circulars,
       dataSource: {
@@ -188,7 +192,7 @@ async function getCirculars(userId) {
         studentName: cbSession.studentName || '',
         rollNumber: cbSession.rollNumber || '',
         className: cbSession.className || '',
-        lastSyncedAt: new Date(),
+        lastSyncedAt: cbSession.lastSyncedAt,
         endpointStatus: 'VERIFIED',
         endpointUrl: 'mobilev2/getCircularsList',
         notice: 'Official live university circulars retrieved from Chitkara University Code Brigade.',
@@ -221,8 +225,40 @@ async function getCirculars(userId) {
   }
 }
 
+/**
+ * Trigger live synchronization of university circulars.
+ *
+ * @param {string|ObjectId} userId
+ * @returns {Promise<Object>}
+ */
+async function syncCirculars(userId) {
+  const session = await CodeBrigadeSession.findOne({ user: userId });
+  if (!session || session.status === 'DISCONNECTED') {
+    const error = new Error('No university account connected. Please connect Code Brigade first.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return getCirculars(userId);
+}
+
+/**
+ * Retrieve individual circular detail via dashboardFeed/display.
+ *
+ * @param {string|ObjectId} userId
+ * @param {Object} params { id, timeStamp, readBit }
+ * @returns {Promise<Object>}
+ */
+async function getCircularDetail(userId, { id, timeStamp, readBit = '0' }) {
+  const session = await CodeBrigadeSession.findOne({ user: userId });
+  return codeBrigadeConnector.fetchCircularDetail(id, timeStamp, readBit, session);
+}
+
 module.exports = {
   getReportCard,
   syncReportCard,
   getCirculars,
+  syncCirculars,
+  getCircularDetail,
 };
+
