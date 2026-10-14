@@ -514,11 +514,140 @@ function parseCircularsList(htmlContent) {
   return circulars;
 }
 
+/**
+ * Safely parse and sanitize the HTML returned by Code Brigade /dashboardFeed/display
+ * Target Selectors:
+ *   .ui-feed-title-wrap
+ *   .ui-feed-det-title   (circular title)
+ *   .ui-feed-det-desc    (full description, lists, signature, department)
+ *   .ui-feed-det-attach  (attachment info, handles "---" safely)
+ *
+ * @param {string} htmlContent
+ * @returns {Object} Extracted title, formatted description, paragraphs, department, attachment metadata
+ */
+function parseFeedDetailHtml(htmlContent) {
+  if (!htmlContent || typeof htmlContent !== 'string') {
+    return {
+      title: '',
+      description: '',
+      paragraphs: [],
+      department: '',
+      hasAttachment: false,
+      attachmentUrl: null,
+      attachmentName: '',
+      attachmentNotice: 'No attachment available',
+    };
+  }
+
+  // 1. Extract title from .ui-feed-det-title or .ui-feed-title-wrap
+  let title = '';
+  const titleMatch = htmlContent.match(/class=['"][^'"]*ui-feed-det-title[^'"]*['"][^>]*>([\s\S]*?)<\/(?:div|span|h[1-6]|p)>/i);
+  if (titleMatch) {
+    title = cleanHtmlText(titleMatch[1]);
+  } else {
+    const wrapMatch = htmlContent.match(/class=['"][^'"]*ui-feed-title-wrap[^'"]*['"][^>]*>([\s\S]*?)<\/(?:div|header)>/i);
+    if (wrapMatch) {
+      title = cleanHtmlText(wrapMatch[1]);
+    }
+  }
+
+  // 2. Extract description from .ui-feed-det-desc
+  let rawDescHtml = '';
+  const descMatch = htmlContent.match(/class=['"][^'"]*ui-feed-det-desc[^'"]*['"][^>]*>([\s\S]*?)<\/(?:div|section)>/i);
+  if (descMatch) {
+    rawDescHtml = descMatch[1];
+  } else {
+    rawDescHtml = htmlContent;
+  }
+
+  // Format and sanitize description preserving structure
+  const formattedText = rawDescHtml
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+    .replace(/<br\s*[\/]?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<li\b[^>]*>/gi, '• ')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;?/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'");
+
+  const cleanDescription = formattedText
+    .split('\n')
+    .map(line => line.replace(/[ \t]+/g, ' ').trim())
+    .filter(Boolean)
+    .join('\n\n');
+
+  const paragraphs = cleanDescription.split('\n\n').filter(Boolean);
+
+  // 3. Extract department / closing authority if present
+  let department = '';
+  const deptMatch = cleanDescription.match(/(?:Issued by|Regards|Office of|Department of|Directorate of|Coordinator|Dean|Registrar|HOD|Head)[\s:,]+([^\n.,]+)/i);
+  if (deptMatch) {
+    department = deptMatch[0].trim();
+  }
+
+  // 4. Extract attachment from .ui-feed-det-attach
+  let hasAttachment = false;
+  let attachmentUrl = null;
+  let attachmentName = '';
+  let attachmentNotice = 'No attachment available';
+
+  const attachMatch = htmlContent.match(/class=['"][^'"]*ui-feed-det-attach[^'"]*['"][^>]*>([\s\S]*?)<\/(?:div|span|section)>/i);
+  if (attachMatch) {
+    const attachHtml = attachMatch[1].trim();
+    const cleanAttachText = cleanHtmlText(attachHtml);
+
+    // If attachment section contains "---" or "no attachment" or is empty
+    if (!attachHtml || cleanAttachText === '---' || cleanAttachText === '--' || cleanAttachText.toLowerCase().includes('no attachment')) {
+      hasAttachment = false;
+      attachmentUrl = null;
+      attachmentNotice = 'No attachment available';
+    } else {
+      const linkMatch = attachHtml.match(/<a\b[^>]*href=['"]([^'"]+)['"][^>]*>([\s\S]*?)<\/a>/i);
+      if (linkMatch) {
+        const rawUrl = linkMatch[1].trim();
+        const linkText = cleanHtmlText(linkMatch[2]).trim();
+
+        // Validate safe HTTP/HTTPS URL
+        if (/^https?:\/\//i.test(rawUrl)) {
+          hasAttachment = true;
+          attachmentUrl = rawUrl;
+          attachmentName = linkText || 'Download University Attachment';
+          attachmentNotice = 'Official university attachment attached';
+        } else if (rawUrl.startsWith('/') || !rawUrl.includes(':')) {
+          hasAttachment = true;
+          attachmentUrl = `https://cuiet.codebrigade.in/${rawUrl.replace(/^\/+/, '')}`;
+          attachmentName = linkText || 'Download University Attachment';
+          attachmentNotice = 'Official university attachment attached';
+        }
+      }
+    }
+  }
+
+  return {
+    title,
+    description: cleanDescription,
+    paragraphs,
+    department,
+    hasAttachment,
+    attachmentUrl,
+    attachmentName,
+    attachmentNotice,
+  };
+}
+
 module.exports = {
   cleanHtmlText,
   parseAttendanceSubjectwise,
   parseAttendanceRegister,
   parseGradeCard,
   parseCircularsList,
+  parseFeedDetailHtml,
 };
 
