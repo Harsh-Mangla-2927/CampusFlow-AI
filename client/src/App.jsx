@@ -397,6 +397,8 @@ function App() {
             activePage={activePage}
             onMobileToggle={() => setMobileOpen(o => !o)}
             mobileOpen={mobileOpen}
+            user={user}
+            onNavigate={handleNavigate}
           />
         </Suspense>
         <main role="main">

@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import {
   LayoutDashboard, BookOpen, CheckSquare, FileText,
   ClipboardList, Calendar, BarChart2, Zap, User, LogOut,
 } from 'lucide-react';
-import { clearAuth } from '../services/api';
+import LogoutModal from './LogoutModal';
 
 const NAV_SECTIONS = [
   {
@@ -34,10 +34,19 @@ const NAV_SECTIONS = [
 ];
 
 function Sidebar({ activePage, onNavigate, user, onLogout, mobileOpen, onMobileClose }) {
-  const handleLogout = () => {
-    clearAuth();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const logoutBtnRef = useRef(null);
+
+  const confirmLogout = () => {
+    setShowLogoutModal(false);
     onLogout();
   };
+
+  const avatarUrl = user?.profilePicture
+    ? (user.profilePicture.startsWith('http') || user.profilePicture.startsWith('data:')
+        ? user.profilePicture
+        : user.profilePicture)
+    : null;
 
   return (
     <>
@@ -90,9 +99,26 @@ function Sidebar({ activePage, onNavigate, user, onLogout, mobileOpen, onMobileC
         {/* Footer */}
         <div className="sidebar-footer">
           {user && (
-            <div className="sidebar-user">
-              <div className="sidebar-user-avatar" aria-hidden="true">
-                {user.name?.charAt(0).toUpperCase() || 'U'}
+            <div
+              className="sidebar-user"
+              onClick={() => { onNavigate('profile'); onMobileClose?.(); }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onNavigate('profile'); onMobileClose?.(); } }}
+              title="View Profile Settings"
+              style={{ cursor: 'pointer' }}
+            >
+              <div className="sidebar-user-avatar" aria-hidden="true" style={{ overflow: 'hidden' }}>
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={user.name || 'User'}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                ) : (
+                  user.name?.charAt(0).toUpperCase() || 'U'
+                )}
               </div>
               <div className="sidebar-user-info">
                 <div className="sidebar-user-name">{user.name}</div>
@@ -103,8 +129,10 @@ function Sidebar({ activePage, onNavigate, user, onLogout, mobileOpen, onMobileC
             </div>
           )}
           <button
+            ref={logoutBtnRef}
+            type="button"
             className="btn btn-ghost w-full btn-sm"
-            onClick={handleLogout}
+            onClick={() => setShowLogoutModal(true)}
             id="btn-sidebar-logout"
             style={{ justifyContent: 'flex-start', gap: 'var(--s3)', color: 'var(--fg-faint)' }}
             onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'}
@@ -115,8 +143,16 @@ function Sidebar({ activePage, onNavigate, user, onLogout, mobileOpen, onMobileC
           </button>
         </div>
       </aside>
+
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={confirmLogout}
+        triggerRef={logoutBtnRef}
+      />
     </>
   );
 }
 
 export default Sidebar;
+
