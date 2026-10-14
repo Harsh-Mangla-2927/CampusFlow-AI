@@ -208,6 +208,15 @@ async function runSuite() {
       }
     });
 
+    await runAsyncTest('getCirculars safely reports data source status without fabricating notices', async () => {
+      const dummyId = new mongoose.Types.ObjectId();
+      const res = await academicRecordService.getCirculars(dummyId);
+      assert.strictEqual(Array.isArray(res.circulars), true);
+      assert.strictEqual(res.circulars.length, 0);
+      assert.strictEqual(res.dataSource.isConnected, false);
+      assert.strictEqual(res.dataSource.endpointStatus, 'AWAITING_VERIFIED_ENDPOINT');
+    });
+
   } catch (dbErr) {
     console.error('Database connection notice for tests:', dbErr.message);
   } finally {
