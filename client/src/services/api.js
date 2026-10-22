@@ -1,13 +1,4 @@
-/**
- * API Service — CampusFlow AI
- *
- * Centralised Fetch API wrapper for all backend communication.
- * All responses are structured: { success, message, data, errors }
- */
-
 const BASE_URL = '/api';
-
-// ── Token / Session ──────────────────────────────────────────
 
 export const getToken       = () => localStorage.getItem('campusflow_token');
 export const getStoredUser  = () => {
@@ -25,14 +16,6 @@ export const clearAuth = () => {
   localStorage.removeItem('campusflow_token');
   localStorage.removeItem('campusflow_user');
 };
-
-// ── Core Request ─────────────────────────────────────────────
-
-/**
- * Make an authenticated API request.
- * On 401, clears auth and fires 'auth:expired' event.
- * Throws an error with .errors field for form-level errors.
- */
 const request = async (endpoint, options = {}) => {
   const token = getToken();
   const config = {

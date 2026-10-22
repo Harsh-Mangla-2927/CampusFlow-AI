@@ -1,9 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-/**
- * Protect routes — verify JWT and attach user to request.
- */
 const protect = async (req, res, next) => {
   let token;
 
@@ -20,8 +17,6 @@ const protect = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Reject temporary OTP challenge tokens
     if (decoded.purpose === 'OTP_CHALLENGE' || !decoded.id) {
       return res.status(401).json({
         success: false,
