@@ -66,6 +66,10 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    onboardingCompleted: {
+      type: Boolean,
+      default: false,
+    },
     passwordResetToken: {
       type: String,
       select: false,

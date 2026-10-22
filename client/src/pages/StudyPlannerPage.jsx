@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { studyPlansAPI, subjectsAPI } from '../services/api';
+import { studyPlansAPI, subjectsAPI, examsAPI } from '../services/api';
 import { LoadingState, ErrorState, EmptyState, Modal, ProgressBar, SectionHeader } from '../components/SharedComponents';
-import { Calendar, Plus, Trash2 } from 'lucide-react';
+import { Calendar, Plus, Trash2, Sparkles } from 'lucide-react';
 import { formatDate } from '../utils/helpers';
 import { useToast } from '../components/Toast';
 
 
 const SESSION_COLORS = { Study: 'var(--accent)', Revision: 'var(--warning)', Practice: 'var(--info)', 'Mock Test': 'var(--danger)' };
 
-function PlannerForm({ subjects, onSave, onCancel, loading }) {
+function PlannerForm({ subjects, exams = [], onSave, onCancel, loading }) {
   const [f, setF] = useState({ subject:'', title:'', examDate:'', availableHoursPerDay:'2', topics:'', difficulty:'Medium' });
   const [err, setErr] = useState('');
   const set = (k,v) => setF(p => ({ ...p, [k]: v }));
@@ -20,15 +20,49 @@ function PlannerForm({ subjects, onSave, onCancel, loading }) {
     onSave({ ...f, topics, availableHoursPerDay: parseFloat(f.availableHoursPerDay) });
   };
 
+  const handleSelectExam = (e) => {
+    const selectedId = e.target.value;
+    if (!selectedId) return;
+    const exam = exams.find(x => x._id === selectedId);
+    if (exam) {
+      const subjId = exam.subject?._id || exam.subject || '';
+      setF(p => ({
+        ...p,
+        subject: subjId || p.subject,
+        title: `${exam.name || exam.title || 'Course'} Preparation Plan`,
+        examDate: exam.date ? exam.date.slice(0, 10) : p.examDate,
+        difficulty: exam.difficulty || p.difficulty,
+        topics: Array.isArray(exam.syllabus) ? exam.syllabus.join('\n') : (exam.syllabus || p.topics),
+      }));
+    }
+  };
+
   return (
     <form onSubmit={submit} noValidate id="form-planner">
       {err && <div className="alert alert-danger" style={{ marginBottom:'var(--s4)' }}>{err}</div>}
+
+      {exams.length > 0 && (
+        <div className="form-group" style={{ marginBottom: 'var(--s4)', background: 'var(--bg-elevated)', padding: '10px 14px', border: '1px solid var(--border-subtle)', borderRadius: 2 }}>
+          <label className="form-label" htmlFor="plan-exam-select" style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--accent)' }}>
+            <Sparkles size={12} /> Auto-Fill From Scheduled Examination
+          </label>
+          <select id="plan-exam-select" className="form-select" onChange={handleSelectExam} defaultValue="">
+            <option value="">— Select an upcoming exam to populate details —</option>
+            {exams.filter(x => x.status !== 'Completed').map(x => (
+              <option key={x._id} value={x._id}>
+                {x.name || x.title} {x.subject?.name ? `(${x.subject.name})` : ''} · {x.date ? new Date(x.date).toLocaleDateString() : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div className="form-row">
         <div className="form-group">
           <label className="form-label" htmlFor="plan-subject">Subject <span className="required">*</span></label>
           <select id="plan-subject" className="form-select" value={f.subject} onChange={e => set('subject', e.target.value)} required>
             <option value="">— Select Subject —</option>
-            {subjects.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+            {subjects.map(s => <option key={s._id} value={s._id}>{s.name} ({s.code})</option>)}
           </select>
         </div>
         <div className="form-group">
@@ -71,6 +105,7 @@ function StudyPlannerPage() {
   const [plans, setPlans]                 = useState([]);
   const { toast }                         = useToast();
   const [subjects, setSubjects]           = useState([]);
+  const [exams, setExams]                 = useState([]);
   const [loading, setLoading]             = useState(true);
   const [error, setError]                 = useState('');
   const [showModal, setShowModal]         = useState(false);
@@ -81,9 +116,14 @@ function StudyPlannerPage() {
     setLoading(true);
     setError('');
     try {
-      const [pr, sr] = await Promise.all([studyPlansAPI.getAll(), subjectsAPI.getAll()]);
+      const [pr, sr, er] = await Promise.all([
+        studyPlansAPI.getAll(),
+        subjectsAPI.getAll(),
+        examsAPI.getAll().catch(() => ({ data: [] })),
+      ]);
       setPlans(pr.data || []);
       setSubjects(sr.data || []);
+      setExams(er.data || []);
     } catch (err) {
       setError(err.message || 'Failed to load study plans.');
     } finally {
@@ -294,7 +334,7 @@ function StudyPlannerPage() {
       )}
 
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Generate Study Plan">
-        <PlannerForm subjects={subjects} onSave={handleSave} onCancel={() => setShowModal(false)} loading={saving} />
+        <PlannerForm subjects={subjects} exams={exams} onSave={handleSave} onCancel={() => setShowModal(false)} loading={saving} />
       </Modal>
 
       {/* Custom Deletion Confirmation Dialog (No window.confirm) */}

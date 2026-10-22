@@ -521,6 +521,44 @@ export default function SubjectsPage() {
                       <span>{s.attendedClasses || 0} / {s.totalClasses || 0} attended</span>
                       <span>Target: {threshold}%</span>
                     </div>
+
+                    {s.totalClasses > 0 && attPct < threshold && (
+                      <div style={{
+                        marginTop: 8,
+                        padding: '6px 10px',
+                        background: 'rgba(239, 68, 68, 0.08)',
+                        border: '1px solid rgba(239, 68, 68, 0.25)',
+                        borderLeft: '2px solid var(--danger)',
+                        borderRadius: 2,
+                        fontSize: 11,
+                        color: 'var(--danger)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                      }}>
+                        <AlertCircle size={12} style={{ flexShrink: 0 }} />
+                        <span>
+                          Recovery: Attend next <strong>{Math.max(1, Math.ceil(((threshold / 100) * s.totalClasses - s.attendedClasses) / (1 - threshold / 100)))}</strong> consecutive classes to reach {threshold}%
+                        </span>
+                      </div>
+                    )}
+
+                    {s.totalClasses > 0 && attPct >= threshold && (
+                      <div style={{
+                        marginTop: 8,
+                        padding: '6px 10px',
+                        background: 'rgba(16, 185, 129, 0.05)',
+                        border: '1px solid rgba(16, 185, 129, 0.2)',
+                        borderLeft: '2px solid var(--success)',
+                        borderRadius: 2,
+                        fontSize: 11,
+                        color: 'var(--success)',
+                      }}>
+                        {Math.floor((s.attendedClasses - (threshold / 100) * s.totalClasses) / (threshold / 100)) > 0
+                          ? `Buffer: Can miss ${Math.floor((s.attendedClasses - (threshold / 100) * s.totalClasses) / (threshold / 100))} class while maintaining ${threshold}%`
+                          : `Attendance satisfies required ${threshold}% threshold`}
+                      </div>
+                    )}
                   </div>
 
                   {/* Marks Performance */}

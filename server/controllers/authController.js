@@ -290,6 +290,7 @@ const verifyOtp = async (req, res, next) => {
             university: user.university, course: user.course, semester: user.semester,
             section: user.section || '', rollNumber: user.rollNumber || '',
             profilePicture: user.profilePicture || null,
+            onboardingCompleted: Boolean(user.onboardingCompleted),
           },
         },
       });
@@ -332,6 +333,7 @@ const verifyOtp = async (req, res, next) => {
             university: newUser.university, course: newUser.course, semester: newUser.semester,
             section: newUser.section || '', rollNumber: newUser.rollNumber || '',
             profilePicture: newUser.profilePicture || null,
+            onboardingCompleted: false,
           },
         },
       });
@@ -465,6 +467,10 @@ const updateProfile = async (req, res, next) => {
     if (section    !== undefined) user.section    = sanitizeString(section);
     if (rollNumber !== undefined) user.rollNumber = sanitizeString(rollNumber);
 
+    if (req.body.onboardingCompleted !== undefined) {
+      user.onboardingCompleted = Boolean(req.body.onboardingCompleted);
+    }
+
     if (Object.keys(errors).length > 0) {
       return res.status(400).json({ success: false, message: 'Please fix the highlighted fields.', errors });
     }
@@ -480,6 +486,7 @@ const updateProfile = async (req, res, next) => {
           university: updated.university, course: updated.course,
           semester: updated.semester, section: updated.section, rollNumber: updated.rollNumber,
           profilePicture: updated.profilePicture || null,
+          onboardingCompleted: Boolean(updated.onboardingCompleted),
         },
       },
     });

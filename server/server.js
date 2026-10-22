@@ -4,6 +4,8 @@ const path = require('path');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const { errorHandler, notFound } = require('./middleware/errorMiddleware');
+const { validateEnv } = require('./config/envValidator');
+const { securityHeaders } = require('./middleware/securityMiddleware');
 
 // Import Routes
 const authRoutes = require('./routes/authRoutes');
@@ -18,15 +20,34 @@ const contactRoutes = require('./routes/contactRoutes');
 
 dotenv.config();
 
+// Validate critical environment variables
+validateEnv();
+
 // Connect to MongoDB
 connectDB();
 
 const app = express();
 
+// Apply Security Headers
+app.use(securityHeaders);
+
 // --- Core Middleware ---
-// In development, accept any localhost origin (Vite may use 5173, 5174, etc.)
+// Support comma-separated CLIENT_URL list in production with trailing slash normalization
+const configuredOrigins = (process.env.CLIENT_URL || '')
+  .split(',')
+  .map(url => url.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
 const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? [process.env.CLIENT_URL]
+  ? (origin, callback) => {
+      // Allow requests with no origin (curl, mobile apps, Postman)
+      if (!origin) return callback(null, true);
+      const cleanOrigin = origin.replace(/\/+$/, '');
+      if (configuredOrigins.length === 0 || configuredOrigins.includes(cleanOrigin)) {
+        return callback(null, true);
+      }
+      callback(new Error(`CORS: origin ${origin} not allowed in production`));
+    }
   : (origin, callback) => {
       // Allow requests with no origin (curl, mobile apps, Postman)
       if (!origin) return callback(null, true);
@@ -73,11 +94,37 @@ app.use(notFound);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 8000;
+const mongoose = require('mongoose');
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`\n🚀 CampusFlow AI Server running on port ${PORT}`);
   console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Health: http://localhost:${PORT}/api/health\n`);
 });
+
+// Graceful shutdown handler
+const handleGracefulShutdown = (signal) => {
+  console.log(`\n🛑 Received ${signal}. Starting graceful shutdown...`);
+  server.close(async () => {
+    console.log('HTTP server closed.');
+    try {
+      await mongoose.connection.close(false);
+      console.log('MongoDB connection closed cleanly.');
+      process.exit(0);
+    } catch (err) {
+      console.error('Error during database disconnection:', err.message);
+      process.exit(1);
+    }
+  });
+
+  // Force close if graceful shutdown exceeds 10 seconds
+  setTimeout(() => {
+    console.error('Graceful shutdown timed out. Forcefully terminating.');
+    process.exit(1);
+  }, 10000).unref();
+};
+
+process.on('SIGTERM', () => handleGracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => handleGracefulShutdown('SIGINT'));
 
 module.exports = app;

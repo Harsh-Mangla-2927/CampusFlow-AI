@@ -3,7 +3,7 @@ import { examsAPI, subjectsAPI } from '../services/api';
 import { LoadingState, ErrorState, EmptyState, Modal } from '../components/SharedComponents';
 import {
   FileText, Plus, Edit2, Trash2, Calendar, Clock,
-  AlertTriangle, CheckCircle2, AlertCircle
+  AlertTriangle, CheckCircle2, AlertCircle, Zap
 } from 'lucide-react';
 import { formatDate } from '../utils/helpers';
 import { useToast } from '../components/Toast';
@@ -186,7 +186,7 @@ function ExamForm({ subjects, initial, onSave, onCancel, saving }) {
   );
 }
 
-export default function ExamsPage() {
+export default function ExamsPage({ onNavigate }) {
   const { toast } = useToast();
   const [exams, setExams]       = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -535,7 +535,19 @@ export default function ExamsPage() {
                       </div>
                     )}
 
-                    <div style={{ display: 'flex', gap: 4 }}>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      {!isPast && onNavigate && (
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => onNavigate('planner')}
+                          title="Generate or adjust study plan for this exam"
+                          style={{ fontSize: 11, padding: '4px 8px', gap: 4 }}
+                        >
+                          <Zap size={11} strokeWidth={2} />
+                          <span>Plan Study</span>
+                        </button>
+                      )}
                       <button
                         type="button"
                         className="btn btn-ghost btn-icon btn-sm"

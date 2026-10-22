@@ -1,4 +1,4 @@
-const BASE_URL = '/api';
+const BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '') + '/api';
 
 export const getToken       = () => localStorage.getItem('campusflow_token');
 export const getStoredUser  = () => {

@@ -15,13 +15,14 @@ const {
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const { uploadPhotoMiddleware } = require('../middleware/uploadMiddleware');
+const { authLimiter, otpLimiter, passwordResetLimiter } = require('../middleware/rateLimitMiddleware');
 
-router.post('/register',        register);
-router.post('/login',           login);
-router.post('/verify-otp',      verifyOtp);
-router.post('/resend-otp',      resendOtp);
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password',  resetPassword);
+router.post('/register',        authLimiter, register);
+router.post('/login',           authLimiter, login);
+router.post('/verify-otp',      otpLimiter, verifyOtp);
+router.post('/resend-otp',      otpLimiter, resendOtp);
+router.post('/forgot-password', passwordResetLimiter, forgotPassword);
+router.post('/reset-password',  passwordResetLimiter, resetPassword);
 
 router.get('/me',               protect, getMe);
 router.put('/profile',          protect, updateProfile);

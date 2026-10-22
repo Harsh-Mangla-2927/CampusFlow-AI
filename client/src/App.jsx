@@ -21,6 +21,7 @@ const ContactPage          = lazy(() => import('./pages/ContactPage'));
 const NotFoundPage         = lazy(() => import('./pages/NotFoundPage'));
 const Sidebar              = lazy(() => import('./components/Sidebar'));
 const Topbar               = lazy(() => import('./components/Topbar'));
+const OnboardingModal      = lazy(() => import('./components/OnboardingModal'));
 
 // Route mapping table
 const PROTECTED_ROUTES = {
@@ -87,10 +88,24 @@ function normalizePath(p) {
 }
 
 function App() {
-  // Synchronous session check on boot
   const [user, setUser] = useState(() => getStoredUser());
   const [mobileOpen, setMobileOpen] = useState(false);
   const [returnUrl, setReturnUrl] = useState(null);
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    const stored = getStoredUser();
+    return Boolean(stored && stored.onboardingCompleted === false && !localStorage.getItem('cf_onboarding_dismissed'));
+  });
+
+  const handleOnboardingComplete = useCallback(() => {
+    localStorage.setItem('cf_onboarding_dismissed', 'true');
+    setShowOnboarding(false);
+    const stored = getStoredUser();
+    if (stored) {
+      const updated = { ...stored, onboardingCompleted: true };
+      setUser(updated);
+      updateStoredUser(updated);
+    }
+  }, []);
 
   // Compute initial route based on URL and user session
   const [routeState, setRouteState] = useState(() => {
@@ -259,6 +274,9 @@ function App() {
 
   const handleLogin = useCallback((userData) => {
     setUser(userData);
+    if (userData && userData.onboardingCompleted === false && !localStorage.getItem('cf_onboarding_dismissed')) {
+      setShowOnboarding(true);
+    }
     const targetPath = returnUrl && PROTECTED_ROUTES[returnUrl] ? returnUrl : '/dashboard';
     const targetPage = PROTECTED_ROUTES[targetPath] || 'dashboard';
     setReturnUrl(null);
@@ -372,7 +390,7 @@ function App() {
     dashboard:       <DashboardPage onNavigate={handleNavigate} />,
     subjects:        <SubjectsPage />,
     tasks:           <TasksPage />,
-    exams:           <ExamsPage />,
+    exams:           <ExamsPage onNavigate={handleNavigate} />,
     records:         <AcademicRecordsPage />,
     attendance:      <AcademicRecordsPage />,
     planner:         <StudyPlannerPage />,
@@ -409,6 +427,16 @@ function App() {
           </Suspense>
         </main>
       </div>
+
+      {showOnboarding && (
+        <Suspense fallback={null}>
+          <OnboardingModal
+            user={user}
+            onComplete={handleOnboardingComplete}
+            onUserUpdate={handleUserUpdate}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

@@ -36,6 +36,10 @@ export default function DashboardPage({ onNavigate }) {
   const {
     user,
     academicHealth = 0,
+    overallAttendance = null,
+    briefing = '',
+    nextAction = null,
+    subjectsSummary = [],
     summary = {},
     todaysFocus = [],
     academicAlerts = [],
@@ -54,10 +58,8 @@ export default function DashboardPage({ onNavigate }) {
 
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-  // Average attendance calculation from alerts/subjects
-  const avgAttendance = academicAlerts.length > 0
-    ? Math.round(academicAlerts.reduce((s, r) => s + (r.attendance?.currentPct || 0), 0) / academicAlerts.length)
-    : 85;
+  // Genuine average attendance from stored subject data
+  const avgAttendance = typeof overallAttendance === 'number' ? overallAttendance : null;
 
   const healthLevel = academicHealth >= 75 ? 'Optimal' : academicHealth >= 50 ? 'Moderate' : 'Critical';
   const healthColor = academicHealth >= 75 ? 'var(--success)' : academicHealth >= 50 ? 'var(--warning)' : 'var(--danger)';
@@ -163,6 +165,83 @@ export default function DashboardPage({ onNavigate }) {
           </button>
         </div>
       </div>
+
+      {/* ── DAILY ACADEMIC BRIEFING ── */}
+      {briefing && (
+        <div style={{
+          marginBottom: 'var(--s5)',
+          padding: '14px 18px',
+          background: 'rgba(255, 61, 0, 0.04)',
+          border: '1px solid rgba(255, 61, 0, 0.18)',
+          borderLeft: '3px solid var(--accent)',
+          borderRadius: 2,
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 12,
+        }}>
+          <Activity size={16} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
+          <div style={{ flex: 1, fontSize: 13, color: 'var(--fg-secondary)', lineHeight: 1.5 }}>
+            <span style={{ fontWeight: 700, color: 'var(--fg-primary)', marginRight: 6, textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.08em', fontFamily: 'var(--font-mono)' }}>
+              Daily Intelligence Briefing:
+            </span>
+            {briefing}
+          </div>
+        </div>
+      )}
+
+      {/* ── PRIORITIZED NEXT ACTION CARD ── */}
+      {nextAction && (
+        <div style={{
+          marginBottom: 'var(--s6)',
+          padding: '14px 18px',
+          background: 'var(--bg-elevated)',
+          border: '1px solid var(--border)',
+          borderLeft: `4px solid ${nextAction.urgency === 'CRITICAL' ? 'var(--danger)' : nextAction.urgency === 'HIGH' ? 'var(--warning)' : 'var(--accent)'}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 14,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 260 }}>
+            <div style={{
+              width: 34,
+              height: 34,
+              borderRadius: 2,
+              background: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid var(--border-subtle)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: nextAction.urgency === 'CRITICAL' ? 'var(--danger)' : nextAction.urgency === 'HIGH' ? 'var(--warning)' : 'var(--accent)',
+              flexShrink: 0,
+            }}>
+              <Zap size={16} strokeWidth={2.2} />
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>
+                Prioritized Next Action
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--fg-primary)', lineHeight: 1.2, marginTop: 2 }}>
+                {nextAction.title}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--fg-muted)', marginTop: 2 }}>
+                {nextAction.subtitle}
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            onClick={() => onNavigate(nextAction.targetPage)}
+            id="dash-btn-next-action"
+            style={{ gap: 6 }}
+          >
+            <span>{nextAction.buttonLabel}</span>
+            <ArrowRight size={13} aria-hidden="true" />
+          </button>
+        </div>
+      )}
 
       {/* ── CONFLICT BANNER ── */}
       {conflicts?.length > 0 && (
@@ -276,13 +355,13 @@ export default function DashboardPage({ onNavigate }) {
         >
           <div className="stat-card-header">
             <span className="stat-card-label">Attendance</span>
-            <span className="stat-card-icon" style={{ color: avgAttendance >= 75 ? 'var(--success)' : 'var(--danger)' }} aria-hidden="true"><Activity size={14} /></span>
+            <span className="stat-card-icon" style={{ color: avgAttendance === null ? 'var(--fg-muted)' : avgAttendance >= 75 ? 'var(--success)' : 'var(--danger)' }} aria-hidden="true"><Activity size={14} /></span>
           </div>
-          <div className="stat-card-value" style={{ color: avgAttendance >= 75 ? 'var(--success)' : 'var(--danger)' }}>
-            {avgAttendance}%
+          <div className="stat-card-value" style={{ color: avgAttendance === null ? 'var(--fg-muted)' : avgAttendance >= 75 ? 'var(--success)' : 'var(--danger)' }}>
+            {avgAttendance === null ? '—' : `${avgAttendance}%`}
           </div>
-          <div className="stat-card-detail" style={{ color: avgAttendance >= 75 ? 'var(--success)' : 'var(--danger)' }}>
-            {avgAttendance >= 75 ? 'Above 75% goal' : 'Shortfall alert'}
+          <div className="stat-card-detail" style={{ color: avgAttendance === null ? 'var(--fg-muted)' : avgAttendance >= 75 ? 'var(--success)' : 'var(--danger)' }}>
+            {avgAttendance === null ? 'No class records logged' : avgAttendance >= 75 ? 'Above 75% goal' : 'Shortfall alert'}
           </div>
         </div>
 
@@ -340,13 +419,13 @@ export default function DashboardPage({ onNavigate }) {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
                 <span style={{ color: 'var(--fg-muted)' }}>Average Attendance</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: avgAttendance >= 75 ? 'var(--success)' : 'var(--danger)' }}>
-                  {avgAttendance}%
+                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: avgAttendance === null ? 'var(--fg-muted)' : avgAttendance >= 75 ? 'var(--success)' : 'var(--danger)' }}>
+                  {avgAttendance === null ? 'No class data' : `${avgAttendance}%`}
                 </span>
               </div>
               <ProgressBar
-                value={avgAttendance}
-                color={avgAttendance >= 75 ? 'var(--success)' : avgAttendance >= 65 ? 'var(--warning)' : 'var(--danger)'}
+                value={avgAttendance || 0}
+                color={avgAttendance === null ? 'var(--border-strong)' : avgAttendance >= 75 ? 'var(--success)' : avgAttendance >= 65 ? 'var(--warning)' : 'var(--danger)'}
               />
             </div>
 
@@ -611,6 +690,125 @@ export default function DashboardPage({ onNavigate }) {
                       </div>
                       <div style={{ fontSize: 9.5, color: 'var(--fg-faint)', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'var(--font-mono)' }}>
                         {days > 0 ? 'countdown' : 'exam day'}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* ── Subject-Wise Attendance Health & Recovery Guidance ── */}
+        <div className="card dashboard-grid-wide" style={{ marginTop: 'var(--s2)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--s4)' }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--accent)' }}>
+                Academic Health Monitor
+              </div>
+              <h3 style={{ margin: '2px 0 0', fontSize: 16, fontWeight: 800 }}>Subject-Wise Attendance & Recovery Guidance</h3>
+            </div>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => onNavigate('records')}
+              id="dash-view-records"
+              style={{ fontSize: 12, gap: 4 }}
+            >
+              Academic Records <ArrowRight size={12} aria-hidden="true" />
+            </button>
+          </div>
+
+          {subjectsSummary.length === 0 ? (
+            <div style={{
+              padding: '28px 16px',
+              textAlign: 'center',
+              border: '1px dashed var(--border-subtle)',
+              borderRadius: 4,
+            }}>
+              <BookOpen size={24} style={{ color: 'var(--fg-muted)', marginBottom: 8 }} />
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--fg-primary)' }}>No Enrolled Subjects</div>
+              <p style={{ fontSize: 12, color: 'var(--fg-muted)', margin: '4px 0 14px' }}>
+                Add your curriculum subjects to track class attendance health and recovery guidance.
+              </p>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => onNavigate('subjects')}
+              >
+                + Add Subjects
+              </button>
+            </div>
+          ) : (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+              gap: 12,
+            }}>
+              {subjectsSummary.map((subj) => {
+                const isShortage = subj.totalClasses > 0 && subj.attendancePct < subj.attendanceThreshold;
+                const statusColor = subj.totalClasses === 0
+                  ? 'var(--fg-muted)'
+                  : isShortage
+                  ? 'var(--danger)'
+                  : subj.attendancePct >= subj.attendanceThreshold + 5
+                  ? 'var(--success)'
+                  : 'var(--warning)';
+
+                return (
+                  <div
+                    key={subj._id}
+                    style={{
+                      padding: '14px 16px',
+                      border: '1px solid var(--border)',
+                      borderLeft: `3px solid ${statusColor}`,
+                      background: 'var(--bg-elevated)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      borderRadius: 2,
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                        <span style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: 10,
+                          fontWeight: 700,
+                          color: 'var(--fg-faint)',
+                          letterSpacing: '0.04em',
+                        }}>
+                          {subj.code}
+                        </span>
+                        <span style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: 12,
+                          fontWeight: 800,
+                          color: statusColor,
+                        }}>
+                          {subj.totalClasses > 0 ? `${subj.attendancePct}%` : 'No data'}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--fg-primary)', lineHeight: 1.25 }}>
+                        {subj.name}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--fg-muted)', marginTop: 2 }}>
+                        {subj.attendedClasses} of {subj.totalClasses} classes attended (Target: {subj.attendanceThreshold}%)
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--border-subtle)' }}>
+                      <ProgressBar
+                        value={subj.attendancePct}
+                        color={statusColor}
+                      />
+                      <div style={{
+                        fontSize: 11,
+                        color: isShortage ? 'var(--danger)' : 'var(--fg-secondary)',
+                        marginTop: 6,
+                        lineHeight: 1.35,
+                      }}>
+                        {subj.recoveryGuidance}
                       </div>
                     </div>
                   </div>
