@@ -19,7 +19,9 @@ export function getGreeting() {
 export function formatDate(date, opts = { day: 'numeric', month: 'short', year: 'numeric' }) {
   if (!date) return '—';
   try {
-    return new Date(date).toLocaleDateString('en-IN', opts);
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('en-IN', opts);
   } catch {
     return '—';
   }
@@ -32,12 +34,14 @@ export function formatDate(date, opts = { day: 'numeric', month: 'short', year: 
  */
 export function deadlineLabel(date) {
   if (!date) return 'No deadline';
-  const days = Math.ceil((new Date(date) - new Date()) / 86400000);
+  const target = new Date(date);
+  if (isNaN(target.getTime())) return 'No deadline';
+  const days = Math.ceil((target - new Date()) / 86400000);
   if (days < 0)   return `${Math.abs(days)}d overdue`;
   if (days === 0)  return 'Due today';
   if (days === 1)  return 'Due tomorrow';
   if (days <= 7)   return `Due in ${days}d`;
-  return `Due ${formatDate(date, { day: 'numeric', month: 'short' })}`;
+  return `Due ${formatDate(target, { day: 'numeric', month: 'short' })}`;
 }
 
 /**
@@ -56,8 +60,10 @@ export function getPriorityBadgeClass(level) {
  * Returns attendance info object
  */
 export function getAttendanceInfo(attended, total, threshold = 75) {
-  if (!total || total === 0) return { pct: 0, color: 'var(--fg-faint)', status: 'NO_DATA', label: 'No Classes' };
-  const pct = Math.round((attended / total) * 100);
+  const safeAttended = Math.max(0, safeNum(attended));
+  const safeTotal = Math.max(0, safeNum(total));
+  if (safeTotal === 0) return { pct: 0, color: 'var(--fg-faint)', status: 'NO_DATA', label: 'No Classes' };
+  const pct = Math.round((safeAttended / safeTotal) * 100);
   if (pct >= threshold + 5) return { pct, color: 'var(--success)', status: 'SAFE',     label: 'Safe' };
   if (pct >= threshold)     return { pct, color: 'var(--warning)', status: 'WARNING',  label: 'Warning' };
   return                           { pct, color: 'var(--danger)',  status: 'CRITICAL', label: 'Critical' };
