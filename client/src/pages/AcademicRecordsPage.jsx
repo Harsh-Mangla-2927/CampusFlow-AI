@@ -38,7 +38,8 @@ import {
   EyeOff,
   RotateCcw,
   Copy,
-  X
+  X,
+  Printer
 } from 'lucide-react';
 import { attendanceAPI, subjectsAPI, recordsAPI } from '../services/api';
 import { Modal, LoadingState, ErrorState, EmptyState } from '../components/SharedComponents';
@@ -1658,6 +1659,20 @@ export default function AcademicRecordsPage({
                 >
                   <Link2 size={13} aria-hidden="true" />
                   Connect Code Brigade
+                </button>
+              )}
+
+              {/* Print Transcript */}
+              {record && (
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => window.print()}
+                  title="Print official academic transcript"
+                  id="btn-print-transcript"
+                >
+                  <Printer size={13} aria-hidden="true" />
+                  <span>Print Transcript</span>
                 </button>
               )}
 
