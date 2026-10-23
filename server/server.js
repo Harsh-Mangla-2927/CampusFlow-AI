@@ -66,12 +66,21 @@ app.use(express.urlencoded({ extended: false }));
 // --- Static Uploads ---
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+const mongoose = require('mongoose');
+
 // --- Health Check ---
 app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'CampusFlow AI API is running.',
+  const dbStateMap = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+  const dbState = dbStateMap[mongoose.connection.readyState] || 'unknown';
+  const isHealthy = mongoose.connection.readyState === 1;
+
+  res.status(isHealthy ? 200 : 503).json({
+    success: isHealthy,
+    status: isHealthy ? 'healthy' : 'degraded',
+    message: isHealthy ? 'CampusFlow AI API is running.' : 'API is running but database is not connected.',
     version: '1.0.0',
+    database: dbState,
+    uptimeSeconds: Math.floor(process.uptime()),
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
   });
@@ -94,7 +103,6 @@ app.use(notFound);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 8000;
-const mongoose = require('mongoose');
 
 const server = app.listen(PORT, () => {
   console.log(`\n🚀 CampusFlow AI Server running on port ${PORT}`);
