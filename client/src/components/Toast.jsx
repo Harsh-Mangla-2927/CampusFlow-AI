@@ -88,10 +88,12 @@ function ToastContainer({ toasts, onDismiss }) {
       {toasts.map(t => {
         const cfg = TOAST_CONFIG[t.type] || TOAST_CONFIG.info;
         const Icon = cfg.icon;
+        const role = t.type === 'error' ? 'alert' : 'status';
         return (
           <div
             key={t.id}
-            role="alert"
+            role={role}
+            aria-live={t.type === 'error' ? 'assertive' : 'polite'}
             style={{
               display: 'flex',
               alignItems: 'flex-start',
@@ -112,6 +114,7 @@ function ToastContainer({ toasts, onDismiss }) {
             <button
               onClick={() => onDismiss(t.id)}
               aria-label="Dismiss notification"
+              className="toast-dismiss-btn"
               style={{ background: 'none', border: 'none', color: 'var(--fg-faint)', cursor: 'pointer', flexShrink: 0, padding: 2, display: 'flex', alignItems: 'center' }}
             >
               <X size={13} strokeWidth={2} aria-hidden="true" />
@@ -123,6 +126,16 @@ function ToastContainer({ toasts, onDismiss }) {
         @keyframes toastIn {
           from { opacity: 0; transform: translateY(8px); }
           to   { opacity: 1; transform: translateY(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          @keyframes toastIn {
+            from { opacity: 1; transform: none; }
+            to   { opacity: 1; transform: none; }
+          }
+        }
+        .toast-dismiss-btn:focus-visible {
+          outline: 2px solid var(--accent) !important;
+          border-radius: 2px;
         }
       `}</style>
     </div>
