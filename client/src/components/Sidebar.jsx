@@ -38,6 +38,17 @@ function Sidebar({ activePage, onNavigate, user, onLogout, mobileOpen, onMobileC
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const logoutBtnRef = useRef(null);
 
+  React.useEffect(() => {
+    if (!mobileOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onMobileClose?.();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileOpen, onMobileClose]);
+
   const confirmLogout = () => {
     setShowLogoutModal(false);
     onLogout();
@@ -108,6 +119,7 @@ function Sidebar({ activePage, onNavigate, user, onLogout, mobileOpen, onMobileC
               onClick={() => { onNavigate('profile'); onMobileClose?.(); }}
               role="button"
               tabIndex={0}
+              aria-label={`View profile for ${user.name || 'Account'}`}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onNavigate('profile'); onMobileClose?.(); } }}
               title="View Profile Settings"
               style={{ cursor: 'pointer' }}
@@ -116,7 +128,7 @@ function Sidebar({ activePage, onNavigate, user, onLogout, mobileOpen, onMobileC
                 {avatarUrl ? (
                   <img
                     src={avatarUrl}
-                    alt={user.name || 'User'}
+                    alt=""
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     onError={(e) => { e.currentTarget.style.display = 'none'; }}
                   />
@@ -138,6 +150,7 @@ function Sidebar({ activePage, onNavigate, user, onLogout, mobileOpen, onMobileC
               className="btn btn-ghost w-full btn-sm"
               onClick={() => { onOpenTutorial(); onMobileClose?.(); }}
               id="btn-sidebar-setup-guide"
+              aria-label="Launch Workspace Setup Tutorial"
               style={{ justifyContent: 'flex-start', gap: 'var(--s3)', color: 'var(--fg-muted)', marginBottom: 2 }}
               title="Launch the Workspace Setup Tutorial"
             >
@@ -151,6 +164,7 @@ function Sidebar({ activePage, onNavigate, user, onLogout, mobileOpen, onMobileC
             className="btn btn-ghost w-full btn-sm"
             onClick={() => setShowLogoutModal(true)}
             id="btn-sidebar-logout"
+            aria-label="Sign out of CampusFlow"
             style={{ justifyContent: 'flex-start', gap: 'var(--s3)', color: 'var(--fg-faint)' }}
             onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--fg-faint)'}
