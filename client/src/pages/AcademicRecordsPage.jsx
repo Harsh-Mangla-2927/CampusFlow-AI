@@ -1035,6 +1035,7 @@ export default function AcademicRecordsPage({
                 <div className="attendly-summary-top-row">
                   {/* Overall Percentage + Status Badge */}
                   <div className="attendly-summary-pct-block">
+                    <span className="attendly-summary-pct-label">Aggregate Attendance</span>
                     <div
                       className="attendly-summary-pct-huge"
                       style={{
@@ -1047,10 +1048,13 @@ export default function AcademicRecordsPage({
                     >
                       {overall.percentage}%
                     </div>
-                    <div className="attendly-summary-pct-meta">
-                      <span className="attendly-summary-pct-label">Aggregate Standing</span>
+                    <div className="attendly-summary-badge-wrap">
                       <span className={`badge ${overall.badgeClass}`}>
-                        {overall.standingLabel}
+                        {overall.totalConducted === 0
+                          ? 'No Data'
+                          : overall.percentage >= threshold
+                            ? 'On Target'
+                            : 'At Risk'}
                       </span>
                     </div>
                   </div>
@@ -1062,18 +1066,21 @@ export default function AcademicRecordsPage({
                       <span className="attendly-summary-metric-val text-success">
                         {overall.totalAttended}
                       </span>
+                      <span className="attendly-summary-metric-sub">Classes present</span>
                     </div>
                     <div className="attendly-summary-metric">
                       <span className="attendly-summary-metric-label">Conducted</span>
                       <span className="attendly-summary-metric-val">
                         {overall.totalConducted}
                       </span>
+                      <span className="attendly-summary-metric-sub">Total delivered</span>
                     </div>
                     <div className="attendly-summary-metric">
                       <span className="attendly-summary-metric-label">Missed</span>
                       <span className={`attendly-summary-metric-val ${overall.totalMissed > 0 ? 'text-danger' : 'text-neutral'}`}>
                         {overall.totalMissed}
                       </span>
+                      <span className="attendly-summary-metric-sub">Absences recorded</span>
                     </div>
                   </div>
 
@@ -1176,6 +1183,19 @@ export default function AcademicRecordsPage({
                   {subjects.map(subj => {
                     const subjPct = subj.attendancePercentage;
                     const isShort = subjPct < threshold;
+                    const targetStatusText = subj.totalClasses === 0
+                      ? 'No lectures recorded'
+                      : subjPct > threshold
+                        ? `Above ${threshold}% target`
+                        : subjPct === threshold
+                          ? `At ${threshold}% target`
+                          : `Below ${threshold}% target`;
+                    const targetStatusColor = subj.totalClasses === 0
+                      ? 'var(--fg-muted)'
+                      : subjPct >= threshold
+                        ? 'var(--success, #10B981)'
+                        : 'var(--danger, #EF4444)';
+
                     return (
                       <div key={subj._id} className="attendly-subject-card">
                         <div className="attendly-card-header">
@@ -1196,9 +1216,16 @@ export default function AcademicRecordsPage({
                           </div>
                         </div>
 
-                        {/* Progress Bar with Mathematically Aligned Threshold Marker */}
+                        {/* Progress Bar with Accurate Target Indicator (no broken 0% Target 100% text) */}
                         <div className="attendly-progress-wrapper">
-                          <div className="attendly-progress-track">
+                          <div
+                            className="attendly-progress-track"
+                            role="progressbar"
+                            aria-valuenow={subjPct}
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                            aria-label={`${subj.name} attendance: ${subjPct}%`}
+                          >
                             <div
                               className="attendly-progress-fill"
                               style={{
@@ -1210,17 +1237,26 @@ export default function AcademicRecordsPage({
                                     : 'var(--danger, #EF4444)',
                               }}
                             />
-                            {/* Visual Threshold Marker */}
+                            {/* Visual Target Threshold Marker */}
                             <div
                               className="attendly-threshold-indicator"
                               style={{ left: `${threshold}%` }}
                               title={`Target: ${threshold}%`}
+                              aria-hidden="true"
                             />
                           </div>
-                          <div className="attendly-progress-labels">
-                            <span>0%</span>
-                            <span className="attendly-threshold-label">Target {threshold}%</span>
-                            <span>100%</span>
+
+                          {/* Concise textual target-status label below bar */}
+                          <div className="attendly-progress-subline">
+                            <span
+                              className="attendly-target-status-label"
+                              style={{ color: targetStatusColor }}
+                            >
+                              {targetStatusText}
+                            </span>
+                            <span className="attendly-target-goal-hint">
+                              Target: {threshold}%
+                            </span>
                           </div>
                         </div>
 

@@ -7223,51 +7223,24 @@ select.form-control option {
   gap: var(--s4);
   box-sizing: border-box;
   margin-top: var(--s4);
+  width: 100%;
 }
 
 .attendly-summary-top-row {
-  display: grid;
-  grid-template-columns: 240px 1fr auto;
-  gap: var(--s5);
+  display: flex;
   align-items: center;
-}
-
-@media (max-width: 900px) {
-  .attendly-summary-top-row {
-    grid-template-columns: 1fr;
-    gap: var(--s4);
-  }
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--s5);
 }
 
 .attendly-summary-pct-block {
   display: flex;
-  align-items: center;
-  gap: var(--s4);
-  padding-right: var(--s4);
-  border-right: 1px solid var(--border);
-}
-
-@media (max-width: 900px) {
-  .attendly-summary-pct-block {
-    border-right: none;
-    padding-right: 0;
-    padding-bottom: var(--s3);
-    border-bottom: 1px solid var(--border);
-  }
-}
-
-.attendly-summary-pct-huge {
-  font-family: var(--font-display);
-  font-size: clamp(2.2rem, 3.5vw, 2.75rem);
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.03em;
-}
-
-.attendly-summary-pct-meta {
-  display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 4px;
+  min-width: 150px;
+  flex-shrink: 0;
 }
 
 .attendly-summary-pct-label {
@@ -7275,21 +7248,54 @@ select.form-control option {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   color: var(--fg-muted);
+}
+
+.attendly-summary-pct-huge {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 4vw, 3rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.attendly-summary-badge-wrap {
+  display: inline-flex;
+  margin-top: 2px;
+}
+
+.attendly-summary-badge-wrap .badge {
+  font-size: 10.5px;
+  padding: 3px 8px;
+  border-radius: var(--r-sm);
+  font-weight: 700;
 }
 
 /* Compact Metrics Strip */
 .attendly-summary-metrics-strip {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(80px, 1fr));
-  gap: var(--s4);
+  display: flex;
+  align-items: center;
+  gap: var(--s5);
+  flex-wrap: wrap;
+  padding: 0 var(--s5);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  flex: 1;
+  justify-content: space-around;
+  min-width: 280px;
 }
 
-@media (max-width: 500px) {
+@media (max-width: 860px) {
   .attendly-summary-metrics-strip {
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--s2);
+    border-left: none;
+    border-right: none;
+    padding: var(--s3) 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    width: 100%;
+    justify-content: flex-start;
+    gap: var(--s6);
   }
 }
 
@@ -7297,6 +7303,7 @@ select.form-control option {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 70px;
 }
 
 .attendly-summary-metric-label {
@@ -7305,14 +7312,20 @@ select.form-control option {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--fg-faint);
+  color: var(--fg-muted);
 }
 
 .attendly-summary-metric-val {
   font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 800;
   color: var(--fg-primary);
+  line-height: 1.1;
+}
+
+.attendly-summary-metric-sub {
+  font-size: 11px;
+  color: var(--fg-faint);
   line-height: 1.2;
 }
 
@@ -7322,9 +7335,10 @@ select.form-control option {
   flex-direction: column;
   align-items: flex-end;
   gap: 6px;
+  min-width: 160px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 860px) {
   .attendly-summary-threshold-col {
     align-items: flex-start;
   }
@@ -7624,29 +7638,52 @@ select.form-control option {
   position: relative;
   width: 100%;
   margin: var(--s2) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .attendly-progress-track {
   width: 100%;
   height: 8px;
   background: var(--bg-muted);
+  border-radius: 4px;
   position: relative;
   overflow: hidden;
 }
 
 .attendly-progress-fill {
   height: 100%;
+  border-radius: 4px;
   transition: width 0.4s ease-out;
 }
 
 .attendly-threshold-indicator {
   position: absolute;
-  top: -3px;
+  top: 0;
+  bottom: 0;
   width: 2px;
-  height: 14px;
   background: #FAFAFA;
-  box-shadow: 0 0 4px rgba(0,0,0,0.8);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
   z-index: 2;
+  transform: translateX(-1px);
+}
+
+.attendly-progress-subline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.attendly-target-status-label {
+  font-weight: 600;
+}
+
+.attendly-target-goal-hint {
+  color: var(--fg-muted);
 }
 
 .attendly-metrics-row {
