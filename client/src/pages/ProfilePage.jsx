@@ -14,6 +14,7 @@ import {
   Upload,
   CheckCircle2,
   AlertCircle,
+  Sparkles,
 } from 'lucide-react';
 
 function FieldError({ msg }) {
@@ -26,7 +27,7 @@ function FieldError({ msg }) {
   );
 }
 
-function ProfilePage({ user, onLogout, onUserUpdate }) {
+function ProfilePage({ user, onLogout, onUserUpdate, onOpenTutorial }) {
   const { toast } = useToast();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -641,6 +642,32 @@ function ProfilePage({ user, onLogout, onUserUpdate }) {
             </div>
           </form>
         )}
+      </div>
+
+      {/* Workspace Setup & Tutorial Card */}
+      <div className="card" style={{ marginTop: 'var(--s6)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--s4)' }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg-faint)', display: 'flex', alignItems: 'center', gap: 'var(--s2)' }}>
+              <Sparkles size={12} style={{ color: 'var(--accent)' }} aria-hidden="true" /> Workspace Setup Tutorial
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--fg-muted)', marginTop: 4 }}>
+              Reopen the 5-step guided walkthrough to configure your academic profile, curriculum subjects, exams, and study preferences.
+            </div>
+          </div>
+          {onOpenTutorial && (
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={onOpenTutorial}
+              id="btn-reopen-onboarding"
+              title="Launch Setup Tutorial"
+            >
+              <Sparkles size={13} style={{ color: 'var(--accent)' }} aria-hidden="true" />
+              Launch Setup Tutorial
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Accessible Branded Logout Confirmation Modal */}

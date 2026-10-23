@@ -91,20 +91,28 @@ function App() {
   const [user, setUser] = useState(() => getStoredUser());
   const [mobileOpen, setMobileOpen] = useState(false);
   const [returnUrl, setReturnUrl] = useState(null);
-  const [showOnboarding, setShowOnboarding] = useState(() => {
-    const stored = getStoredUser();
-    return Boolean(stored && stored.onboardingCompleted === false && !localStorage.getItem('cf_onboarding_dismissed'));
-  });
+  // Onboarding shows strictly upon first-time registration, never on page refresh or normal logins
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const handleOnboardingComplete = useCallback(() => {
-    localStorage.setItem('cf_onboarding_dismissed', 'true');
-    setShowOnboarding(false);
     const stored = getStoredUser();
+    const uid = stored?._id || stored?.id || user?._id || user?.id;
+    if (uid) {
+      try {
+        localStorage.setItem(`cf_onboarding_dismissed_${uid}`, 'true');
+        localStorage.removeItem(`cf_onboarding_step_${uid}`);
+      } catch (_) {}
+    }
+    setShowOnboarding(false);
     if (stored) {
-      const updated = { ...stored, onboardingCompleted: true };
+      const updated = { ...stored, onboardingCompleted: true, isNewRegistration: false };
       setUser(updated);
       updateStoredUser(updated);
     }
+  }, [user]);
+
+  const handleOpenTutorial = useCallback(() => {
+    setShowOnboarding(true);
   }, []);
 
   // Compute initial route based on URL and user session
@@ -272,9 +280,14 @@ function App() {
     }
   }, []);
 
-  const handleLogin = useCallback((userData) => {
+  const handleLogin = useCallback((userData, options = {}) => {
     setUser(userData);
-    if (userData && userData.onboardingCompleted === false && !localStorage.getItem('cf_onboarding_dismissed')) {
+    const uid = userData?._id || userData?.id;
+    const isNewReg = Boolean(options?.isNewRegistration || userData?.isNewRegistration);
+    const isDismissed = uid ? Boolean(localStorage.getItem(`cf_onboarding_dismissed_${uid}`)) : false;
+
+    // Show setup tutorial ONLY immediately after a successful new registration
+    if (isNewReg && userData?.onboardingCompleted === false && !isDismissed) {
       setShowOnboarding(true);
     }
     const targetPath = returnUrl && PROTECTED_ROUTES[returnUrl] ? returnUrl : '/dashboard';
@@ -396,7 +409,7 @@ function App() {
     planner:         <StudyPlannerPage />,
     analytics:       <AnalyticsPage />,
     recommendations: <RecommendationsPage />,
-    profile:         <ProfilePage user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />,
+    profile:         <ProfilePage user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} onOpenTutorial={handleOpenTutorial} />,
   };
 
   return (
@@ -409,6 +422,7 @@ function App() {
           onLogout={handleLogout}
           mobileOpen={mobileOpen}
           onMobileClose={() => setMobileOpen(false)}
+          onOpenTutorial={handleOpenTutorial}
         />
       </Suspense>
       <div className="main-content">

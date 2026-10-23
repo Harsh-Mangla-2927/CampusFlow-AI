@@ -11,9 +11,28 @@ const STEPS = [
 ];
 
 export default function OnboardingModal({ user, onComplete, onUserUpdate }) {
-  const [currentStep, setCurrentStep] = useState(1);
+  const userId = user?._id || user?.id || '';
+  const [currentStep, setCurrentStep] = useState(() => {
+    if (!userId) return 1;
+    try {
+      const saved = Number(localStorage.getItem(`cf_onboarding_step_${userId}`));
+      if (saved >= 1 && saved <= STEPS.length) return saved;
+    } catch (_) {}
+    return 1;
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const goToStep = (step) => {
+    setError('');
+    const clamped = Math.max(1, Math.min(STEPS.length, step));
+    setCurrentStep(clamped);
+    if (userId) {
+      try {
+        localStorage.setItem(`cf_onboarding_step_${userId}`, String(clamped));
+      } catch (_) {}
+    }
+  };
 
   // Step 1: Academic Profile
   const [profile, setProfile] = useState({
@@ -56,6 +75,12 @@ export default function OnboardingModal({ user, onComplete, onUserUpdate }) {
   const handleFinish = async () => {
     setLoading(true);
     setError('');
+    if (userId) {
+      try {
+        localStorage.setItem(`cf_onboarding_dismissed_${userId}`, 'true');
+        localStorage.removeItem(`cf_onboarding_step_${userId}`);
+      } catch (_) {}
+    }
     try {
       const res = await authAPI.updateProfile({ onboardingCompleted: true });
       if (res?.data?.user && onUserUpdate) {
@@ -70,6 +95,12 @@ export default function OnboardingModal({ user, onComplete, onUserUpdate }) {
   };
 
   const handleSkip = async () => {
+    if (userId) {
+      try {
+        localStorage.setItem(`cf_onboarding_dismissed_${userId}`, 'true');
+        localStorage.removeItem(`cf_onboarding_step_${userId}`);
+      } catch (_) {}
+    }
     try {
       await authAPI.updateProfile({ onboardingCompleted: true }).catch(() => {});
     } finally {
@@ -90,7 +121,7 @@ export default function OnboardingModal({ user, onComplete, onUserUpdate }) {
       if (res?.data?.user && onUserUpdate) {
         onUserUpdate(res.data.user);
       }
-      setCurrentStep(2);
+      goToStep(2);
     } catch (err) {
       setError(err.message || 'Failed to update academic profile.');
     } finally {
@@ -631,6 +662,17 @@ export default function OnboardingModal({ user, onComplete, onUserUpdate }) {
             )}
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
+            {currentStep > 1 && (
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => goToStep(currentStep - 1)}
+                disabled={loading}
+              >
+                Back
+              </button>
+            )}
+
             <button
               type="button"
               className="btn btn-secondary btn-sm"
@@ -655,7 +697,7 @@ export default function OnboardingModal({ user, onComplete, onUserUpdate }) {
               <button
                 type="button"
                 className="btn btn-primary btn-sm"
-                onClick={() => { setError(''); setCurrentStep(s => s + 1); }}
+                onClick={() => goToStep(currentStep + 1)}
                 disabled={loading}
               >
                 Continue to Step {currentStep + 1} <ChevronRight size={13} />

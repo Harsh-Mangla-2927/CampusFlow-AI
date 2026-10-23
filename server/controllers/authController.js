@@ -290,7 +290,11 @@ const verifyOtp = async (req, res, next) => {
             university: user.university, course: user.course, semester: user.semester,
             section: user.section || '', rollNumber: user.rollNumber || '',
             profilePicture: user.profilePicture || null,
-            onboardingCompleted: Boolean(user.onboardingCompleted),
+            // Existing user signing in: default to true if flag is missing so onboarding never interrupts logins
+            onboardingCompleted: user.onboardingCompleted !== undefined && user.onboardingCompleted !== null
+              ? Boolean(user.onboardingCompleted)
+              : true,
+            isNewRegistration: false,
           },
         },
       });
@@ -316,6 +320,7 @@ const verifyOtp = async (req, res, next) => {
         semester: signupData.semester,
         emailVerified: true,
         emailVerifiedAt: new Date(),
+        onboardingCompleted: false,
       });
 
       // Send welcome email asynchronously
@@ -334,6 +339,7 @@ const verifyOtp = async (req, res, next) => {
             section: newUser.section || '', rollNumber: newUser.rollNumber || '',
             profilePicture: newUser.profilePicture || null,
             onboardingCompleted: false,
+            isNewRegistration: true,
           },
         },
       });
@@ -433,7 +439,15 @@ const resendOtp = async (req, res, next) => {
 const getMe = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);
-    res.status(200).json({ success: true, data: { user } });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+    const userObj = user.toObject();
+    if (userObj.onboardingCompleted === undefined || userObj.onboardingCompleted === null) {
+      userObj.onboardingCompleted = true;
+    }
+    userObj.isNewRegistration = false;
+    res.status(200).json({ success: true, data: { user: userObj } });
   } catch (error) {
     next(error);
   }
@@ -487,6 +501,7 @@ const updateProfile = async (req, res, next) => {
           semester: updated.semester, section: updated.section, rollNumber: updated.rollNumber,
           profilePicture: updated.profilePicture || null,
           onboardingCompleted: Boolean(updated.onboardingCompleted),
+          isNewRegistration: false,
         },
       },
     });

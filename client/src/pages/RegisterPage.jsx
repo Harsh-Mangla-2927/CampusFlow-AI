@@ -130,7 +130,7 @@ export default function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
       if (res.data?.token && res.data?.user) {
         saveAuth(res.data.token, res.data.user);
         toast.success('Account created! Welcome to CampusFlow AI.');
-        onLogin(res.data.user);
+        onLogin(res.data.user, { isNewRegistration: true });
       }
     } catch (err) {
       if (err.errors && Object.keys(err.errors).length > 0) {
@@ -230,7 +230,7 @@ export default function RegisterPage({ onLogin, onGoLogin, onGoLanding }) {
               subtitle="We've sent a 6-digit verification code to complete your registration."
               onSuccess={(authData) => {
                 toast.success('Account verified! Welcome to CampusFlow AI.');
-                onLogin(authData.user);
+                onLogin(authData.user, { isNewRegistration: true });
               }}
               onBack={() => {
                 setOtpStep(false);

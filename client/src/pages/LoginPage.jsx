@@ -76,7 +76,7 @@ export default function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForg
       if (res.data?.token && res.data?.user) {
         saveAuth(res.data.token, res.data.user);
         toast.success(`Welcome back, ${res.data.user.name?.split(' ')[0] || 'Student'}.`);
-        onLogin(res.data.user);
+        onLogin(res.data.user, { isNewRegistration: false });
       }
     } catch (err) {
       if (err.errors && Object.keys(err.errors).length > 0) {
@@ -177,7 +177,7 @@ export default function LoginPage({ onLogin, onGoRegister, onGoLanding, onGoForg
               subtitle="We've sent a 6-digit verification code to your email address."
               onSuccess={(authData) => {
                 toast.success(`Welcome back, ${authData.user.name?.split(' ')[0] || 'Student'}.`);
-                onLogin(authData.user);
+                onLogin(authData.user, { isNewRegistration: false });
               }}
               onBack={() => {
                 setOtpStep(false);

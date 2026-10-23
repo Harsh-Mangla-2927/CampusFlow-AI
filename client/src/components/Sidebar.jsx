@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import {
   LayoutDashboard, BookOpen, CheckSquare, FileText,
   ClipboardList, Calendar, BarChart2, Zap, User, LogOut,
-  GraduationCap,
+  GraduationCap, Sparkles,
 } from 'lucide-react';
 import LogoutModal from './LogoutModal';
 
@@ -34,7 +34,7 @@ const NAV_SECTIONS = [
   },
 ];
 
-function Sidebar({ activePage, onNavigate, user, onLogout, mobileOpen, onMobileClose }) {
+function Sidebar({ activePage, onNavigate, user, onLogout, mobileOpen, onMobileClose, onOpenTutorial }) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const logoutBtnRef = useRef(null);
 
@@ -131,6 +131,19 @@ function Sidebar({ activePage, onNavigate, user, onLogout, mobileOpen, onMobileC
                 </div>
               </div>
             </div>
+          )}
+          {onOpenTutorial && (
+            <button
+              type="button"
+              className="btn btn-ghost w-full btn-sm"
+              onClick={() => { onOpenTutorial(); onMobileClose?.(); }}
+              id="btn-sidebar-setup-guide"
+              style={{ justifyContent: 'flex-start', gap: 'var(--s3)', color: 'var(--fg-muted)', marginBottom: 2 }}
+              title="Launch the Workspace Setup Tutorial"
+            >
+              <Sparkles size={13} strokeWidth={1.8} aria-hidden="true" style={{ color: 'var(--accent)' }} />
+              Setup Guide
+            </button>
           )}
           <button
             ref={logoutBtnRef}

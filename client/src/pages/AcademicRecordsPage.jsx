@@ -608,6 +608,56 @@ export default function AcademicRecordsPage({
     badgeClass: 'badge-neutral',
   };
 
+  // Polished Code Brigade connection state representation
+  const attendanceConnectionState = useMemo(() => {
+    const classCount = Array.isArray(subjects) ? subjects.length : 0;
+    const countLabel = `${classCount} class${classCount === 1 ? '' : 'es'} synced`;
+
+    if (connecting) {
+      return {
+        variant: 'connecting',
+        statusText: 'Connecting…',
+        secondaryText: 'Authenticating',
+        ariaLabel: 'Code Brigade status: Connecting… Authenticating.',
+      };
+    }
+
+    if (dataSource.provider === 'CODE_BRIGADE_EXPIRED') {
+      return {
+        variant: 'expired',
+        statusText: 'Session expired',
+        secondaryText: countLabel,
+        ariaLabel: `Code Brigade status: Session expired. ${countLabel}. Action required: re-authenticate.`,
+      };
+    }
+
+    if (dataSource.provider === 'CODE_BRIGADE_SYNC_PENDING') {
+      return {
+        variant: 'pending',
+        statusText: 'Sync pending',
+        secondaryText: countLabel,
+        ariaLabel: `Code Brigade status: Sync pending. ${countLabel}.`,
+      };
+    }
+
+    if (dataSource.isConnected) {
+      return {
+        variant: 'connected',
+        statusText: 'Connected',
+        secondaryText: countLabel,
+        ariaLabel: `Code Brigade status: Connected. ${countLabel}.`,
+      };
+    }
+
+    // Default disconnected
+    return {
+      variant: 'disconnected',
+      statusText: 'Not connected',
+      secondaryText: countLabel,
+      ariaLabel: `Code Brigade status: Not connected. ${countLabel}.`,
+    };
+  }, [connecting, dataSource, subjects]);
+
   // Calculator computations
   const calcSubject = useMemo(() => {
     if (calcSubjectId === 'OVERALL') {
@@ -697,6 +747,28 @@ export default function AcademicRecordsPage({
   // Filtered Semesters for Report Card
   const record = reportCardData?.record || null;
   const rcDataSource = reportCardData?.dataSource || { isConnected: false };
+
+  const rcConnectionState = useMemo(() => {
+    if (syncingReportCard) {
+      return {
+        variant: 'connecting',
+        statusText: 'Synchronizing…',
+        secondaryText: 'Fetching grades',
+      };
+    }
+    if (rcDataSource.isConnected) {
+      return {
+        variant: 'connected',
+        statusText: 'Connected',
+        secondaryText: 'Official grade card',
+      };
+    }
+    return {
+      variant: 'disconnected',
+      statusText: 'Not connected',
+      secondaryText: 'Portal sync required',
+    };
+  }, [syncingReportCard, rcDataSource]);
   const semesters = useMemo(() => {
     return Array.isArray(record?.semesters) ? record.semesters : [];
   }, [record]);
@@ -831,28 +903,28 @@ export default function AcademicRecordsPage({
             </div>
 
             <div className="attendly-header-actions">
-              {/* Data Source Badge */}
+              {/* Connection Status Badge */}
               <button
                 type="button"
-                className={`attendly-source-badge ${dataSource.badgeClass || 'badge-neutral'}`}
+                className={`attendly-status-badge attendly-status-badge--${attendanceConnectionState.variant}`}
                 onClick={() => setSourceNoticeOpen(true)}
-                title="Click to view university data origin and synchronization rules"
+                title={dataSource.notice || 'Click to view university data origin and synchronization rules'}
+                aria-label={attendanceConnectionState.ariaLabel}
+                id="badge-attendance-connection-status"
               >
-                <Database size={11} aria-hidden="true" />
-                <span>
-                  {dataSource.isConnected
-                    ? 'Live University Data'
-                    : dataSource.isStale
-                    ? 'University Stale'
-                    : dataSource.provider === 'CODE_BRIGADE_SYNC_PENDING'
-                    ? 'University Sync Pending'
-                    : dataSource.provider === 'CODE_BRIGADE_EXPIRED'
-                    ? 'Session Expired'
-                    : dataSource.isSample
-                    ? 'Sample Demo Mode'
-                    : dataSource.provider === 'CAMPUSFLOW_LOCAL'
-                    ? 'Local Records'
-                    : 'Not Connected (0 Classes)'}
+                <span className="attendly-status-indicator" aria-hidden="true">
+                  {attendanceConnectionState.variant === 'connecting' ? (
+                    <RefreshCw size={11} className="animate-spin" />
+                  ) : attendanceConnectionState.variant === 'expired' ? (
+                    <AlertTriangle size={11} className="text-warning" />
+                  ) : (
+                    <span className={`attendly-status-dot attendly-status-dot--${attendanceConnectionState.variant}`} />
+                  )}
+                </span>
+                <span className="attendly-status-text">
+                  <span className="attendly-status-main">{attendanceConnectionState.statusText}</span>
+                  <span className="attendly-status-sep" aria-hidden="true">·</span>
+                  <span className="attendly-status-secondary">{attendanceConnectionState.secondaryText}</span>
                 </span>
               </button>
 
@@ -1314,18 +1386,26 @@ export default function AcademicRecordsPage({
             </div>
 
             <div className="attendly-header-actions">
-              {/* Data Source Badge */}
+              {/* Report Card Connection Status Badge */}
               <button
                 type="button"
-                className={`attendly-source-badge ${rcDataSource.isConnected ? 'badge-success' : 'badge-neutral'}`}
+                className={`attendly-status-badge attendly-status-badge--${rcConnectionState.variant}`}
                 onClick={() => setSourceNoticeOpen(true)}
                 title="View university synchronization status"
+                aria-label={`Code Brigade report card status: ${rcConnectionState.statusText}. Click for data origin details.`}
+                id="badge-report-card-connection-status"
               >
-                <Database size={11} aria-hidden="true" />
-                <span>
-                  {rcDataSource.isConnected
-                    ? 'Chitkara University Live'
-                    : 'Not Connected'}
+                <span className="attendly-status-indicator" aria-hidden="true">
+                  {rcConnectionState.variant === 'connecting' ? (
+                    <RefreshCw size={11} className="animate-spin" />
+                  ) : (
+                    <span className={`attendly-status-dot attendly-status-dot--${rcConnectionState.variant}`} />
+                  )}
+                </span>
+                <span className="attendly-status-text">
+                  <span className="attendly-status-main">{rcConnectionState.statusText}</span>
+                  <span className="attendly-status-sep" aria-hidden="true">·</span>
+                  <span className="attendly-status-secondary">{rcConnectionState.secondaryText}</span>
                 </span>
               </button>
 
