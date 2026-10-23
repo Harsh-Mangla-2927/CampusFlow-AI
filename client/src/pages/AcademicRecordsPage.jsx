@@ -35,7 +35,8 @@ import {
   BellOff,
   ArrowUpRight,
   Eye,
-  RotateCcw
+  RotateCcw,
+  Copy
 } from 'lucide-react';
 import { attendanceAPI, subjectsAPI, recordsAPI } from '../services/api';
 import { Modal, LoadingState, ErrorState, EmptyState } from '../components/SharedComponents';
@@ -281,6 +282,18 @@ export default function AcademicRecordsPage({
       handleOpenCircular(selectedCircular);
     }
   }, [selectedCircular, handleOpenCircular]);
+
+  const handleCopyCircular = useCallback((circ) => {
+    if (!circ) return;
+    const text = `${circ.fullTitle || circ.title}${circ.refNo ? ` (Ref: ${circ.refNo})` : ''}`;
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(() => toast.success('Notice title copied to clipboard'))
+        .catch(() => toast.info(text));
+    } else {
+      toast.info(text);
+    }
+  }, [toast]);
 
   useEffect(() => {
     if (!initialDashboardData) {
@@ -2732,6 +2745,16 @@ export default function AcademicRecordsPage({
                   <ArrowUpRight size={12} />
                 </a>
               )}
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => handleCopyCircular(selectedCircular)}
+                title="Copy notice title and reference to clipboard"
+                id="btn-copy-circular-title"
+              >
+                <Copy size={12} aria-hidden="true" />
+                <span>Copy Notice</span>
+              </button>
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
