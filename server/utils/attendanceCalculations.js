@@ -26,9 +26,9 @@ function safeNumber(val, fallback = 0) {
  * Returns rounded to 1 decimal place (e.g. 82.5). Returns 0 if conducted === 0.
  */
 function calculatePercentage(attended, conducted) {
-  const att = Math.max(0, safeNumber(attended, 0));
   const cond = Math.max(0, safeNumber(conducted, 0));
   if (cond === 0) return 0;
+  const att = Math.min(cond, Math.max(0, safeNumber(attended, 0)));
   const pct = (att / cond) * 100;
   return Math.round(pct * 10) / 10;
 }
@@ -161,8 +161,8 @@ function calculateClassesToAttend(attended, conducted, targetPercent = 75) {
  * Only valid when attended >= target * conducted.
  */
 function calculateClassesCanMiss(attended, conducted, targetPercent = 75) {
-  const att = Math.max(0, safeNumber(attended, 0));
   const cond = Math.max(0, safeNumber(conducted, 0));
+  const att = Math.min(cond, Math.max(0, safeNumber(attended, 0)));
   const targetPct = safeNumber(targetPercent, 75);
 
   if (cond === 0 || att === 0) {
