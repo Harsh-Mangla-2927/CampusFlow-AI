@@ -480,6 +480,11 @@ export default function AcademicRecordsPage({
       toast.error('Please select a subject to mark attendance.');
       return;
     }
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (markDate && markDate > todayStr) {
+      toast.error('Attendance date cannot be in the future.');
+      return;
+    }
     setSubmittingMark(true);
     try {
       const payload = {
@@ -2440,10 +2445,12 @@ export default function AcademicRecordsPage({
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
             <div className="form-group">
-              <label className="form-label">Date</label>
+              <label className="form-label" htmlFor="mark-attendance-date">Date</label>
               <input
                 type="date"
+                id="mark-attendance-date"
                 required
+                max={new Date().toISOString().split('T')[0]}
                 className="form-control"
                 value={markDate}
                 onChange={(e) => setMarkDate(e.target.value)}
