@@ -74,7 +74,20 @@ const request = async (endpoint, options = {}) => {
     else if (response.status === 404) defaultMsg = 'Requested resource was not found.';
     else if (response.status >= 500) defaultMsg = 'Unable to connect to the server. Please try again.';
 
-    let message = (data && data.message) ? data.message : defaultMsg;
+    let extractedMsg = null;
+    if (data) {
+      if (typeof data.message === 'string' && data.message.trim()) {
+        extractedMsg = data.message;
+      } else if (typeof data.error === 'string' && data.error.trim()) {
+        extractedMsg = data.error;
+      } else if (data.error && typeof data.error.message === 'string') {
+        extractedMsg = data.error.message;
+      } else if (Array.isArray(data.errors) && data.errors.length > 0) {
+        extractedMsg = data.errors[0]?.msg || data.errors[0]?.message || null;
+      }
+    }
+
+    let message = extractedMsg || defaultMsg;
 
     // Guard against exposing raw OpenSSL, TLS alerts, or internal DB driver stack errors in the UI
     if (
@@ -92,6 +105,7 @@ const request = async (endpoint, options = {}) => {
 
     const err = new Error(message);
     err.errors = (data && data.errors) || {};
+    err.data = data;
     err.status = response.status;
     throw err;
   }
