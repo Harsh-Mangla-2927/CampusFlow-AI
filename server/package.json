@@ -8,7 +8,8 @@
     "dev": "nodemon server.js",
     "seed": "node seed/seedData.js",
     "clean:users": "node scripts/cleanNonDemoUsers.js",
-    "test": "node test_academic_records_suite.js && node test_onboarding_and_attendance_ui.js",
+    "test": "node test_attendance_edge_cases.js && node test_academic_records_suite.js && node test_onboarding_and_attendance_ui.js",
+    "test:math": "node test_attendance_edge_cases.js",
     "test:records": "node test_academic_records_suite.js",
     "test:onboarding": "node test_onboarding_and_attendance_ui.js"
   },

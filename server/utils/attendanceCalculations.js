@@ -17,6 +17,7 @@
  * Safely parse a number with a fallback.
  */
 function safeNumber(val, fallback = 0) {
+  if (val === null || val === undefined) return fallback;
   const n = Number(val);
   return isNaN(n) || !isFinite(n) ? fallback : n;
 }
