@@ -34,7 +34,8 @@ import {
   Search,
   BellOff,
   ArrowUpRight,
-  Eye
+  Eye,
+  RotateCcw
 } from 'lucide-react';
 import { attendanceAPI, subjectsAPI, recordsAPI } from '../services/api';
 import { Modal, LoadingState, ErrorState, EmptyState } from '../components/SharedComponents';
@@ -683,14 +684,47 @@ export default function AcademicRecordsPage({
   }, [calcSubjectId, customConducted, customAttended, overall.totalConducted, overall.totalAttended, subjects]);
 
   const calcResults = useMemo(() => {
-    const a = Math.max(0, Number(calcSubject.attendedClasses) || 0);
-    const c = Math.max(0, Number(calcSubject.totalClasses) || 0);
+    const rawA = customAttended !== '' ? Number(customAttended) : Number(calcSubject.attendedClasses);
+    const rawC = customConducted !== '' ? Number(customConducted) : Number(calcSubject.totalClasses);
+    const a = Math.max(0, isNaN(rawA) ? 0 : rawA);
+    const c = Math.max(0, isNaN(rawC) ? 0 : rawC);
+    const isInvalid = a > c && c > 0;
     const t = Math.min(100, Math.max(1, Number(calcTarget) || 75)) / 100;
     const currentPct = c > 0 ? Math.round((a / c) * 1000) / 10 : 0;
 
     let classesToAttend = 0;
     let classesCanMiss = 0;
     let impossible = false;
+
+    if (c === 0) {
+      return {
+        currentPct: 0,
+        classesToAttend: 0,
+        classesCanMiss: 0,
+        impossible: false,
+        isTargetMet: false,
+        noData: true,
+        isInvalid: false,
+        projectedPct: 0,
+        a,
+        c,
+      };
+    }
+
+    if (isInvalid) {
+      return {
+        currentPct,
+        classesToAttend: 0,
+        classesCanMiss: 0,
+        impossible: false,
+        isTargetMet: false,
+        noData: false,
+        isInvalid: true,
+        projectedPct: 0,
+        a,
+        c,
+      };
+    }
 
     if (t >= 1) {
       if (a < c) impossible = true;
@@ -707,14 +741,27 @@ export default function AcademicRecordsPage({
       }
     }
 
+    const isTargetMet = currentPct >= (Number(calcTarget) || 75);
+    let projectedPct = currentPct;
+    if (isTargetMet && classesCanMiss > 0) {
+      projectedPct = Math.round((a / (c + classesCanMiss)) * 1000) / 10;
+    } else if (!isTargetMet && classesToAttend > 0) {
+      projectedPct = Math.round(((a + classesToAttend) / (c + classesToAttend)) * 1000) / 10;
+    }
+
     return {
       currentPct,
       classesToAttend,
       classesCanMiss,
       impossible,
-      isTargetMet: currentPct >= (Number(calcTarget) || 75),
+      isTargetMet,
+      noData: false,
+      isInvalid: false,
+      projectedPct,
+      a,
+      c,
     };
-  }, [calcSubject, calcTarget]);
+  }, [calcSubject, calcTarget, customAttended, customConducted]);
 
   // Circular gauge SVG calculations
   const radius = 80;
@@ -1238,24 +1285,44 @@ export default function AcademicRecordsPage({
               {/* 3. SIMULATOR & BUNK CALCULATOR SECTION */}
               <div id="attendance-calculator-section" className="attendly-calc-container">
                 <div className="attendly-calc-header">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div className="attendly-calc-icon">
                       <Calculator size={18} aria-hidden="true" />
                     </div>
                     <div>
-                      <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Attendance Bunk & Recovery Simulator</h3>
-                      <p style={{ fontSize: 12, color: 'var(--fg-secondary)', margin: 0 }}>
-                        Calculate how many consecutive classes you must attend to recover, or how many you can safely miss.
+                      <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--fg-primary)' }}>
+                        Attendance Bunk & Recovery Simulator
+                      </h3>
+                      <p style={{ fontSize: 12.5, color: 'var(--fg-secondary)', margin: '2px 0 0' }}>
+                        Simulate consecutive future classes to calculate safe absence allowances or required recovery lectures.
                       </p>
                     </div>
                   </div>
+                  {(customAttended !== '' || customConducted !== '') && (
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-xs"
+                      onClick={() => {
+                        setCustomAttended('');
+                        setCustomConducted('');
+                      }}
+                      style={{ fontSize: 11.5 }}
+                    >
+                      <RotateCcw size={12} aria-hidden="true" />
+                      Reset to Live Data
+                    </button>
+                  )}
                 </div>
 
                 <div className="attendly-calc-body">
+                  {/* Left Column: Inputs */}
                   <div className="attendly-calc-inputs">
-                    <div className="form-group" style={{ marginBottom: 12 }}>
-                      <label className="form-label">Subject Scope</label>
+                    <div className="form-group" style={{ marginBottom: 10 }}>
+                      <label className="form-label" htmlFor="calc-subject-scope">
+                        Course Selection
+                      </label>
                       <select
+                        id="calc-subject-scope"
                         className="form-control"
                         value={calcSubjectId}
                         onChange={(e) => {
@@ -1264,7 +1331,7 @@ export default function AcademicRecordsPage({
                           setCustomConducted('');
                         }}
                       >
-                        <option value="OVERALL">Aggregate Overall Attendance</option>
+                        <option value="OVERALL">Overall Aggregate Attendance</option>
                         {subjects.map(s => (
                           <option key={s._id} value={s._id}>
                             {s.name} ({s.code || 'Course'})
@@ -1275,8 +1342,11 @@ export default function AcademicRecordsPage({
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                       <div className="form-group">
-                        <label className="form-label">Classes Attended</label>
+                        <label className="form-label" htmlFor="calc-attended-input">
+                          Classes Attended
+                        </label>
                         <input
+                          id="calc-attended-input"
                           type="number"
                           min="0"
                           className="form-control"
@@ -1284,10 +1354,16 @@ export default function AcademicRecordsPage({
                           value={customAttended}
                           onChange={(e) => setCustomAttended(e.target.value)}
                         />
+                        <span style={{ fontSize: 11, color: 'var(--fg-faint)', marginTop: 2, display: 'block' }}>
+                          Current: {calcSubject.attendedClasses}
+                        </span>
                       </div>
                       <div className="form-group">
-                        <label className="form-label">Classes Conducted</label>
+                        <label className="form-label" htmlFor="calc-conducted-input">
+                          Classes Conducted
+                        </label>
                         <input
+                          id="calc-conducted-input"
                           type="number"
                           min="0"
                           className="form-control"
@@ -1295,12 +1371,42 @@ export default function AcademicRecordsPage({
                           value={customConducted}
                           onChange={(e) => setCustomConducted(e.target.value)}
                         />
+                        <span style={{ fontSize: 11, color: 'var(--fg-faint)', marginTop: 2, display: 'block' }}>
+                          Current: {calcSubject.totalClasses}
+                        </span>
                       </div>
                     </div>
 
-                    <div className="form-group" style={{ marginTop: 8 }}>
-                      <label className="form-label">Target Percentage: {calcTarget}%</label>
+                    {calcResults.isInvalid && (
+                      <div style={{ fontSize: 12, color: 'var(--danger, #EF4444)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <AlertTriangle size={13} aria-hidden="true" />
+                        <span>Attended classes cannot exceed conducted classes.</span>
+                      </div>
+                    )}
+
+                    <div className="form-group" style={{ marginTop: 6 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <label className="form-label" style={{ margin: 0 }} htmlFor="calc-target-slider">
+                          Target Attendance: <strong style={{ color: 'var(--fg-primary)' }}>{calcTarget}%</strong>
+                        </label>
+                        <div className="attendly-threshold-pills" role="radiogroup" aria-label="Target percentage preset">
+                          {[75, 80, 85, 90].map(p => (
+                            <button
+                              key={p}
+                              type="button"
+                              className={`attendly-pill-btn ${calcTarget === p ? 'active' : ''}`}
+                              onClick={() => setCalcTarget(p)}
+                              aria-checked={calcTarget === p}
+                              role="radio"
+                              style={{ padding: '2px 8px', fontSize: 11 }}
+                            >
+                              {p}%
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                       <input
+                        id="calc-target-slider"
                         type="range"
                         min="50"
                         max="95"
@@ -1313,45 +1419,106 @@ export default function AcademicRecordsPage({
                     </div>
                   </div>
 
-                  {/* Calculator Simulation Output */}
+                  {/* Right Column: Live Output */}
                   <div className="attendly-calc-results">
                     <div className="attendly-calc-curr-pct">
-                      <span style={{ fontSize: 11, color: 'var(--fg-secondary)', textTransform: 'uppercase' }}>
-                        Current Standing
-                      </span>
-                      <span className="attendly-calc-pct-num">{calcResults.currentPct}%</span>
+                      <div>
+                        <span style={{ fontSize: 10, color: 'var(--fg-faint)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)', letterSpacing: '0.08em' }}>
+                          Current Standing
+                        </span>
+                        <div className="attendly-calc-pct-num">
+                          {calcResults.currentPct}%
+                        </div>
+                      </div>
+
+                      <div className="attendly-calc-badge-row">
+                        {calcResults.noData ? (
+                          <span className="attendly-calc-status-badge neutral">
+                            <Info size={12} aria-hidden="true" />
+                            No Data
+                          </span>
+                        ) : calcResults.isInvalid ? (
+                          <span className="attendly-calc-status-badge risk">
+                            <AlertTriangle size={12} aria-hidden="true" />
+                            Invalid Input
+                          </span>
+                        ) : calcResults.isTargetMet ? (
+                          <span className="attendly-calc-status-badge met">
+                            <CheckCircle2 size={12} aria-hidden="true" />
+                            Target Met
+                          </span>
+                        ) : (
+                          <span className="attendly-calc-status-badge risk">
+                            <AlertTriangle size={12} aria-hidden="true" />
+                            Target at Risk
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="attendly-calc-answer-box">
-                      {calcResults.impossible ? (
-                        <div className="text-danger" style={{ fontSize: 13 }}>
-                          <strong>Target 100% Unreachable:</strong> Because classes have already been missed, 100% cannot be achieved.
+                      {calcResults.noData ? (
+                        <div className="attendly-calc-explanation">
+                          No lecture sessions have been conducted yet. Mark class sessions or connect Code Brigade to begin simulation.
+                        </div>
+                      ) : calcResults.isInvalid ? (
+                        <div className="attendly-calc-explanation text-danger">
+                          Attended classes ({calcResults.a}) cannot be greater than total conducted classes ({calcResults.c}). Please adjust the counts.
+                        </div>
+                      ) : calcResults.impossible ? (
+                        <div className="attendly-calc-explanation text-danger">
+                          <strong>Target 100% Mathematically Unreachable:</strong> Because absences have already been recorded ({calcResults.c - calcResults.a} missed), 100% attendance cannot be achieved in this term.
                         </div>
                       ) : calcResults.isTargetMet ? (
-                        <div>
-                          <div style={{ color: 'var(--success)', fontWeight: 700, fontSize: 14 }}>
-                            Target Met! Safe to miss:
+                        <>
+                          <div className="attendly-calc-stat-headline text-success">
+                            <CheckCircle2 size={14} aria-hidden="true" />
+                            <span>Safe Absence Allowance</span>
                           </div>
-                          <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--fg-primary)', margin: '4px 0' }}>
-                            {calcResults.classesCanMiss} Classes
+                          <div className="attendly-calc-stat-big text-success">
+                            {calcResults.classesCanMiss} {calcResults.classesCanMiss === 1 ? 'Class' : 'Classes'}
                           </div>
-                          <div style={{ fontSize: 12, color: 'var(--fg-secondary)' }}>
-                            You can safely miss up to {calcResults.classesCanMiss} consecutive lectures while maintaining {calcTarget}%.
-                          </div>
-                        </div>
+                          <p className="attendly-calc-explanation">
+                            {calcResults.classesCanMiss === 0 ? (
+                              <>You are exactly at the <strong>{calcTarget}%</strong> threshold. Any absence will result in attendance shortfall.</>
+                            ) : (
+                              <>You can safely miss up to <strong>{calcResults.classesCanMiss}</strong> consecutive {calcResults.classesCanMiss === 1 ? 'lecture' : 'lectures'} while keeping attendance at or above <strong>{calcTarget}%</strong>.</>
+                            )}
+                          </p>
+                          {calcResults.classesCanMiss > 0 && (
+                            <div className="attendly-calc-projection-tag">
+                              <span>Projected after {calcResults.classesCanMiss} absences:</span>
+                              <strong style={{ color: 'var(--fg-primary)' }}>{calcResults.projectedPct}%</strong>
+                            </div>
+                          )}
+                        </>
                       ) : (
-                        <div>
-                          <div style={{ color: 'var(--danger)', fontWeight: 700, fontSize: 14 }}>
-                            Shortfall! Required to attend:
+                        <>
+                          <div className="attendly-calc-stat-headline text-danger">
+                            <AlertTriangle size={14} aria-hidden="true" />
+                            <span>Recovery Classes Required</span>
                           </div>
-                          <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--fg-primary)', margin: '4px 0' }}>
-                            {calcResults.classesToAttend} Classes
+                          <div className="attendly-calc-stat-big text-danger">
+                            {calcResults.classesToAttend} {calcResults.classesToAttend === 1 ? 'Class' : 'Classes'}
                           </div>
-                          <div style={{ fontSize: 12, color: 'var(--fg-secondary)' }}>
-                            Attend the next {calcResults.classesToAttend} consecutive lectures without absence to reach {calcTarget}%.
-                          </div>
-                        </div>
+                          <p className="attendly-calc-explanation">
+                            You must attend the next <strong>{calcResults.classesToAttend}</strong> consecutive {calcResults.classesToAttend === 1 ? 'lecture' : 'lectures'} without any absence to reach <strong>{calcTarget}%</strong>.
+                          </p>
+                          {calcResults.classesToAttend > 0 && (
+                            <div className="attendly-calc-projection-tag">
+                              <span>Projected after {calcResults.classesToAttend} attendances:</span>
+                              <strong style={{ color: 'var(--fg-primary)' }}>{calcResults.projectedPct}%</strong>
+                            </div>
+                          )}
+                        </>
                       )}
+
+                      <div className="attendly-calc-footnote">
+                        <Info size={12} style={{ flexShrink: 0, marginTop: 1 }} aria-hidden="true" />
+                        <span>
+                          Calculations assume future consecutive class sessions. Actual standing will depend on total lectures officially scheduled by university timetable.
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
