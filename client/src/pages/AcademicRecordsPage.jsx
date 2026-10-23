@@ -717,13 +717,28 @@ export default function AcademicRecordsPage({
     const rawC = customConducted !== '' ? Number(customConducted) : Number(calcSubject.totalClasses);
     const a = Math.max(0, isNaN(rawA) ? 0 : rawA);
     const c = Math.max(0, isNaN(rawC) ? 0 : rawC);
-    const isInvalid = a > c && c > 0;
+    const isInvalid = a > c;
     const t = Math.min(100, Math.max(1, Number(calcTarget) || 75)) / 100;
     const currentPct = c > 0 ? Math.round((a / c) * 1000) / 10 : 0;
 
     let classesToAttend = 0;
     let classesCanMiss = 0;
     let impossible = false;
+
+    if (isInvalid) {
+      return {
+        currentPct: 0,
+        classesToAttend: 0,
+        classesCanMiss: 0,
+        impossible: false,
+        isTargetMet: false,
+        noData: false,
+        isInvalid: true,
+        projectedPct: 0,
+        a,
+        c,
+      };
+    }
 
     if (c === 0) {
       return {
@@ -734,21 +749,6 @@ export default function AcademicRecordsPage({
         isTargetMet: false,
         noData: true,
         isInvalid: false,
-        projectedPct: 0,
-        a,
-        c,
-      };
-    }
-
-    if (isInvalid) {
-      return {
-        currentPct,
-        classesToAttend: 0,
-        classesCanMiss: 0,
-        impossible: false,
-        isTargetMet: false,
-        noData: false,
-        isInvalid: true,
         projectedPct: 0,
         a,
         c,
