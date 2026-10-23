@@ -345,17 +345,22 @@ Open your browser to `http://localhost:5173` to explore the application.
 
 ## 10. Automated Testing & Verification
 
-The codebase includes automated test suites to ensure operational integrity:
+The codebase includes comprehensive automated test suites and validation scripts to guarantee mathematical correctness, authentication isolation, and operational integrity:
 
 ```bash
-# 1. Run the End-to-End API Integration Suite (19 tests)
+# 1. Run All Server Test Suites (48 tests covering math, records, and onboarding)
 cd server
-node test_e2e_suite.js
+npm test
 
-# 2. Run the OTP Security & Cryptography Suite (15 tests)
+# Or run individual specialized suites:
+npm run test:math        # Attendance mathematical edge cases & insight heuristics (16 tests)
+npm run test:records     # Grade card, circular parser, and database student isolation (22 tests)
+npm run test:onboarding  # Onboarding tutorial state and attendance badge logic (10 tests)
+
+# 2. Run OTP Security & Cryptography Verification
 node test_otp_auth_flow.js
 
-# 3. Verify Client Production Build
+# 3. Verify Frontend Production Build
 cd ../client
 npm run build
 ```
@@ -364,6 +369,13 @@ To reset registered test users back to the clean demo account at any time:
 ```bash
 cd server
 npm run clean:users
+```
+
+### Health & Diagnostic Endpoints
+The backend provides a diagnostic health endpoint that inspects both API responsiveness and active MongoDB connection status:
+```bash
+curl http://localhost:8000/api/health
+# Returns: { "status": "ok", "service": "CampusFlow AI Backend", "db": "connected", "timestamp": "..." }
 ```
 
 ---
