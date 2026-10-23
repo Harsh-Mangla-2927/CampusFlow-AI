@@ -35,6 +35,7 @@ import {
   BellOff,
   ArrowUpRight,
   Eye,
+  EyeOff,
   RotateCcw,
   Copy,
   X
@@ -116,6 +117,7 @@ export default function AcademicRecordsPage({
   const [connectModalOpen, setConnectModalOpen] = useState(false);
   const [cbUsername, setCbUsername] = useState('');
   const [cbPassword, setCbPassword] = useState('');
+  const [showCbPassword, setShowCbPassword] = useState(false);
   const [cbSchoolCode, setCbSchoolCode] = useState('800002'); // CUIET Chitkara
   const [connecting, setConnecting] = useState(false);
   const [otpRequired, setOtpRequired] = useState(false);
@@ -2370,15 +2372,38 @@ export default function AcademicRecordsPage({
             </div>
 
             <div className="form-group" style={{ marginBottom: 12 }}>
-              <label className="form-label">Portal Password</label>
-              <input
-                type="password"
-                required
-                className="form-control"
-                placeholder="Chalkpad Pro / Code Brigade password"
-                value={cbPassword}
-                onChange={(e) => setCbPassword(e.target.value)}
-              />
+              <label className="form-label" htmlFor="cb-password-input">Portal Password</label>
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <input
+                  type={showCbPassword ? 'text' : 'password'}
+                  id="cb-password-input"
+                  required
+                  className="form-control"
+                  style={{ paddingRight: 36 }}
+                  placeholder="Chalkpad Pro / Code Brigade password"
+                  value={cbPassword}
+                  onChange={(e) => setCbPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCbPassword(v => !v)}
+                  className="btn btn-ghost"
+                  aria-label={showCbPassword ? 'Hide password' : 'Show password'}
+                  title={showCbPassword ? 'Hide password' : 'Show password'}
+                  style={{
+                    position: 'absolute',
+                    right: 6,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    padding: 4,
+                    height: 'auto',
+                    minHeight: 'unset',
+                    color: 'var(--fg-faint)',
+                  }}
+                >
+                  {showCbPassword ? <EyeOff size={14} aria-hidden="true" /> : <Eye size={14} aria-hidden="true" />}
+                </button>
+              </div>
             </div>
 
             <div className="form-group" style={{ marginBottom: 16 }}>
