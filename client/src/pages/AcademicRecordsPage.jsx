@@ -1733,9 +1733,11 @@ export default function AcademicRecordsPage({
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg-secondary)' }}>
                   View Semester:
                 </div>
-                <div className="report-card-filter-pills">
+                <div className="report-card-filter-pills" role="tablist" aria-label="Semester filter">
                   <button
                     type="button"
+                    role="tab"
+                    aria-selected={selectedSemesterFilter === 'ALL'}
                     className={`report-filter-btn ${selectedSemesterFilter === 'ALL' ? 'active' : ''}`}
                     onClick={() => setSelectedSemesterFilter('ALL')}
                   >
@@ -1745,6 +1747,8 @@ export default function AcademicRecordsPage({
                     <button
                       key={s?.semester || sIdx}
                       type="button"
+                      role="tab"
+                      aria-selected={selectedSemesterFilter === s?.semester}
                       className={`report-filter-btn ${selectedSemesterFilter === s?.semester ? 'active' : ''}`}
                       onClick={() => setSelectedSemesterFilter(s?.semester)}
                     >

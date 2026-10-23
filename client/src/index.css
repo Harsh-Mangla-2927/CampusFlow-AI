@@ -8253,12 +8253,13 @@ select.form-control option {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: var(--s4);
-  margin-top: var(--s6);
+  margin-top: var(--s5);
 }
 
 .report-card-hero-card {
   background: var(--bg-surface);
   border: 1px solid var(--border);
+  border-radius: var(--r-md);
   padding: var(--s5);
   display: flex;
   flex-direction: column;
@@ -8322,7 +8323,7 @@ select.form-control option {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   padding: 2px 7px;
-  border-radius: 3px;
+  border-radius: var(--r-sm);
   color: var(--fg-secondary);
 }
 
@@ -8343,10 +8344,11 @@ select.form-control option {
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  margin-top: var(--s6);
+  margin-top: var(--s5);
   padding: 10px 14px;
   background: var(--bg-surface);
   border: 1px solid var(--border);
+  border-radius: var(--r-md);
 }
 
 .report-card-filter-pills {
@@ -8362,7 +8364,7 @@ select.form-control option {
   color: var(--fg-secondary);
   font-size: 12px;
   font-weight: 600;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -8370,6 +8372,11 @@ select.form-control option {
 .report-filter-btn:hover {
   color: var(--fg-primary);
   border-color: var(--fg-muted);
+}
+
+.report-filter-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .report-filter-btn.active {
@@ -8382,13 +8389,14 @@ select.form-control option {
 .report-card-semesters-list {
   display: flex;
   flex-direction: column;
-  gap: var(--s6);
-  margin-top: var(--s5);
+  gap: var(--s5);
+  margin-top: var(--s4);
 }
 
 .report-card-semester-box {
   background: var(--bg-surface);
   border: 1px solid var(--border);
+  border-radius: var(--r-md);
   overflow: hidden;
 }
 
@@ -8427,7 +8435,7 @@ select.form-control option {
   padding: 3px 10px;
   background: var(--bg-surface);
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   font-size: 12px;
 }
 
@@ -8470,6 +8478,10 @@ select.form-control option {
   vertical-align: middle;
 }
 
+.report-card-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
 .report-card-table tbody tr:hover {
   background: var(--bg-elevated);
 }
@@ -8481,7 +8493,7 @@ select.form-control option {
   padding: 2px 7px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
-  border-radius: 3px;
+  border-radius: var(--r-sm);
   color: var(--accent);
 }
 
@@ -8497,18 +8509,19 @@ select.form-control option {
   font-size: 12px;
   font-weight: 800;
   padding: 3px 10px;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   min-width: 32px;
   text-align: center;
 }
 
 /* University Disclaimer & Notes Card */
 .university-notes-card {
-  margin-top: var(--s6);
+  margin-top: var(--s5);
   padding: var(--s5);
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-left: 3px solid var(--accent);
+  border-radius: var(--r-md);
 }
 
 .university-notes-header {
