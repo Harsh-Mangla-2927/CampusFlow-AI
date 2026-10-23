@@ -9157,3 +9157,68 @@ select.form-control option {
   scrollbar-width: thin;
   scrollbar-color: var(--border-strong, #2a2a2a) var(--bg-canvas, #0a0a0a);
 }
+
+/* ═══════════════════════════════════════════════════════
+   PRINT STYLESHEET (ACADEMIC RECORDS & TRANSCRIPTS)
+═══════════════════════════════════════════════════════ */
+@media print {
+  body, html {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .sidebar,
+  .topbar,
+  .academic-subnav,
+  .academic-subnav-pills,
+  .btn,
+  button,
+  .report-card-actions,
+  .report-card-print-hide,
+  .footer,
+  .toast-container {
+    display: none !important;
+  }
+
+  .main-content,
+  .academic-records-page,
+  .report-card-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+
+  .report-card-table-card,
+  .attendance-card,
+  .academic-hero {
+    background: #ffffff !important;
+    border: 1px solid #cccccc !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  th, td {
+    color: #000000 !important;
+    border-color: #dddddd !important;
+  }
+
+  th {
+    background: #f4f4f4 !important;
+    font-weight: 700 !important;
+  }
+
+  a {
+    text-decoration: none !important;
+    color: #000000 !important;
+  }
+}
