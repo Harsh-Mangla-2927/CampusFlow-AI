@@ -23,13 +23,24 @@ function validateEnv() {
     errors.push('Neither MONGODB_URI nor MONGODB_LOCAL_URI is defined.');
   }
 
-  // 3. Production specific checks
+  // 3. Port validation
+  if (process.env.PORT) {
+    const portNum = Number(process.env.PORT);
+    if (!Number.isInteger(portNum) || portNum < 1 || portNum > 65535) {
+      errors.push(`PORT must be a valid integer between 1 and 65535. Received: "${process.env.PORT}".`);
+    }
+  }
+
+  // 4. Production specific checks
   if (isProduction) {
     if (!process.env.CLIENT_URL) {
       warnings.push('CLIENT_URL is not set in production; CORS will allow requests cautiously.');
     }
     if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
       warnings.push('SMTP credentials are not configured. Live OTP emails will not dispatch.');
+    }
+    if (!process.env.SESSION_SECRET && !process.env.JWT_SECRET) {
+      warnings.push('No separate SESSION_SECRET defined; falling back to JWT_SECRET for session hashing.');
     }
   }
 
