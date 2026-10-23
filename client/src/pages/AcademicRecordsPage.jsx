@@ -530,7 +530,14 @@ export default function AcademicRecordsPage({
   const filteredSessions = useMemo(() => {
     if (!registerData?.sessions) return [];
     if (registerFilter === 'ALL') return registerData.sessions;
-    return registerData.sessions.filter(s => s.status === registerFilter);
+    const filterNorm = registerFilter.toUpperCase();
+    return registerData.sessions.filter(s => {
+      const statusNorm = String(s?.status || '').toUpperCase().trim();
+      if (filterNorm === 'PRESENT') return statusNorm === 'PRESENT' || statusNorm === 'P';
+      if (filterNorm === 'ABSENT') return statusNorm === 'ABSENT' || statusNorm === 'A';
+      if (filterNorm === 'DUTY LEAVE' || filterNorm === 'DL') return statusNorm.includes('DUTY') || statusNorm === 'DL';
+      return statusNorm === filterNorm;
+    });
   }, [registerData, registerFilter]);
 
   // Derived Attendance Data with bulletproof normalization
@@ -2218,8 +2225,8 @@ export default function AcademicRecordsPage({
       >
         <div className="register-modal-content">
           <div className="register-filter-bar">
-            <div style={{ display: 'flex', gap: 6 }}>
-              {['ALL', 'PRESENT', 'ABSENT'].map(f => (
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {['ALL', 'PRESENT', 'ABSENT', 'DUTY LEAVE'].map(f => (
                 <button
                   key={f}
                   type="button"
@@ -2257,7 +2264,10 @@ export default function AcademicRecordsPage({
                 </thead>
                 <tbody>
                   {(filteredSessions || []).map((session, sIdx) => {
-                    const isPresent = session?.status === 'PRESENT';
+                    const statusNorm = String(session?.status || '').toUpperCase().trim();
+                    const isPresent = statusNorm === 'PRESENT' || statusNorm === 'P';
+                    const isDutyLeave = statusNorm.includes('DUTY') || statusNorm === 'DL';
+                    const badgeClass = isPresent ? 'badge-success' : isDutyLeave ? 'badge-info' : 'badge-danger';
                     return (
                       <tr key={session?._id || sIdx}>
                         <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
@@ -2274,7 +2284,7 @@ export default function AcademicRecordsPage({
                         </td>
                         <td style={{ textAlign: 'right' }}>
                           <span
-                            className={`badge ${isPresent ? 'badge-success' : 'badge-danger'}`}
+                            className={`badge ${badgeClass}`}
                             style={{ fontSize: 11 }}
                           >
                             {session?.status || 'UNKNOWN'}
