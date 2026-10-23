@@ -36,7 +36,8 @@ import {
   ArrowUpRight,
   Eye,
   RotateCcw,
-  Copy
+  Copy,
+  X
 } from 'lucide-react';
 import { attendanceAPI, subjectsAPI, recordsAPI } from '../services/api';
 import { Modal, LoadingState, ErrorState, EmptyState } from '../components/SharedComponents';
@@ -1962,7 +1963,7 @@ export default function AcademicRecordsPage({
 
           {/* Filter & Search Bar */}
           <div className="circulars-filter-bar">
-            <div className="circulars-search-box">
+            <div className="circulars-search-box" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
               <Search size={14} className="search-icon" aria-hidden="true" />
               <input
                 type="text"
@@ -1971,7 +1972,29 @@ export default function AcademicRecordsPage({
                 value={circularsSearch}
                 onChange={(e) => setCircularsSearch(e.target.value)}
                 id="input-search-circulars"
+                aria-label="Search circulars by title, topic, or ref"
               />
+              {circularsSearch && (
+                <button
+                  type="button"
+                  onClick={() => setCircularsSearch('')}
+                  aria-label="Clear circulars search query"
+                  title="Clear search"
+                  className="btn btn-ghost"
+                  style={{
+                    position: 'absolute',
+                    right: 8,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    padding: 4,
+                    height: 'auto',
+                    minHeight: 'unset',
+                    color: 'var(--fg-faint)',
+                  }}
+                >
+                  <X size={12} aria-hidden="true" />
+                </button>
+              )}
             </div>
 
             <div className="circulars-category-pills" role="radiogroup" aria-label="Circular Category Filter">
