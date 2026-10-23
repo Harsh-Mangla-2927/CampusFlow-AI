@@ -39,7 +39,7 @@ export function ErrorState({ message, onRetry }) {
 /* ── EMPTY STATE ────────────────────────────────────────── */
 export function EmptyState({ icon, title, description, action }) {
   return (
-    <div className="state-wrapper">
+    <div className="state-wrapper" role="region" aria-label={title || 'Empty state'}>
       {icon && (
         <div className="state-icon" aria-hidden="true">{icon}</div>
       )}
@@ -116,16 +116,28 @@ export function StatCard({ label, value, accentColor, icon, detail }) {
 
 /* ── PROGRESS BAR ───────────────────────────────────────── */
 export function ProgressBar({ value = 0, color = 'var(--accent)', label }) {
-  const clamped = Math.min(100, Math.max(0, value));
+  const numericVal = typeof value === 'number' ? value : parseFloat(value);
+  const safeVal = Number.isFinite(numericVal) ? numericVal : 0;
+  const clamped = Math.min(100, Math.max(0, safeVal));
+  const rounded = Math.round(clamped);
+
   return (
     <div>
       {label && (
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
           <span style={{ fontSize: 12, color: 'var(--fg-muted)' }}>{label}</span>
-          <span style={{ fontSize: 12, fontWeight: 700, color, fontFamily: 'var(--font-mono)' }}>{Math.round(clamped)}%</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color, fontFamily: 'var(--font-mono)' }}>{rounded}%</span>
         </div>
       )}
-      <div className="progress-bar-wrapper" role="progressbar" aria-valuenow={clamped} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
+      <div
+        className="progress-bar-wrapper"
+        role="progressbar"
+        aria-valuenow={rounded}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuetext={`${rounded}%`}
+        aria-label={label || 'Progress'}
+      >
         <div
           className="progress-bar-fill"
           style={{ width: `${clamped}%`, background: color }}
