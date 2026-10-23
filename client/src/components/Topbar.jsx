@@ -52,17 +52,18 @@ function Topbar({ activePage, onMobileToggle, mobileOpen, user, onNavigate }) {
         </button>
 
         {/* Restrained breadcrumb navigation to eliminate repeated page headings */}
-        <div className="topbar-breadcrumb" aria-label="Breadcrumb">
+        <nav className="topbar-breadcrumb" aria-label="Breadcrumb">
           <span className="topbar-breadcrumb-section">{meta.section}</span>
           <ChevronRight size={12} className="topbar-breadcrumb-sep" aria-hidden="true" />
           <span className="topbar-breadcrumb-current" aria-current="page">{meta.title}</span>
-        </div>
+        </nav>
       </div>
 
       <div className="topbar-right">
         {health !== null && (
           <div
             className="health-badge"
+            role="status"
             title="Academic Health Score based on attendance, pending tasks, and exams"
             aria-label={`Academic health: ${health}%`}
           >
@@ -82,16 +83,17 @@ function Topbar({ activePage, onMobileToggle, mobileOpen, user, onNavigate }) {
         {user && onNavigate && (
           <button
             type="button"
+            id="topbar-user-pill"
             className="topbar-user-pill"
             onClick={() => onNavigate('profile')}
             title="Account Profile"
-            aria-label="View user profile"
+            aria-label={`View ${user.name || 'Account'} profile`}
           >
             <div className="topbar-user-avatar" aria-hidden="true">
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
-                  alt={user.name || 'User'}
+                  alt=""
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 />
