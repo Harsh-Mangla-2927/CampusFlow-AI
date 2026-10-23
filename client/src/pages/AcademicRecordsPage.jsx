@@ -983,126 +983,115 @@ export default function AcademicRecordsPage({
             <ErrorState message={error} onRetry={() => fetchSummary(threshold)} />
           ) : (
             <>
-              {/* 1. HERO AGGREGATE CARD (Circular Gauge & Stat Metrics) */}
-              <div className="attendly-hero-grid">
-                {/* Circular Percentage */}
-                <div className="attendly-circle-container">
-                  <div className="attendly-circle-svg-wrapper">
-                    <svg width={radius * 2} height={radius * 2}>
-                      <circle
-                        stroke="var(--bg-elevated)"
-                        fill="transparent"
-                        strokeWidth={stroke}
-                        r={normalizedRadius}
-                        cx={radius}
-                        cy={radius}
-                      />
-                      <circle
-                        stroke={overall.standing?.color || overall.color || 'var(--accent)'}
-                        fill="transparent"
-                        strokeWidth={stroke}
-                        strokeDasharray={`${circumference} ${circumference}`}
-                        style={{ strokeDashoffset, transition: 'stroke-dashoffset 0.8s ease' }}
-                        strokeLinecap="round"
-                        r={normalizedRadius}
-                        cx={radius}
-                        cy={radius}
-                      />
-                    </svg>
-
-                    <div className="attendly-circle-center-text">
-                      <div className="attendly-circle-pct">{overall.percentage}%</div>
-                      <div className="attendly-circle-label">Aggregate Attendance</div>
+              {/* 1. COMPACT EXECUTIVE ATTENDANCE SUMMARY */}
+              <div className="attendly-summary-compact">
+                <div className="attendly-summary-top-row">
+                  {/* Overall Percentage + Status Badge */}
+                  <div className="attendly-summary-pct-block">
+                    <div
+                      className="attendly-summary-pct-huge"
+                      style={{
+                        color: overall.totalConducted === 0
+                          ? 'var(--fg-faint)'
+                          : overall.percentage >= threshold
+                            ? 'var(--success, #10B981)'
+                            : 'var(--danger, #EF4444)'
+                      }}
+                    >
+                      {overall.percentage}%
+                    </div>
+                    <div className="attendly-summary-pct-meta">
+                      <span className="attendly-summary-pct-label">Aggregate Standing</span>
+                      <span className={`badge ${overall.badgeClass}`}>
+                        {overall.standingLabel}
+                      </span>
                     </div>
                   </div>
 
-                  <div className="attendly-hero-badge-wrap">
-                    <span className={`badge ${overall.standing?.badgeClass || overall.badgeClass || 'badge-neutral'}`}>
-                      {overall.standing?.label || overall.standingLabel || 'Attendance'}
+                  {/* Attended / Conducted / Missed Counts */}
+                  <div className="attendly-summary-metrics-strip">
+                    <div className="attendly-summary-metric">
+                      <span className="attendly-summary-metric-label">Attended</span>
+                      <span className="attendly-summary-metric-val text-success">
+                        {overall.totalAttended}
+                      </span>
+                    </div>
+                    <div className="attendly-summary-metric">
+                      <span className="attendly-summary-metric-label">Conducted</span>
+                      <span className="attendly-summary-metric-val">
+                        {overall.totalConducted}
+                      </span>
+                    </div>
+                    <div className="attendly-summary-metric">
+                      <span className="attendly-summary-metric-label">Missed</span>
+                      <span className={`attendly-summary-metric-val ${overall.totalMissed > 0 ? 'text-danger' : 'text-neutral'}`}>
+                        {overall.totalMissed}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Target Threshold Controls */}
+                  <div className="attendly-summary-threshold-col">
+                    <span className="attendly-summary-threshold-label">
+                      Target Threshold: <strong style={{ color: 'var(--fg-primary)' }}>{threshold}%</strong>
                     </span>
+                    <div className="attendly-threshold-pills" role="radiogroup" aria-label="Target Attendance Threshold">
+                      {[75, 80, 85].map(t => (
+                        <button
+                          key={t}
+                          type="button"
+                          className={`attendly-pill-btn ${threshold === t ? 'active' : ''}`}
+                          onClick={() => handleThresholdChange(t)}
+                          aria-checked={threshold === t}
+                          role="radio"
+                        >
+                          {t}%
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
-                {/* Stat Metrics & Quick Safety Calculation */}
-                <div className="attendly-hero-details">
-                  <div className="attendly-stats-row">
-                    <div className="attendly-stat-box">
-                      <div className="attendly-stat-title">Classes Attended</div>
-                      <div className="attendly-stat-value text-success">{overall.totalAttended}</div>
-                      <div className="attendly-stat-hint">Delivered lectures present</div>
-                    </div>
-
-                    <div className="attendly-stat-box">
-                      <div className="attendly-stat-title">Total Conducted</div>
-                      <div className="attendly-stat-value">{overall.totalConducted}</div>
-                      <div className="attendly-stat-hint">Across {subjects.length} active courses</div>
-                    </div>
-
-                    <div className="attendly-stat-box">
-                      <div className="attendly-stat-title">Classes Missed</div>
-                      <div className="attendly-stat-value text-danger">{overall.totalMissed}</div>
-                      <div className="attendly-stat-hint">Absences recorded</div>
-                    </div>
+                {/* Bottom Recommendation & Direct Simulator Jump */}
+                <div className="attendly-summary-bottom-row">
+                  <div className="attendly-summary-status-pill">
+                    {overall.totalConducted === 0 ? (
+                      <>
+                        <Info size={14} className="text-neutral" aria-hidden="true" />
+                        <span style={{ color: 'var(--fg-muted)' }}>
+                          No class sessions registered yet. Mark classes or connect Code Brigade to track attendance.
+                        </span>
+                      </>
+                    ) : overall.percentage < threshold ? (
+                      <>
+                        <AlertTriangle size={14} className="text-danger" aria-hidden="true" />
+                        <span>
+                          <strong className="text-danger">Attendance Shortfall:</strong> {overall.recoveryMessage}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 size={14} className="text-success" aria-hidden="true" />
+                        <span>
+                          <strong className="text-success">Safety Margin:</strong> {overall.canMissMessage}
+                        </span>
+                      </>
+                    )}
                   </div>
 
-                  {/* Dynamic Threshold & Action Advice */}
-                  <div className="attendly-threshold-control">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span className="attendly-stat-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Sliders size={13} aria-hidden="true" />
-                        Target Threshold: <strong>{threshold}%</strong>
-                      </span>
-                      <div className="attendly-threshold-pills">
-                        {[75, 80, 85].map(t => (
-                          <button
-                            key={t}
-                            type="button"
-                            className={`attendly-pill-btn ${threshold === t ? 'active' : ''}`}
-                            onClick={() => handleThresholdChange(t)}
-                          >
-                            {t}%
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Actionable Recovery Advice */}
-                    <div className="attendly-recovery-banner">
-                      {overall.totalConducted === 0 ? (
-                        <div className="attendly-recovery-text text-neutral">
-                          <Info size={14} aria-hidden="true" />
-                          <span>No class sessions registered yet. Mark classes or connect Code Brigade to track attendance.</span>
-                        </div>
-                      ) : overall.percentage < threshold ? (
-                        <div className="attendly-recovery-text text-danger">
-                          <AlertTriangle size={15} aria-hidden="true" />
-                          <span>
-                            <strong>Attendance Shortfall:</strong> {overall.recovery?.message || overall.recoveryMessage || 'Attendance shortfall detected.'}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="attendly-recovery-text text-success">
-                          <CheckCircle2 size={15} aria-hidden="true" />
-                          <span>
-                            <strong>Safety Margin:</strong> {overall.canMiss?.message || overall.canMissMessage || 'Attendance safety margin active.'}
-                          </span>
-                        </div>
-                      )}
-
-                      <button
-                        className="btn btn-ghost btn-xs"
-                        onClick={() => {
-                          setCalcSubjectId('OVERALL');
-                          setCalcTarget(threshold);
-                          const el = document.getElementById('attendance-calculator-section');
-                          el?.scrollIntoView({ behavior: 'smooth' });
-                        }}
-                      >
-                        <Calculator size={12} aria-hidden="true" />
-                        Open Bunk Simulator
-                      </button>
-                    </div>
-                  </div>
+                  <button
+                    type="button"
+                    className="attendly-summary-action-link"
+                    onClick={() => {
+                      setCalcSubjectId('OVERALL');
+                      setCalcTarget(threshold);
+                      const el = document.getElementById('attendance-calculator-section');
+                      el?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                  >
+                    <Calculator size={12} aria-hidden="true" />
+                    Open Bunk Simulator
+                  </button>
                 </div>
               </div>
 
@@ -1160,22 +1149,31 @@ export default function AcademicRecordsPage({
                           </div>
                         </div>
 
-                        {/* Progress Bar with Threshold Marker */}
+                        {/* Progress Bar with Mathematically Aligned Threshold Marker */}
                         <div className="attendly-progress-wrapper">
                           <div className="attendly-progress-track">
                             <div
                               className="attendly-progress-fill"
                               style={{
-                                width: `${Math.min(100, subjPct)}%`,
-                                background: subj.colorHex || 'var(--accent)',
+                                width: `${Math.min(100, Math.max(0, subjPct))}%`,
+                                background: subj.totalClasses === 0
+                                  ? 'var(--fg-faint)'
+                                  : subjPct >= threshold
+                                    ? 'var(--success, #10B981)'
+                                    : 'var(--danger, #EF4444)',
                               }}
                             />
                             {/* Visual Threshold Marker */}
                             <div
                               className="attendly-threshold-indicator"
                               style={{ left: `${threshold}%` }}
-                              title={`Target Threshold: ${threshold}%`}
+                              title={`Target: ${threshold}%`}
                             />
+                          </div>
+                          <div className="attendly-progress-labels">
+                            <span>0%</span>
+                            <span className="attendly-threshold-label">Target {threshold}%</span>
+                            <span>100%</span>
                           </div>
                         </div>
 
@@ -1209,11 +1207,11 @@ export default function AcademicRecordsPage({
                             <span className="text-muted">No lectures delivered yet</span>
                           ) : isShort ? (
                             <span className="text-danger">
-                              Attend next <strong>{subj.classesNeededForThreshold}</strong> classes to reach {threshold}%
+                              Attend next <strong>{subj.classesNeededForThreshold}</strong> {subj.classesNeededForThreshold === 1 ? 'consecutive class' : 'consecutive classes'} to reach {threshold}%
                             </span>
                           ) : (
                             <span className="text-success">
-                              Can safely miss <strong>{subj.classesCanMiss}</strong> classes
+                              Can safely miss <strong>{subj.classesCanMiss}</strong> {subj.classesCanMiss === 1 ? 'consecutive class' : 'consecutive classes'}
                             </span>
                           )}
                         </div>
